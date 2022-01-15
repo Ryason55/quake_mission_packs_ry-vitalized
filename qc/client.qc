@@ -1345,12 +1345,6 @@ void() PutClientInServer =
 	}
 
 	spawn_tdeath (self.origin, self);
-  
-  bprint("Player ");
-  bprint(self.netname);
-  bprint(": ");
-  bprint(ftos(self.flags));
-  bprint("\n");
 };
 
 
