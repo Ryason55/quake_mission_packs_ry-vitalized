@@ -520,6 +520,8 @@ float	AS_MISSILE		= 4;
 
 .float    firstspawn; //Ry: First time player has spawned in the map, for giving additional weapons in Co-op
 
+.float    lastfiredweapon; //Ry: To better track what bots are firing, since they switch weapons faster than their recoil
+
 .float    fired_weapon; //Ry: For ID1 achievements
 .float    took_damage;
 

@@ -118,17 +118,12 @@ void(entity targ, entity attacker) Killed =
     {
       if (attacker.classname != "player") //Ry: In case Armagon suicides with rockets
         attacker = self.lastdamager;
+      local float killerfrags = 2;
+      local entity killer = attacker; //Ry: Store killing player separately, since it could be a charmed monster that got the final hit
+      if (killer.charmer)
+        killer = killer.charmer;
       bprint("Armagon was bested by ");
-      if (attacker.charmer) //Ry: Charmed monster
-      {
-        ClientAwardFrag(self,attacker.charmer,attacker,2); //Ry: Award 2 frags and show message
-        bprint(attacker.charmer.netname);
-      }
-      else //Ry: The player directly
-      {
-        ClientAwardFrag(self,attacker,attacker,2); //Ry: Award 2 frags and show message
-        bprint(attacker.netname);
-      }
+      bprint(killer.netname);
       bprint("\n");
       
       local float playercount = 0;
@@ -159,36 +154,55 @@ void(entity targ, entity attacker) Killed =
       
       if (player1 && playercount > 1)
       {
-        bprint("Most damage from ");
+        bprint(" Most damage from ");
         bprint(player1.netname);
         
         if ( !player2 || (player1.bossdamage >= player2.bossdamage * 3) ) //Ry: Player 1 gets all the points
-          player1.frags = player1.frags + 3;
+          if (player1 == killer) //Ry: If the killer also did enough damage to be top 3, store the frags and add them after
+            killerfrags = killerfrags + 3;
+          else
+            ClientAwardFrag(self,player1,killer,3);
         else if (!player3 || (player1.bossdamage >= player2.bossdamage * 2)) //Ry: Player 1 gets 2 points, Player 2 gets 1
         {
-          player1.frags = player1.frags + 2;
+          if (player1 == killer)
+            killerfrags = killerfrags + 2;
+          else
+            ClientAwardFrag(self,player1,killer,2);
           if (player2)
           {
             bprint(" and ");
             bprint(player2.netname);
-            player2.frags = player2.frags + 1;
+            if (player2 == killer)
+              killerfrags = killerfrags + 1;
+            else
+              ClientAwardFrag(self,player2,killer,1);
           }
         }
         else //Ry: Even distribution between 3 players
         {
-          player1.frags = player1.frags + 1;
+          if (player1 == killer)
+            killerfrags = killerfrags + 1;
+          else
+            ClientAwardFrag(self,player1,killer,1);
 
           bprint(", ");
           bprint(player2.netname);
-          player2.frags = player2.frags + 1;
+          if (player2 == killer)
+            killerfrags = killerfrags + 1;
+          else
+            ClientAwardFrag(self,player2,killer,1);
 
           bprint(", and ");
           bprint(player3.netname);
-          player3.frags = player3.frags + 1;
+          if (player3 == killer)
+            killerfrags = killerfrags + 1;
+          else
+            ClientAwardFrag(self,player3,killer,1);
 
         }
         bprint("\n");
       }  
+      ClientAwardFrag(self,killer,attacker,killerfrags); //Ry: Award accumulated frags to the killer
     }
 
 		if (((attacker != self) && (attacker.flags & FL_MONSTER))) //Ry: And I guess the achievement too

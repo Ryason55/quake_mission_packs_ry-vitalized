@@ -1237,14 +1237,16 @@ void() PutClientInServer =
   self.lastfragtime = -100;
   self.fragcombo = 0;
   //self.fragstreak = 0;
-  if (self.fragmessageshowing)
+  if (!(self.flags & FL_ISBOT) && self.fragmessageshowing)
     centerprint(self,"");
   self.fragmessageshowing = 0;
 
-  if (!self.playerindex) //Ry: Assign player index if not assigned, and increment for next one
-    AssignPlayerIndex();
-  if (!deathmatch) //Ry: Put all players in Co-op on the same team
-    self.team = 1;
+  if (!deathmatch)
+  {
+    if (!self.playerindex) //Ry: Assign player index if not assigned, and increment for next one
+      AssignPlayerIndex();
+    self.team = 1; //Ry: Put all players in Co-op on the same team
+  }
 
 	DecodeLevelParms ();
   
@@ -1779,7 +1781,7 @@ void() PlayerPreThink =
   if (!self.deadflag && self.justrespawned && !self.button0) //Ry: Allow player to shoot again after releasing fire after respawning
     self.justrespawned = FALSE;
   
-  if (self.fragmessageshowing && time >= self.lastfragtime + 3) //Ry: Check if last frag message is still showing
+  if (!(self.flags & FL_ISBOT) && self.fragmessageshowing && (time >= self.lastfragtime + 3)) //Ry: Check if last frag message is still showing
   {
     centerprint(self,"");
     self.fragmessageshowing = 0;
@@ -2264,8 +2266,8 @@ void() ClientDisconnect =
   }
 	bprint (ftos(self.frags));
 	bprint (" frags\n");
-  if (self.flags & FL_CLIENT) //Ry: Remove client status from entity
-    self.flags = self.flags - FL_CLIENT;
+  //if (self.flags & FL_CLIENT) //Ry: Remove client status from entity (Why did I do this???)
+  //  self.flags = self.flags - FL_CLIENT;
 	sound (self, CHAN_BODY, "player/tornoff2.wav", 1, ATTN_NONE);
 	set_suicide_frame ();
 };
@@ -2338,10 +2340,13 @@ void(entity targ, entity attacker, entity inflictor, float add) ClientAwardFrag 
       //    streakmessage = "\n[FRENETIC]";
       //}
       
-      if ((attacker != inflictor) && inflictor.netname) //Ry: A summoned monster got the kill
-        centerprint(attacker,inflictor.netname," fragged ",targ.netname,addedfrags,combomessage);
+      if ((attacker != inflictor) && inflictor.netname)
+        if (inflictor.flags & FL_CLIENT) //Ry: A different player got the kill
+          centerprint(attacker,"You assisted with fragging ",targ.netname,addedfrags,combomessage);
+        else //Ry: A summoned monster got the kill
+          centerprint(attacker,"Your ",inflictor.netname," fragged ",targ.netname,addedfrags,combomessage);
       else
-        centerprint(attacker,"You fragged ",targ.netname,combomessage);
+        centerprint(attacker,"You fragged ",targ.netname,addedfrags,combomessage);
       attacker.fragmessageshowing = 1;
       attacker.lastfragtime = time;
     }
@@ -2422,7 +2427,7 @@ void(entity targ, entity attacker) ClientObituary =
           return;
         }
 
-				if ( ((targ.weapon == IT_LIGHTNING) && (targ.waterlevel > 1)) || ((targ.weapon == IT_MJOLNIR) && (targ.waterlevel > 0)) ) //Ry: Added Mjolnir
+				if ( targ.deathtype == "discharge" ) //Ry: Now uses deathtype instead
 				{
 					bprint (" discharges into the water.\n");
 					return;
@@ -2547,7 +2552,7 @@ void(entity targ, entity attacker) ClientObituary =
           //  bprint(targ.dmg_inflictor.classname);
           //  bprint("\n");
           //}
-          rnum = attacker.weapon;
+          rnum = attacker.lastfiredweapon; //Ry: Use what weapon was last fired, since bots can change weapons faster than the recoil
           if (rnum == IT_AXE)
           {
             deathstring = " was ax-murdered by ";
@@ -2566,7 +2571,7 @@ void(entity targ, entity attacker) ClientObituary =
           if (rnum == IT_LIGHTNING)
           {
             deathstring = " accepts ";
-            if (attacker.waterlevel > 1)
+            if (attacker.deathtype == "discharge") //Ry: Use deathtype for this
             {
               deathstring2 = "'s discharge\n";
               if (attacker.invincible_finished || attacker.wetsuit_finished) //Ry: Discharge achievement stuff
@@ -2582,7 +2587,7 @@ void(entity targ, entity attacker) ClientObituary =
   //MED
           if (rnum == IT_MJOLNIR)
           {
-            if (attacker.waterlevel > 0) //Ry: Message for discharging with Mjolnir
+            if (attacker.deathtype == "discharge") //Ry: Message for discharging with Mjolnir (also use deathtype)
             {
               deathstring = " accepts ";
               deathstring2 = "'s discharge\n";
@@ -2615,112 +2620,121 @@ void(entity targ, entity attacker) ClientObituary =
       if (targ.lastdamager.charmer) //Ry: Killed by a charmed monster
       {
         if (targ == targ.lastdamager.charmer) //Ry: Killed by own monster
+        {
           targ.frags = targ.frags - 1;
+          bprint (targ.netname);
+          bprint (" was killed by their own monster\n");
+          return;
+        }
         else
           ClientAwardFrag(targ,targ.lastdamager.charmer,targ.lastdamager,1); //Ry: PvP frags are now added in this function
         
-        bprint (targ.netname);
+        deathstring = " was killed by ";
+        deathstring2 = "'s monster\n";
 				if (attacker.classname == "monster_army")
         {
-					bprint (" was shot by a Grunt\n");
-          return;
+          deathstring = " was shot by ";
+          deathstring2 = "'s Grunt\n";
         }
 				else if (attacker.classname == "monster_demon1")
         {
-					bprint (" was eviscerated by a Fiend\n");
-          return;
+          deathstring = " was eviscerated by ";
+          deathstring2 = "'s Fiend\n";
         }
 				else if (attacker.classname == "monster_dog")
         {
-					bprint (" was mauled by a Rottweiler\n");
-          return;
+          deathstring = " was mauled by ";
+          deathstring2 = "'s Rottweiler\n";
         }
 				else if (attacker.classname == "monster_dragon")
         {
-					bprint (" was fried by a Dragon\n");
-          return;
+          deathstring = " was fried by ";
+          deathstring2 = "'s Dragon\n";
         }
 				else if (attacker.classname == "monster_enforcer")
         {
-					bprint (" was blasted by an Enforcer\n");
-          return;
+          deathstring = " was blasted by ";
+          deathstring2 = "'s Enforcer\n";
         }
 				else if (attacker.classname == "monster_fish")
         {
-					bprint (" was fed to the Rotfish\n");
-          return;
+          deathstring = " was fed to ";
+          deathstring2 = "'s Rotfish\n";
         }
 				else if (attacker.classname == "monster_hell_knight")
         {
-					bprint (" was slain by a Death Knight\n");
-          return;
+          deathstring = " was slain by ";
+          deathstring2 = "'s Death Knight\n";
         }
 				else if (attacker.classname == "monster_knight")
         {
-					bprint (" was slashed by a Knight\n");
-          return;
+          deathstring = " was slashed by ";
+          deathstring2 = "'s Knight\n";
         }
 				else if (attacker.classname == "monster_ogre")
         {
-					bprint (" was destroyed by an Ogre\n");
-          return;
+          deathstring = " was destroyed by ";
+          deathstring2 = "'s Ogre\n";
         }
 				else if (attacker.classname == "monster_oldone")
         {
-					bprint (" became one with Shub-Niggurath\n");
-          return;
+          deathstring = " became one with ";
+          deathstring2 = "'s Shub-Niggurath\n"; //Ry: Take home your very own Shub today
         }
 				else if (attacker.classname == "monster_shalrath")
         {
-					bprint (" was exploded by a Vore\n");
-          return;
+          deathstring = " was exploded by ";
+          deathstring2 = "'s Vore\n";
         }
 				else if (attacker.classname == "monster_shambler")
         {
-					bprint (" was smashed by a Shambler\n");
-          return;
+          deathstring = " was smashed by ";
+          deathstring2 = "'s Shambler\n";
         }
 				else if (attacker.classname == "monster_tarbaby")
         {
-					bprint (" was slimed by a Spawn\n");
-          return;
+          deathstring = " was slimed by ";
+          deathstring2 = "'s Spawn\n";
         }
 				else if (attacker.classname == "monster_vomit")
         {
-					bprint (" was vomited on by a Vomitus\n");
-          return;
+          deathstring = " was vomited on by ";
+          deathstring2 = "'s Vomitus\n";
         }
 				else if (attacker.classname == "monster_wizard")
         {
-					bprint (" was scragged by a Scrag\n");
-          return;
+          deathstring = " was scragged by ";
+          deathstring2 = "'s Scrag\n";
         }
 				else if (attacker.classname == "monster_zombie")
         {
-					bprint (" joins the Zombies\n");
-          return;
+          deathstring = " joins ";
+          deathstring2 = "'s Zombie\n";
         }
         else if (attacker.classname == "monster_gremlin")
         {
-          bprint (" was outsmarted by a Gremlin\n");
-          return;
+          deathstring = " was outsmarted by ";
+          deathstring2 = "'s Gremlin\n";
         }
         else if (attacker.classname == "monster_scourge")
         {
-          bprint (" was stung by a Centroid\n");
-          return;
+          deathstring = " was stung by ";
+          deathstring2 = "'s Centroid\n";
         }
         else if (attacker.classname == "monster_armagon")
         {
-          bprint (" was outgunned by Armagon\n");
-          return;
+          deathstring = " was outgunned by ";
+          deathstring2 = "'s Armagon\n";
         }
         else if (attacker.classname == "trap_spike_mine") //Ry: Not normally considered a monster in code
         {
-          bprint (" was blasted by a Spike Mine\n");
-          return;
+          deathstring = " was blasted by ";
+          deathstring2 = "'s Spike Mine\n";
         }
-        bprint (" was killed by a monster\n");
+        bprint (targ.netname);
+        bprint (deathstring);
+        bprint (targ.lastdamager.charmer.netname);
+        bprint (deathstring2);
         return;
       }
       else
@@ -2762,7 +2776,7 @@ void(entity targ, entity attacker) ClientObituary =
         
         if (attacker.solid == SOLID_BSP && attacker != world)
         {
-          bprint (" ended up getting crushed due to ");
+          bprint (" got crushed due to ");
           bprint (targ.lastdamager.netname);
           bprint ("\n");
           return;

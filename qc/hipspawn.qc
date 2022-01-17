@@ -183,9 +183,8 @@ void() spawn_use =
          WriteLong (MSG_BROADCAST, total_monsters);
          }
       // spawn the telefrag effect
-      //if (self.spawnsilent == 0 && deathmatch)
-      //   spawn_tdeath(spawnentity.origin, spawnentity);
-      if (horn_active && !deathmatch) //Ry: Disable the charmed effect in DM
+      spawn_tdeath(spawnentity.origin, spawnentity); //Ry: Actually spawn the telefrag effect (It was originally commented out; Hope there's no problems)
+      if (horn_active && !deathmatch) //Ry: Disable the visual charmed effect in DM
          {
          spawnentity.effects = spawnentity.effects | EF_DIMLIGHT;
 //         spawnentity.effects = spawnentity.effects | EF_BRIGHTFIELD;

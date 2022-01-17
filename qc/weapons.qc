@@ -1714,6 +1714,7 @@ void() W_Attack =
 
 	if (self.weapon == IT_AXE)
 	{
+    self.lastfiredweapon = IT_AXE; //Ry: Track which weapon was last fired
 		sound (self, CHAN_WEAPON, "weapons/ax1.wav", 1, ATTN_NORM);
 		r = random();
 		if (r < 0.25)
@@ -1728,38 +1729,45 @@ void() W_Attack =
 	}
 	else if (self.weapon == IT_SHOTGUN)
 	{
+    self.lastfiredweapon = IT_SHOTGUN;
 		player_shot1 ();
 		W_FireShotgun ();
 		self.attack_finished = time + 0.5;
 	}
 	else if (self.weapon == IT_SUPER_SHOTGUN)
 	{
+    self.lastfiredweapon = IT_SUPER_SHOTGUN;
 		player_shot1 ();
 		W_FireSuperShotgun ();
 		self.attack_finished = time + 0.7;
 	}
 	else if (self.weapon == IT_NAILGUN)
 	{
+    self.lastfiredweapon = IT_NAILGUN;
 		player_nail1 ();
 	}
 	else if (self.weapon == IT_SUPER_NAILGUN)
 	{
+    self.lastfiredweapon = IT_SUPER_NAILGUN;
 		player_nail1 ();
 	}
 	else if (self.weapon == IT_GRENADE_LAUNCHER)
 	{
+    self.lastfiredweapon = IT_GRENADE_LAUNCHER;
 		player_rocket1();
 		W_FireGrenade();
 		self.attack_finished = time + 0.6;
 	}
 	else if (self.weapon == IT_ROCKET_LAUNCHER)
 	{
+    self.lastfiredweapon = IT_ROCKET_LAUNCHER;
 		player_rocket1();
 		W_FireRocket();
 		self.attack_finished = time + 0.8;
 	}
 	else if (self.weapon == IT_LIGHTNING)
 	{
+    self.lastfiredweapon = IT_LIGHTNING;
 		player_light1();
 		self.attack_finished = time + 0.1;
 		sound (self, CHAN_AUTO, "weapons/lstart.wav", 1, ATTN_NORM);
@@ -1767,11 +1775,13 @@ void() W_Attack =
 //MED
    else if (self.weapon == IT_LASER_CANNON)
    {
+      self.lastfiredweapon = IT_LASER_CANNON;
       player_laser1();
    }
 //MED
    else if (self.weapon == IT_MJOLNIR)
    {
+      self.lastfiredweapon = IT_MJOLNIR;
       if (self.ammo_cells < 30)
          player_hammer1();
       else
@@ -1781,6 +1791,7 @@ void() W_Attack =
 //MED
    else if (self.weapon == IT_PROXIMITY_GUN)
    {
+      self.lastfiredweapon = IT_PROXIMITY_GUN;
       player_rocket1();
       W_FireProximityGrenade();
       self.attack_finished = time + 0.6;
