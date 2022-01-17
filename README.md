@@ -3,6 +3,8 @@ Ry Mod for Quake: Scourge of Armagon
 
 This mod makes miscellaneous changes to Armagon Cooperative and Deathmatch in Quake Remaster. Various quality of life, rebalancing, and bug fixes.
 
+QuakeC Changes
+---------------------------
 === General ===  
 -Deathmatch: Weapons have a 5 second respawn time (except for Mjolnir which is 30)  
 -Deathmatch: Recollecting a weapon you already have will give you a small amount of ammo  
@@ -19,17 +21,18 @@ This mod makes miscellaneous changes to Armagon Cooperative and Deathmatch in Qu
 -Co-op: Deferred spawning is now used when all Co-op spawn points are occupied, preventing telefrag-fests on map start if there's more than 4 players.  
 -Co-op: Players will be given any weapons they're missing when they first spawn in in a level, whether from a level transition or when (re)connecting.  
 -Co-op: Added `impulse 20` from Dissolution, which throws a backpack containing an amount of your current ammo for sharing with allies.  
+-Co-op: You no longer earn frags from killing other players in Co-op, whether it's via friendly fire or telefrag.  
 -Powerups are now dropped on death; The respawn time for the Quad Damage and Empathy Shields have been increased to 2 minutes to account for this.  
 -Quad Damage and Pentagram powerup items now innately glow  
 -Obituaries for projectile weapons are now based on the actual projectile instead of the weapon the attacking player was holding at the time of the victim's death  
 -Obituaries now better handle falling and liquid deaths. Your "deathtype" was never reset if you survived fall damage, so the falling death message could come up when dying in certain other ways. Liquids now also use deathtype, so you don't always get liquid obituaries while touching any amount of liquid.  
+-Obituaries now account for remaster bots switching weapons before the recoil finishes, tracking which weapon was last fired instead of the current weapon (was mainly a problem with Mjolnir)  
 -Implemented Remaster ID1's deferred spawning, for when all of the spawn points in Deathmatch are clogged up  
 -Adjusted (original) Nightmare so enemies only have a 50% chance to fire again instantly. There you go, unpredictability.  
 -You can now drop a backpack when suiciding (using "kill") in Co-op/Deathmatch. There is a cooldown to suiciding in Deathmatch to prevent backpack drop spam.  
 -Picking up weapon and ammo items will no longer reset your weapon's firing animation. Affects all weapons, but also fixes a bug where the Mjolnir's attack animation would get interrupted.  
 -Enemies will no longer get stun-locked if multiple players are firing rapid-fire weapons at one.  
 -The messages for bots connecting and disconnecting now indicate that it's a bot.  
--You no longer earn frags from killing other players in Co-op, whether it's via friendly fire or telefrag.  
 -Fixed up player pain sounds so you won't play slime/lava pain sounds from non-slime/lava sources unless you're submerged, you won't play slime/drowning pain sounds at all while in the Biosuit (similarly won't play drowning sounds with the Wetsuit), and Axe pain sounds should no longer get "stored" for the next time you get damaged if for some reason the sound doesn't play.  
 -You can no longer suicide during intermission to respawn on the map.  
 
@@ -68,6 +71,7 @@ This mod makes miscellaneous changes to Armagon Cooperative and Deathmatch in Qu
 -Armagon's health now scales to the player count in Co-op, giving him an additional 50% HP per extra player. (Example: Hard which normally has 3500 HP, will be 8750 HP with 4 players)  
 -If ID1 maps are played in Co-op, finishing an episode will start the next one.  
 -The cutscene Ranger used in the ending cutscene will no longer react to damage. Before it was possible to leave Proxy Bombs before the ending cutscene started to damage cutscene Ranger, who would then get angry at the player and effectively lock up the cutscene.  
+-Monsters spawned via func_spawn now use a telefrag trigger like regular enemy teleports, as to prevent the spawned monster from getting stuck in players or other monsters.  
 
 === Under the Hood ===  
 -Additional Gremlins created from a Gremlin spawned from the Horn of Conjuring will now also be under the charmed effect  
@@ -76,8 +80,51 @@ This mod makes miscellaneous changes to Armagon Cooperative and Deathmatch in Qu
 -Did some work getting the Horn of Conjuring to work in Deathmatch. The charmed monster (spawned from func_spawn) will now go after other players, and any kills they get will add to your score.  
 -Added a "Busy" mechanic, where an enemy performing an attack will wait until the attack is finished before changing target to whoever hurt them. Currently only implemented for Armagon.  
 
-
 Known problems:  
--A monster spawned with func_spawn (such as from Horn of Conjuring) has no telefrag interaction, meaning it can get stuck in another living entity on spawn (Vanilla bug)  
 -Bots in Deathmatch will shoot at monsters they've summoned via the Horn of Conjuring (Currently not in any DM maps)  
--A bot replacing a player in a full (8 player) server in Deathmatch won't see other players/bots for some reason. The bot can be kicked with `kickbot` to bring in a bot that'll work.  
+
+Map Changes
+---------------------------
+START (hipnotic)  
+-Added an intermission camera position for use with deferred spawning in Co-op. (Previously-existing intermission cameras only appeared in Deathmatch)  
+
+HIP1M1  
+-Deathmatch: Fixed a spawn point that was in a wall  
+
+HIP1M4  
+-The two elevators on the map now automatically return to the lower floor and have a slight delay before moving, to make them more intuitive, and work better with bots. They also now play sounds properly instead of using a separate func_door outside the map.  
+-Deathmatch: Fixed a spawn point that was too close to a wall  
+-Deathmatch: More evenly distributed the weapons:  
+&nbsp;&nbsp;-Laser Cannon from the ledge above map start moved to the Silver Key room  
+&nbsp;&nbsp;-Proximity Gun from the front entrance moved to the middle of the upper floor  
+&nbsp;&nbsp;-Super Nailgun moved within the entry room so it's more in the way  
+&nbsp;&nbsp;-Thunderbolt moved slightly so it's in the middle of the grating  
+
+HIP2M2  
+-Deathmatch: Added a 2nd Laser Cannon near the staircase leading to the very top room  
+-Deathmatch: Added a Mjolnir on top of the support beam across from the one with the Megahealth in the starting room; Can be accessed by doing a slope jump off the entry gate (or rocket jumping)  
+
+HIP2M3  
+-It's now possible to slope jump on top of the ending casket without hitting the end trigger; In Deathmatch this makes it possible to get to the Red Armor from below without a rocket jump  
+-Deathmatch: Fixed a spawn point that was in a ceiling  
+-Deathmatch: Added a 2nd Double-barreled Shotgun to the casket room in Deathmatch  
+
+HIP3M3  
+-The button that reveals the Mjolnir is now only shootable the one time, so it'll be properly auto-triggered in Deathmatch  
+-Deathmatch: Fixed the spawn flags on a couple 25 health items that are supposed to be replaced by 15 healths in Deathmatch, located in the hallway bend where you can open and drop through a grate to get to the water area  
+
+HIP3M4  
+-Deathmatch: Fixed a spawn point that was in the floor  
+-Deathmatch: Swapped the positions of the Laser Cannon and Mjolnir  
+-Deathmatch: Added a 2nd Double Shotgun to the bloody section in the room before the blood dive near the end  
+-Deathmatch: The 3 buttons and counter for the trap door in the spike wall room no longer spawn in Deathmatch; They weren't accessible, but my Deathmatch auto-triggering would activate them.  
+
+HIPEND  
+-Deathmatch: Removed the moving platform and invisible wind tunnel, to make way for *him*  
+-Deathmatch: Quad Damage and Pentagram removed from the portal above the map; The 100 Health and Red Armor remain  
+
+Other Changes
+---------------------------
+-`quake.rc`: Now loads `hipnotic.cfg` after the autoexec in your root rerelease folder, to allow for setting up armagon-specific commands/aliases. This only happens locally, and will not affect clients.  
+-`bots/interactables.txt`: Now accounts for door entities being renamed, allowing door-based elevators to be used by bots.  
+-`bots/weapons.txt`: Mjolnir is no longer flagged as a melee weapon, as to stop bots from trying to fight Mjolnir users with the Axe.  
