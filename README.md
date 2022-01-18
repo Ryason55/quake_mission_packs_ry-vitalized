@@ -85,13 +85,13 @@ Known problems:
 
 Map Changes
 ---------------------------
-START (hipnotic)  
+START - Command HQ  
 -Added an intermission camera position for use with deferred spawning in Co-op. (Previously-existing intermission cameras only appeared in Deathmatch)  
 
-HIP1M1  
+HIP1M1 - The Pumping Station  
 -Deathmatch: Fixed a spawn point that was in a wall  
 
-HIP1M4  
+HIP1M4 - Research Facility  
 -The two elevators on the map now automatically return to the lower floor and have a slight delay before moving, to make them more intuitive, and work better with bots. They also now play sounds properly instead of using a separate func_door outside the map.  
 -Deathmatch: Fixed a spawn point that was too close to a wall  
 -Deathmatch: More evenly distributed the weapons:  
@@ -100,26 +100,26 @@ HIP1M4
 &nbsp;&nbsp;-Super Nailgun moved within the entry room so it's more in the way  
 &nbsp;&nbsp;-Thunderbolt moved slightly so it's in the middle of the grating  
 
-HIP2M2  
+HIP2M2 - The Black Cathedral  
 -Deathmatch: Added a 2nd Laser Cannon near the staircase leading to the very top room  
 -Deathmatch: Added a Mjolnir on top of the support beam across from the one with the Megahealth in the starting room; Can be accessed by doing a slope jump off the entry gate (or rocket jumping)  
 
-HIP2M3  
+HIP2M3 - The Catacombs  
 -It's now possible to slope jump on top of the ending casket without hitting the end trigger; In Deathmatch this makes it possible to get to the Red Armor from below without a rocket jump  
 -Deathmatch: Fixed a spawn point that was in a ceiling  
 -Deathmatch: Added a 2nd Double-barreled Shotgun to the casket room in Deathmatch  
 
-HIP3M3  
+HIP3M3 - Limbo  
 -The button that reveals the Mjolnir is now only shootable the one time, so it'll be properly auto-triggered in Deathmatch  
 -Deathmatch: Fixed the spawn flags on a couple 25 health items that are supposed to be replaced by 15 healths in Deathmatch, located in the hallway bend where you can open and drop through a grate to get to the water area  
 
-HIP3M4  
+HIP3M4 - The Gauntlet  
 -Deathmatch: Fixed a spawn point that was in the floor  
 -Deathmatch: Swapped the positions of the Laser Cannon and Mjolnir  
 -Deathmatch: Added a 2nd Double Shotgun to the bloody section in the room before the blood dive near the end  
 -Deathmatch: The 3 buttons and counter for the trap door in the spike wall room no longer spawn in Deathmatch; They weren't accessible, but my Deathmatch auto-triggering would activate them.  
 
-HIPEND  
+HIPEND - Armagon's Lair  
 -Deathmatch: Removed the moving platform and invisible wind tunnel, to make way for *him*  
 -Deathmatch: Quad Damage and Pentagram removed from the portal above the map; The 100 Health and Red Armor remain  
 
@@ -128,3 +128,43 @@ Other Changes
 -`quake.rc`: Now loads `hipnotic.cfg` after the autoexec in your root rerelease folder, to allow for setting up armagon-specific commands/aliases. This only happens locally, and will not affect clients.  
 -`bots/interactables.txt`: Now accounts for door entities being renamed, allowing door-based elevators to be used by bots.  
 -`bots/weapons.txt`: Mjolnir is no longer flagged as a melee weapon, as to stop bots from trying to fight Mjolnir users with the Axe.  
+
+Remaster Bot Navs
+---------------------------
+To be able to select these ingame from the menu, you need a modified `mapdb.json` that has the individual maps marked off as compatible with bots. I'd recommend getting a pak editor, and making your own pak containing a modified `mapdb.json` in ID1 to enable bot usage on whatever maps.
+
+Here are the bot navs currently included in this repository, as well as some notes about them:
+
+HIP1M2 - Storage Facility  
+-Bots will not interact with the switch that opens the path to the secret exit (where the Ring of Shadows is), but can take the path if someone else opens it while the bot is in the area.  
+-Untested without auto-activation.  
+
+HIP1M4 - Research Facility  
+-Bots don't know how to use the elevators on the unmodified version of the map, as they're *very* bot unfriendly. Not recommended for use without the modified maps.  
+-Untested without auto-activation.  
+
+HIP1M5 - Military Complex  
+-Bots won't take the underwater tunnel between the Wetsuit/Thunderbolt and the Ring of Shadows, since bots don't understand how to fight against the turbine's suction.  
+
+HIP2M1 - Ancient Worlds  
+-There's a couple jumps the bots can have difficulty with.  
+-Bots don't know they can destroy the X-shaped beams in front of the Empathy Shields, but can access it if a player destroys the beams.  
+
+HIP2M2 - The Black Cathedral  
+-Bots can't access the Mjolnir on the modified map.  
+
+HIP2M3 - The Catacombs  
+
+HIP2M4 - The Crypt  
+-Bots can't access the super-secret Megahealth in the lava area.  
+
+HIP3M3 - Limbo  
+-Due to the 3-floor elevator setup, bots will only use the elevator if it's on the top or bottom floor to get to the middle floor. They can also drop down the shaft if the platform isn't in the way.  
+
+HIP3M4 - The Gauntlet  
+-Bots aren't set up to ride the big elevator up, since the wind tunnel up is easier, faster, and less likely to get them killed (since bots stand still on elevators). They can drop down the shaft or ride it down if necessary though.  
+
+HIPEND - Armagon's Lair  
+-Sometimes bots will wait for the elevators, which is the thing that's most likely to get them killed on this map.  
+-There is setup for the bots getting on the middle platform in the unmodified version of the map, but I can't make them rocket jump up into the portal, so they have no reason to do this.  
+
