@@ -82,6 +82,7 @@ QuakeC Changes
 
 Known problems:  
 -Bots in Deathmatch will shoot at monsters they've summoned via the Horn of Conjuring (Currently not in any DM maps)  
+-If the player has dynamic shadows enabled, the light indicating Quad Damage on Proxy Bombs won't show up correctly
 
 Map Changes
 ---------------------------
