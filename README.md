@@ -132,7 +132,7 @@ Other Changes
 
 Remaster Bot Navs
 ---------------------------
-To be able to select these ingame from the menu, you need a modified `mapdb.json` that has the individual maps marked off as compatible with bots. I'd recommend getting a pak editor, and making your own pak containing a modified `mapdb.json` in ID1 to enable bot usage on whatever maps.
+To be able to select these ingame from the menu when setting a minimum player count, you need a modified `mapdb.json` that has the individual maps marked off as compatible with bots. I'd recommend getting a pak editor, and making your own pak containing a modified `mapdb.json` in ID1 to enable bot usage on whatever maps. Alternatively, if you're just playing by yourself or with friends, you can use `addbot` in the console to add as many bots as you'd like, and `kickbot` to remove bots if necessary.
 
 Here are the bot navs currently included in this repository, as well as some notes about them:
 
