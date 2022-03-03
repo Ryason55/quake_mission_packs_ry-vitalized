@@ -11,6 +11,33 @@ float modelindex_eyes, modelindex_player, modelindex_hammer;
 
 void(entity item) UpdateItemTransparency; //Ry: Added reference here
 
+//Ry: Custom function that only displays the centerprint if the current one has either expired, or is of equal or higher value
+void(entity player, float type, string message1, string message2 = "", string message3 = "", string message4 = "", string message5 = "", string message6 = "") FilteredCenterPrint =
+{
+  if ( (!(player.flags & FL_ISBOT)) && (message1 != "") ) //Bots don't need centerprints
+  {
+    if ( (time >= (player.lastcenterprinttime + 5)) || (type >= player.lastcenterprinttype) )
+    {
+      if ((player.lastcenterprinttype == CPRINT_MOTD) && (player.lastcenterprinttype != type))
+        player.motd_count = 99;
+      player.lastcenterprinttime = time;
+      player.lastcenterprinttype = type;
+      if (message6 != "")
+        centerprint(player,message1,message2,message3,message4,message5,message6);
+      else if (message5 != "")
+        centerprint(player,message1,message2,message3,message4,message5);
+      else if (message4 != "")
+        centerprint(player,message1,message2,message3,message4);
+      else if (message3 != "")
+        centerprint(player,message1,message2,message3);
+      else if (message2 != "")
+        centerprint(player,message1,message2);
+      else
+        centerprint(player,message1);
+    }
+  }
+};
+
 
 /*
 =============================================================================
@@ -108,6 +135,7 @@ void() SetChangeParms =
 	parm7 = self.ammo_cells;
 	parm8 = self.weapon;
 	parm9 = self.armortype * 100;
+  parm10 = self.mapsfinished+1;
 };
 
 void() SetNewParms =
@@ -145,6 +173,8 @@ void() DecodeLevelParms =
       SetNewParms ();
     if (world.model == "maps/e4m1.bsp")
       SetNewParms ();
+    if (world.model == "maps/end.bsp")
+      SetNewParms ();
 
   }
 
@@ -157,6 +187,7 @@ void() DecodeLevelParms =
 	self.ammo_cells = parm7;
 	self.weapon = parm8;
 	self.armortype = parm9 * 0.01;
+  self.mapsfinished = parm10;
 };
 
 /*
@@ -497,6 +528,20 @@ void() execute_changelevel =
 	WriteByte (MSG_ALL, 3);
 
 	pos = FindIntermission ();
+  
+  if ( (!deathmatch) && (skill == 3) ) //Ry: Achievements for specific level challenges in Remaster ID1, now requiring all players to participate
+  {
+    if ( (ach_weaponfired == FALSE) && (world.model == "maps/e1m1.bsp") )
+    {
+      WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+      WriteString(MSG_ALL, "ACH_PACIFIST");
+    }
+    if ( (ach_damagetaken == FALSE) && (world.model == "maps/e4m6.bsp") )
+    {
+      WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+      WriteString(MSG_ALL, "ACH_PAINLESS_MAZE");
+    }
+  }
 
 	other = find (world, classname, "player");
 	while (other != world)
@@ -510,21 +555,6 @@ void() execute_changelevel =
 		other.movetype = MOVETYPE_NONE;
 		other.modelindex = 0;
 		setorigin (other, pos.origin);
-		if ((skill == 3))
-		{
-			if (((other.fired_weapon == FALSE) && (world.model == "maps/e1m1.bsp")))
-			{
-				msg_entity = other;
-				WriteByte(MSG_ONE, SVC_ACHIEVEMENT);
-				WriteString(MSG_ONE, "ACH_PACIFIST");
-			}
-			if (((other.took_damage == FALSE) && (world.model == "maps/e4m6.bsp")))
-			{
-				msg_entity = other;
-				WriteByte(MSG_ONE, SVC_ACHIEVEMENT);
-				WriteString(MSG_ONE, "ACH_PAINLESS_MAZE");
-			}
-		}
 		other = find (other, classname, "player");
 	}
 
@@ -619,8 +649,16 @@ void() execute_changelevel =
 };
 
 
+void() teleport_touch; //Ry: Reference here
+
 void() changelevel_touch =
 {
+  if (deathmatch && self.target) //Ry: If exit has been previously set up, act as a teleporter
+  {
+    teleport_touch();
+    return;
+  }
+  
 	local entity	pos;
 
 	if (other.classname != "player")
@@ -656,16 +694,38 @@ void() changelevel_touch =
 	self.nextthink = time + 0.1;
 };
 
+void() changelevel_warpsetup_think = //Ry: Set up Target so exit trigger(s) can lead to the start of the map
+{
+  local entity start = find(world, classname, "info_player_start");
+  if (start != world)
+  {
+    if (start.targetname)
+      self.target = start.targetname;
+    else
+    {
+      self.target = "ry_warptostart";
+      start.targetname = "ry_warptostart";
+    }
+    start.mangle = start.angles;
+  }
+}
+
 /*QUAKED trigger_changelevel (0.5 0.5 0.5) ? NO_INTERMISSION
 When the player touches this, he gets sent to the map listed in the "map" variable.  Unless the NO_INTERMISSION flag is set, the view will go to the info_intermission spot and display stats.
 */
 void() trigger_changelevel =
 {
 	if (!self.map)
-		objerror ("chagnelevel trigger doesn't have map");
+		objerror ("changelevel trigger doesn't have map"); //Ry: Spelling correction
 
 	InitTrigger ();
 	self.touch = changelevel_touch;
+  
+  if (deathmatch && cvar("temp5") == 1) //Ry: Do this for DM
+  {
+    self.think = changelevel_warpsetup_think;
+    self.nextthink = time + 0.3;
+  }
 };
 
 
@@ -729,6 +789,7 @@ void() ClientKill =
   {
     if ( coop || (time >= (self.lastspawntime + 10)) ) //Ry: Since suiciding now always drops a backpack in DM, make sure it can't be spammed
     {
+      ach_damagetaken = TRUE; //Ry: Count this as damage
       bprint (self.netname);
       bprint (" suicides\n");
       set_suicide_frame ();
@@ -1226,6 +1287,7 @@ void() PutClientInServer =
   //MED
   self.items2 = 0;
   self.gravity = 1.0;
+  self.gorging = FALSE; //Ry: For Gremlins
 
   self.lastspawntime = time; //Ry: Record when the player spawns
 
@@ -1237,28 +1299,48 @@ void() PutClientInServer =
   self.lastfragtime = -100;
   self.fragcombo = 0;
   //self.fragstreak = 0;
-  if (!(self.flags & FL_ISBOT) && self.fragmessageshowing)
-    centerprint(self,"");
-  self.fragmessageshowing = 0;
-
-  if (!deathmatch)
+  
+  if (!(self.flags & FL_ISBOT))
   {
-    if (!self.playerindex) //Ry: Assign player index if not assigned, and increment for next one
-      AssignPlayerIndex();
-    self.team = 1; //Ry: Put all players in Co-op on the same team
+    if (self.lastcenterprinttype > CPRINT_NONE)
+    {
+      self.lastcenterprinttype = CPRINT_NONE;
+      self.lastcenterprinttime = 0;
+      centerprint(self,"");
+    }
+    self.lastprobedplayer = entity_null;
+    self.lastprobetime = 0;
   }
+
+  if (!self.playerindex) //Ry: Assign player index if not assigned, and increment for next one
+    AssignPlayerIndex();
+  if (!deathmatch)
+    self.team = 1; //Ry: Put all players in Co-op on the same team
+  else if (!teamplay)
+    self.team = self.playerindex; //Ry: Assign unique team in DM for Horn of Conjuring use
 
 	DecodeLevelParms ();
   
-  if (coop && self.firstspawn) //Ry: Give the player the weapons every other player started the map with in Co-op
+  if (self.firstspawn) //Ry: Give the player the weapons every other player started the map with in Co-op
   {
-    local entity e;
-    if ((self.weapon == IT_SHOTGUN) && (mapstartweapons & IT_SUPER_SHOTGUN) && (!(self.items & IT_SUPER_SHOTGUN)))
-      self.weapon = IT_SUPER_SHOTGUN;
-    self.items = self.items | mapstartweapons;
-    mapstartweapons = self.items - (self.items & (IT_KEY1 | IT_KEY2 | IT_INVISIBILITY | IT_INVULNERABILITY | IT_SUIT | IT_QUAD | IT_SHELLS | IT_NAILS | IT_ROCKETS | IT_CELLS | IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3 ) );
-    for (e = find(world, classname, "player") ; e ; e = find(e, classname, "player") ) //Ry: Ensure that player's items are shared with other players
-      e.items = e.items | mapstartweapons;
+    if (coop)
+    {
+      local entity e;
+      if ((self.weapon == IT_SHOTGUN) && (mapstartweapons & IT_SUPER_SHOTGUN) && (!(self.items & IT_SUPER_SHOTGUN)))
+        self.weapon = IT_SUPER_SHOTGUN;
+      self.items = self.items | mapstartweapons;
+      mapstartweapons = self.items - (self.items & (IT_KEY1 | IT_KEY2 | IT_INVISIBILITY | IT_INVULNERABILITY | IT_SUIT | IT_QUAD | IT_SHELLS | IT_NAILS | IT_ROCKETS | IT_CELLS | IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3 ) );
+      for (e = find(world, classname, "player") ; e ; e = find(e, classname, "player") ) //Ry: Ensure that player's items are shared with other players
+        e.items = e.items | mapstartweapons;
+      if (!hipnoticmap)
+        hip_itemconverttime = time + 2;
+    }
+    else if (!deathmatch) //Ry: Just record the weapons the player has in singleplayer, for if ID1 maps are played
+    {
+      mapstartweapons = self.items - (self.items & (IT_KEY1 | IT_KEY2 | IT_INVISIBILITY | IT_INVULNERABILITY | IT_SUIT | IT_QUAD | IT_SHELLS | IT_NAILS | IT_ROCKETS | IT_CELLS | IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3 ) );
+      if (!hipnoticmap)
+        hip_itemconverttime = time + 0.3;
+    }
   }
   self.firstspawn = FALSE;
 
@@ -1776,15 +1858,59 @@ void() PlayerPreThink =
       earthquake_prethink();
 //      }
 
-	makevectors (self.v_angle);		// is this still used
+	makevectors (self.v_angle);
+  
+  if (self.health <= 0 && !self.deadflag) //Ry: If player is put to 0 or lower health via unexpected means, allow them to respawn
+  {
+    self.nextthink = -1;
+    self.deadflag = DEAD_DEAD;
+  }
   
   if (!self.deadflag && self.justrespawned && !self.button0) //Ry: Allow player to shoot again after releasing fire after respawning
     self.justrespawned = FALSE;
   
-  if (!(self.flags & FL_ISBOT) && self.fragmessageshowing && (time >= self.lastfragtime + 3)) //Ry: Check if last frag message is still showing
-  {
-    centerprint(self,"");
-    self.fragmessageshowing = 0;
+  if (!(self.flags & FL_ISBOT) && (coop || deathmatch))
+  { //Ry: Remove Frag and Probe messages after an amount of time
+    if ( ((self.lastcenterprinttype == CPRINT_FRAG) && (time >= self.lastcenterprinttime + 3)) || ((self.lastcenterprinttype == CPRINT_NAME) && (time >= self.lastcenterprinttime + 1)) )
+    {
+      self.lastcenterprinttype = CPRINT_NONE;
+      self.lastcenterprinttime = 0;
+      centerprint(self,"");
+    }
+    if ( (self.lastcenterprinttype <= CPRINT_NAME) || (time >= self.lastcenterprinttime + 5) ) //Ry: Player Probe
+    {
+      local vector org = self.origin+self.view_ofs;
+      traceline (org, org + v_forward*2048, FALSE, self);
+      if (trace_fraction < 1)
+      {
+        if ( (trace_ent != self) && ( (trace_ent.classname == "player") || ((deathmatch || (coop && trace_ent.charmed)) && (trace_ent.flags & FL_MONSTER)) ) && (!trace_ent.invisible_finished || coop) ) //Ry: Valid target, and target is not invisible (DM)
+        {
+          if ( (self.lastprobedplayer != trace_ent) || (time >= self.lastprobetime + 0.5) )
+          {
+            local string targname = trace_ent.netname;
+            if (!targname || (targname == ""))
+            {
+              if (trace_ent.flags & FL_MONSTER)
+                targname = "Monster";
+              else
+                targname = "Player";
+            }
+            if ( coop || (self.team > 0 && self.team == trace_ent.team) )
+              FilteredCenterPrint(self,CPRINT_NAME,"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n[Ally]\n",targname);
+            else
+              FilteredCenterPrint(self,CPRINT_NAME,"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n[Enemy]\n",targname);
+            self.lastprobetime = time;
+          }
+          self.lastprobedplayer = trace_ent;
+        }
+        else if (self.lastprobedplayer) //Ry: Just looked away from this player
+        {
+          self.lastcenterprinttime = time;
+          self.lastprobedplayer = entity_null;
+          self.lastprobetime = 0;
+        }
+      }
+    }
   }
 
   CheckMOTD(); //Ry: Copied from Rogue, since a MOTD would be nice
@@ -2189,9 +2315,6 @@ void() ClientConnect =
   
   SetMOTD(); //Ry: Show the MOTD when the player joins
 
-  self.took_damage = FALSE; //Ry: Achievement stuff; Resetting here so respawning doesn't make you eligible again
-  self.fired_weapon = FALSE;
-
   self.firstspawn = TRUE; //Ry: For giving weapons in Co-op
 
 // a client connecting during an intermission can cause problems
@@ -2228,6 +2351,8 @@ void() ClientDisconnect =
   DropPowerups(); //Ry: Drop powerups and backpack when disconnecting
   DropBackpack(TRUE);
   
+  self.mapsfinished = 0; //Ry: Reset map count on this player slot
+  
   if (self.playerindex) //Ry: Free up the index the player was using
   {
     playerindexinuse = playerindexinuse - (playerindexinuse & self.playerindex);
@@ -2247,6 +2372,8 @@ void() ClientDisconnect =
         UpdateItemTransparency(e);
       }
     }
+    else if (deathmatch) //Ry: Unset team, just in case
+      self.team = 0;
     
     self.playerindex = 0; //Ry: Unset to ensure the player entity doesn't retain the ID when its reused for the next client
     
@@ -2342,12 +2469,14 @@ void(entity targ, entity attacker, entity inflictor, float add) ClientAwardFrag 
       
       if ((attacker != inflictor) && inflictor.netname)
         if (inflictor.flags & FL_CLIENT) //Ry: A different player got the kill
-          centerprint(attacker,"You assisted with fragging ",targ.netname,addedfrags,combomessage);
+          FilteredCenterPrint(attacker,CPRINT_FRAG,"You assisted with fragging ",targ.netname,addedfrags,combomessage);
+          //centerprint(attacker,"You assisted with fragging ",targ.netname,addedfrags,combomessage);
         else //Ry: A summoned monster got the kill
-          centerprint(attacker,"Your ",inflictor.netname," fragged ",targ.netname,addedfrags,combomessage);
+          FilteredCenterPrint(attacker,CPRINT_FRAG,"Your ",inflictor.netname," fragged ",targ.netname,addedfrags,combomessage);
+          //centerprint(attacker,"Your ",inflictor.netname," fragged ",targ.netname,addedfrags,combomessage);
       else
-        centerprint(attacker,"You fragged ",targ.netname,addedfrags,combomessage);
-      attacker.fragmessageshowing = 1;
+        FilteredCenterPrint(attacker,CPRINT_FRAG,"You fragged ",targ.netname,addedfrags,combomessage);
+        //centerprint(attacker,"You fragged ",targ.netname,addedfrags,combomessage);
       attacker.lastfragtime = time;
     }
   }
@@ -2429,7 +2558,12 @@ void(entity targ, entity attacker) ClientObituary =
 
 				if ( targ.deathtype == "discharge" ) //Ry: Now uses deathtype instead
 				{
-					bprint (" discharges into the water.\n");
+          if (self.watertype == CONTENT_SLIME) //Ry: Proper message per liquid type
+            bprint (" discharges into the slime\n");
+          else if (self.watertype == CONTENT_LAVA)
+            bprint (" discharges into the lava\n");
+          else
+            bprint (" discharges into the water\n");
 					return;
 				}
 //JIM
@@ -2726,7 +2860,7 @@ void(entity targ, entity attacker) ClientObituary =
           deathstring = " was outgunned by ";
           deathstring2 = "'s Armagon\n";
         }
-        else if (attacker.classname == "trap_spike_mine") //Ry: Not normally considered a monster in code
+        else if ((attacker.classname == "monster_spikemine") || (attacker.classname == "trap_spike_mine"))
         {
           deathstring = " was blasted by ";
           deathstring2 = "'s Spike Mine\n";
@@ -2776,7 +2910,7 @@ void(entity targ, entity attacker) ClientObituary =
         
         if (attacker.solid == SOLID_BSP && attacker != world)
         {
-          bprint (" got crushed due to ");
+          bprint (" was crushed by ");
           bprint (targ.lastdamager.netname);
           bprint ("\n");
           return;

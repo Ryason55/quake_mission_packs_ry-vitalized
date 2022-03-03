@@ -71,6 +71,20 @@ void() spawn_use =
    local entity spawnentity;
    local entity spawnentity2;
    
+   if (horn_active) //Ry: Have the spawner remember these in case the spawn has to be delayed
+   {
+     self.charmed = TRUE;
+     self.charmer = horn_charmer;
+     self.empathy_item = horn_item;
+     self.empathy_item.count = self.empathy_item.count + 1; //Ry: Increment summoned monster count on Horn
+   }
+   if (time < self.delay) //Ry: Delay the spawn if the spawner is blocked by a player (For Horn of Conjuring monsters)
+   {
+     self.think = spawn_use;
+     self.nextthink = time + 0.1;
+     return;
+   }
+   
    if (self.spawnmessage)
    {
      sound (self, CHAN_AUTO, "misc/trigger1.wav", 1, ATTN_NONE);
@@ -82,7 +96,7 @@ void() spawn_use =
      SUB_UseTargets();
    }
 
-   if ((self.spawnmulti == 1) || (horn_active))
+   if ((self.spawnmulti == 1) || (self.charmed))
       {
       // spawn the new entity
       spawnentity = spawn();
@@ -113,7 +127,7 @@ void() spawn_use =
 
   if (self.spawnmaster.conjoinedentity) //Ry: For Armagon
   {
-    if ((self.spawnmulti == 1) || (horn_active))
+    if ((self.spawnmulti == 1) || (self.charmed))
     {
       // spawn the new entity
       spawnentity2 = spawn();
@@ -153,11 +167,15 @@ void() spawn_use =
 //   horn_active = 0;
 //   horn_charmer = find( world, classname, "player" );
    // call spawnentity think function
-   if (horn_active)
+   if (self.charmed)
       {
-      spawnentity.charmer = horn_charmer;
+      spawnentity.charmer = self.charmer;
       spawnentity.charmed = 1;
-      spawnentity.team = horn_charmer.team; //Ry: Assign the charmed monster the same team as the charmer for bots
+      spawnentity.empathy_item = self.empathy_item; //Ry: Horn that summoned the monster is stored here
+      spawnentity.team = self.charmer.team; //Ry: Assign the charmed monster the same team as the charmer for bots
+      //dprint("Assigned spawned monster to team ");
+      //dprint(ftos(self.charmer.team));
+      //dprint("\n");
       }
       
 //   if (spawnentity.think)
@@ -175,7 +193,7 @@ void() spawn_use =
    // check to see if it is a monster
    if (spawnentity.flags & FL_MONSTER)
       {
-      if ((self.spawnmulti != 0) && (horn_active == 0))
+      if ((self.spawnmulti != 0) && (self.charmed == 0))
          {
          total_monsters = total_monsters + 1;
          WriteByte (MSG_BROADCAST, SVC_UPDATESTAT);
@@ -183,25 +201,40 @@ void() spawn_use =
          WriteLong (MSG_BROADCAST, total_monsters);
          }
       // spawn the telefrag effect
-      spawn_tdeath(spawnentity.origin, spawnentity); //Ry: Actually spawn the telefrag effect (It was originally commented out; Hope there's no problems)
-      if (horn_active && !deathmatch) //Ry: Disable the visual charmed effect in DM
+      spawn_tdeath(spawnentity.origin, spawnentity); //Ry: Actually spawn the telefrag effect (It was originally commented out)
+      if (self.charmed && !deathmatch) //Ry: Disable the visual charmed effect in DM
          {
          spawnentity.effects = spawnentity.effects | EF_DIMLIGHT;
 //         spawnentity.effects = spawnentity.effects | EF_BRIGHTFIELD;
          }
       }
-   if ((self.spawnmulti == 0) && (horn_active == 0))
+   if ((self.spawnmulti == 0) && (self.charmed == 0))
       {
       remove(self);
       }
-    else if (self.autospawndelay) //Ry: Wait for spawnee to die before auto-spawning another
+    else if (self.autospawndelay) //Ry: If auto-spawner, wait for spawnee to die before auto-spawning another (currently only set up properly for a single enemy)
     {
       self.lastspawnee = spawnentity;
       self.think = waitforspawneedeath_think;
       self.nextthink = time + 1;
     }
     
+   if (self.charmed)
+   {
+     self.charmed = FALSE; //Ry: Clear these for next activation
+     self.charmer = entity_null;
+     self.empathy_item = entity_null;
+   }
+    
    };
+   
+void() spawn_touch = //Ry: Delay spawn if a player is touching the spawner (only Horn-related ones)
+{
+  if (other.flags & FL_CLIENT)
+  {
+    self.delay = time + 0.1;
+  }
+}
 
 //================
 //
@@ -227,6 +260,8 @@ void() func_spawn =
    local float tempskill;
    local float temptotal_monsters;
    local vector mn,mx;
+   
+   hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
    
    precache_sound ("misc/talk.wav"); //Ry: Precache sounds for new auto spawner
    precache_sound ("misc/trigger1.wav");
@@ -476,18 +511,30 @@ void() func_spawn =
       
       monster = self;
       }
-   self = tempself;
-   deathmatch = tempdeathmatch;
-   skill = tempskill; //Ry: Put skill back
-   self.solid = SOLID_NOT;
-   self.movetype = MOVETYPE_NONE;
+  self = tempself;
+  deathmatch = tempdeathmatch;
+  skill = tempskill; //Ry: Put skill back
+  
+  self.movetype = MOVETYPE_NONE;
 	self.modelindex = 0;
 	self.model = "";
-   setmodel (self, self.model);  // set size and link into world
-   self.use = spawn_use;
-   self.spawnmaster = monster;
+  setmodel (self, self.model);  // set size and link into world
+  self.use = spawn_use;
+  self.spawnmaster = monster;
    
-    AutoSpawnSetup(); //Ry: New
+  tempself = find(world, target, self.targetname); //Ry: If this spawner is targetted by a Horn, set it up as a touchfield to prevent the spawn if a player is in the area
+  if (tempself.classname == "item_hornofconjuring")
+  {
+    self.solid = SOLID_TRIGGER;
+    setsize (self, monster.mins - '4 4 4', monster.maxs + '4 4 4');
+    self.touch = spawn_touch;
+  }
+  else
+  {
+    self.solid = SOLID_NOT;
+  }
+   
+  AutoSpawnSetup(); //Ry: New
  
   };
 

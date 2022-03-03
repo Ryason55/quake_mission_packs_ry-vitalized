@@ -928,6 +928,9 @@ void() monster_armagon =
 {
    local entity body;
    local float sk;
+   
+   hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
+   
    if (deathmatch)
 	{
 		remove(self);

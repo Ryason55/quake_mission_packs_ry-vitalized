@@ -112,6 +112,7 @@ Player takes no damage from electrical attacks and swims faster for 30 seconds
 */
 void() item_artifact_wetsuit =
 {
+  hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
    self.touch = hip_powerup_touch;
 
    precache_model ("progs/wetsuit.mdl");
@@ -122,6 +123,8 @@ void() item_artifact_wetsuit =
    setmodel (self, "progs/wetsuit.mdl");
 	self.netname = "Wetsuit";
    self.items2 = HIP_IT_WETSUIT;
+   if (deathmatch) //Ry: Unused for this item type currently
+     self.respawntime = 60;
    setsize (self, '-16 -16 -24', '16 16 32');
 
 	StartItem ();
@@ -135,6 +138,19 @@ void() item_artifact_wetsuit =
 ===============================================================================
 */
 
+void() horn_use =
+{
+  if (self.count > 0)
+  {
+    self.count = self.count - 1;
+    if (self.count <= 0)
+    {
+      self.use = SUB_Null;
+      PrepareItemRespawn(time + self.respawntime);
+    }
+  }
+}
+
 void() horn_touch =
 {
 	local	float amount;
@@ -144,13 +160,7 @@ void() horn_touch =
 		return;
 
    if (deathmatch)
-	{
 		self.mdl = self.model;
-
-    PrepareItemRespawn(time + 300); //Ry: Now also sets up a ghost for the item when close to spawning
-    //self.nextthink = time + 300; //Ry: Increased from 1 minute, cause lets be real here
-		//self.think = SUB_regen;
-	}
 
 	self.solid = SOLID_NOT;
 	self.model = string_null;
@@ -158,18 +168,37 @@ void() horn_touch =
   {
     bprint(other.netname);
     bprint(" used the Horn of Conjuring\n");
-    if (!teamplay) //Ry: Assign the unique player index as the player's team, so the summoned monster can be put on the same team
-      self.team = self.playerindex;
   }
   else
     sprint(other, "You got the Horn of Conjuring\n");
-   sound (other, CHAN_VOICE, self.noise, 1, ATTN_NONE);
+  if (self.respawntime) //Ry: Clean up the bodies of monsters previously spawned from this horn
+  {
+    local entity head = nextent(world);
+    while (head != world)
+    {
+      if ( (head.flags & FL_MONSTER) && (head.health <= 0) && (head.empathy_item == self) )
+      {
+        if (head.classname == "monster_gremlin" && head.isspawnee) //Ry: Decrement this to free up availible slots for Gremlin splitting
+          NumSpawnGremlins = NumSpawnGremlins - 1;
+        head.nextthink = time;
+        head.think = SUB_Remove;
+      }
+      head = nextent(head);
+    }
+  }
+  sound (other, CHAN_VOICE, self.noise, 1, ATTN_NONE);
 	stuffcmd (other, "bf\n");
-   activator = other;
-   horn_active = 1;
-   horn_charmer = other;
+  activator = other;
+  self.count = 0; //Ry: Reset summoned monster count
+  horn_item = self;
+  horn_active = 1;
+  horn_charmer = other;
 	SUB_UseTargets();				// fire all targets / killtargets
-   horn_active = 0;
+  horn_active = 0;
+  
+  if (self.respawntime) //Ry: Summoned monsters that die in Deathmatch will trigger this
+	  self.use = horn_use;
+   
 };
 
 /*QUAKED item_hornofconjuring (0 .5 .8) (-16 -16 0) (16 16 32)
@@ -179,14 +208,15 @@ to spawn the charmed creature.
 */
 void() item_hornofconjuring =
    {
+   hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
    self.touch = horn_touch;
 
    precache_model("progs/horn.mdl");
    precache_sound("hipitems/horn.wav");
    setmodel(self, "progs/horn.mdl");
    self.noise = "hipitems/horn.wav";
-   
-   self.delayspawn = 60; //Ry: Delay spawn in DM
+   if (deathmatch) //Ry: DM Respawn time defined here now
+     self.respawntime = 60;
    
    setsize (self, '-16 -16 0', '16 16 56'); //Ry: Now matches other powerup sizes (lower Z was higher with no adjustment for the upper)
 	StartItem ();
@@ -197,6 +227,7 @@ Empathy Shield.
 */
 void() item_artifact_empathy_shields =
    {
+   hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
    self.touch = hip_powerup_touch;
 
    precache_model("progs/empathy.mdl");
@@ -207,6 +238,8 @@ void() item_artifact_empathy_shields =
    self.noise = "hipitems/empathy.wav";
    self.netname = "Empathy Shields";
    self.items2 = HIP_IT_EMPATHY_SHIELDS;
+   if (deathmatch) //Ry: Unused for this item type currently
+     self.respawntime = 120;
    setsize (self, '-16 -16 0', '16 16 56'); //Ry: Now matches other powerup sizes (lower Z was higher with no adjustment for the upper)
 	StartItem ();
    };
@@ -223,13 +256,16 @@ HIPNOTIC WEAPONS
 
 void() weapon_mjolnir =
 {
+  hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
    precache_model ("progs/g_hammer.mdl");
    setmodel (self, "progs/g_hammer.mdl");
-	self.weapon = 3;
+	self.weapon = IT_MJOLNIR; //Ry: Was 3; Fixed
    self.netname = "Mjolnir";
    self.items = IT_MJOLNIR;
 	self.touch = weapon_touch;
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
+    self.respawntime = 30;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -239,13 +275,16 @@ void() weapon_mjolnir =
 
 void() weapon_laser_gun =
 {
+  hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
    precache_model ("progs/g_laserg.mdl");
    setmodel (self, "progs/g_laserg.mdl");
-	self.weapon = 3;
+	self.weapon = IT_LASER_CANNON; //Ry: Was 3; Fixed
    self.netname = "Laser Cannon";
    self.items = IT_LASER_CANNON;
    self.touch = weapon_touch;
    self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
+    self.respawntime = 5;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -255,13 +294,16 @@ void() weapon_laser_gun =
 
 void() weapon_proximity_gun =
 {
+  hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
    precache_model ("progs/g_prox.mdl");
    setmodel (self, "progs/g_prox.mdl");
-	self.weapon = 3;
+	self.weapon = IT_PROXIMITY_GUN; //Ry: Was 3; Fixed
    self.netname = "Proximity Gun";
    self.items = IT_PROXIMITY_GUN;
    self.touch = weapon_touch;
    self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
+    self.respawntime = 5;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -389,6 +431,8 @@ void() spike_mine_first_think =
 
 void() trap_spike_mine =
    {
+   hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
+     
    if (deathmatch)
 	{
 		remove(self);
@@ -398,6 +442,7 @@ void() trap_spike_mine =
    precache_sound ("weapons/r_exp3.wav");
    precache_sound ("hipitems/spikmine.wav");
    precache_sound ("misc/null.wav");
+   self.netname = "Spike Mine"; //Ry: Name for Deathmatch
    setmodel (self, "progs/spikmine.mdl");
 //   setmodel (self, "progs/spike.mdl");
    setsize (self, self.mins, self.maxs);

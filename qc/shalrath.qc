@@ -166,10 +166,10 @@ void() ShalHome =
 		return;
 	}
 	dir = normalize(vtemp - self.origin);
-	if (skill == 3)
-		self.velocity = dir * 350;
+	if (skill >= 3)
+    self.velocity = dir * 350;
 	else
-		self.velocity = dir * 250;
+    self.velocity = dir * 250;
 	self.nextthink = time + 0.2;
 	self.think = ShalHome;
 };
@@ -218,6 +218,8 @@ void() monster_shalrath =
 	precache_sound2 ("shalrath/idle.wav");
 	precache_sound2 ("shalrath/pain.wav");
 	precache_sound2 ("shalrath/sight.wav");
+  
+  self.netname = "Vore"; //Ry: Name for Deathmatch
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

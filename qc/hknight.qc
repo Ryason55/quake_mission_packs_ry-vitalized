@@ -420,6 +420,8 @@ void() monster_hell_knight =
 
 	precache_sound ("knight/sword1.wav");
 	precache_sound ("knight/sword2.wav");
+  
+  self.netname = "Death Knight"; //Ry: Name for Deathmatch
 	
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

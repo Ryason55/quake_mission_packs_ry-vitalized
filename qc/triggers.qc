@@ -1,6 +1,8 @@
 
 entity stemp, otemp, s, old;
 
+//Ry: New func, located in client.qc
+void(entity player, float type, string message1, string message2 = "", string message3 = "", string message4 = "", string message5 = "", string message6 = "") FilteredCenterPrint;
 
 void() trigger_reactivate =
 {
@@ -361,20 +363,20 @@ void() counter_use =
 		&& (self.spawnflags & SPAWNFLAG_NOMESSAGE) == 0)
 		{
 			if (self.count >= 4)
-				centerprint (activator, "There are more to go...");
+				FilteredCenterPrint (activator, CPRINT_WORLD, "There are more to go...");
 			else if (self.count == 3)
-				centerprint (activator, "Only 3 more to go...");
+				FilteredCenterPrint (activator, CPRINT_WORLD, "Only 3 more to go...");
 			else if (self.count == 2)
-				centerprint (activator, "Only 2 more to go...");
+				FilteredCenterPrint (activator, CPRINT_WORLD, "Only 2 more to go...");
 			else
-				centerprint (activator, "Only 1 more to go...");
+				FilteredCenterPrint (activator, CPRINT_WORLD, "Only 1 more to go...");
 		}
 		return;
 	}
 
 	if (activator.classname == "player"
 	&& (self.spawnflags & SPAWNFLAG_NOMESSAGE) == 0)
-		centerprint(activator, "Sequence completed!");
+		FilteredCenterPrint(activator, CPRINT_WORLD, "Sequence completed!");
 	self.enemy = activator;
 	multi_trigger ();
 };
@@ -463,7 +465,8 @@ void() tdeath_touch =
 			self.classname = "teledeath2";
 		if (self.owner.classname != "player")
 		{	// other monsters explode themselves
-			T_Damage (self.owner, self, self, 50000);
+      if (!(self.owner.charmed)) //Ry: Don't blow up a charmed monster that's spawning in
+        T_Damage (self.owner, self, self, 50000);
 			return;
 		}
 
@@ -653,7 +656,7 @@ void() trigger_onlyregistered_touch =
 	{
 		if (self.message != "")
 		{
-			centerprint (other, self.message);
+			FilteredCenterPrint (other, CPRINT_WORLD, self.message);
 			sound (other, CHAN_BODY, "misc/talk.wav", 1, ATTN_NORM);
 		}
 	}
@@ -821,4 +824,39 @@ void() trigger_monsterjump =
       self.cnt = -1;
 	InitTrigger ();
 	self.touch = trigger_monsterjump_touch;
+};
+
+
+//Ry: Custom touchfield for DM2 Lava pit. Using via button will record the activator, and anyone triggering via touching will set the recorded activator as lastdamager on them
+void() damageownerfield_touch =
+{
+  if ( other.flags & (FL_CLIENT | FL_MONSTER) )
+  {
+    if (time <= (other.lastdamagetime + 3))
+      other.lastdamagetime = time;
+    else if (self.lastdamager && (self.lastdamager != other)) //Will be set once if the player wasn't already recently damaged by someone else
+    {
+      other.lastdamager = self.lastdamager;
+      other.lastdamagetime = time;
+    }
+
+  }
+};
+
+void() damageownerfield_use =
+{
+  self.lastdamager = activator;
+}
+
+void() func_damageownerfield =
+{
+  if (!self.mins && !self.maxs)
+  {
+    self.mins = '-64 -64 -64';
+    self.maxs = '64 64 64';
+  }
+	self.movetype = MOVETYPE_NONE;
+	self.solid = SOLID_TRIGGER;
+  self.touch = damageownerfield_touch;
+  self.use = damageownerfield_use;
 };

@@ -513,6 +513,8 @@ void() monster_zombie =
 	precache_sound ("zombie/z_miss.wav");
 	precache_sound ("zombie/z_hit.wav");
 	precache_sound ("zombie/idle_w2.wav");
+  
+  self.netname = "Zombie"; //Ry: Name for Deathmatch
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

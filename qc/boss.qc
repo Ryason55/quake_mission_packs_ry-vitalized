@@ -278,6 +278,8 @@ void() monster_boss =
 	precache_sound ("boss1/throw.wav");
 	precache_sound ("boss1/pain.wav");
 	precache_sound ("boss1/death.wav");
+  
+  self.netname = "Chthon"; //Ry: Name for Deathmatch
 
 	total_monsters = total_monsters + 1;
 

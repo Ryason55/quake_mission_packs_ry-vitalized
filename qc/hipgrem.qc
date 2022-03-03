@@ -61,9 +61,6 @@ $frame grun8.asc grun9.asc grun10.asc grun11.asc grun12.asc grun13.asc grun14.as
 
 //============================================================================
 
-float NumGremlins;
-float NumSpawnGremlins;
-
 void() W_SetCurrentAmmo; //Ry: Added references for these
 void() W_UpdateAmmo;
 
@@ -100,7 +97,7 @@ float() GremlinAttemptWeaponSteal =
 
    if (vlen(delta) > 100)
       return FALSE;
-   if (skill < 3 && random() < 0.5) //Ry: Always steal on Nightmare
+   if (!deathmatch && skill < 3 && random() < 0.5) //Ry: Always steal on Nightmare/DM
       return FALSE;
    //
    // we are within range so lets go for it
@@ -323,7 +320,7 @@ float() GremlinFindItem = //Ry: So Gremlins search out weapons when player is in
   local float   dist;
   local vector  goalvect;
 
-  if ((self.stealitem==FALSE) && (self.stoleweapon==FALSE) && (self.enemy.health > 0) && time > self.wait)
+  if ((self.stealitem==FALSE) && (self.stoleweapon==FALSE) && (self.gorging==FALSE) && (self.enemy.health > 0) && (time > self.wait))
   {
     dist = 400;
     steal = world;
@@ -351,8 +348,7 @@ float() GremlinFindItem = //Ry: So Gremlins search out weapons when player is in
     if ((steal != world) && (dist < 400))
     {
       self.wait = time + 1;
-      visible(self.enemy); //Ry: Only go for the item if its closer than current foe
-      if (dist <= visible_distance)
+      if ( (!visible(self.enemy)) || (dist <= visible_distance) ) //Ry: Only go for the item if its closer than current foe, or foe is out of sight
       {
         //bprint("Going for item ");
         //bprint(steal.classname);
@@ -393,7 +389,7 @@ float() GremlinFindTarget =
       head = nextent(world);
       while (head!=world)
          {
-         if ((head.health < 1) && (head.flags & (FL_MONSTER|FL_CLIENT)))
+         if ((head.health < 1) && (head.health >= -200) && ((head.flags & (FL_MONSTER|FL_CLIENT)) || ((head.classname == "bodyque") && head.model && (head.model != "progs/h_player.mdl"))) ) //Ry: Also look for (non-head) Bodyques
             {
             result = fabs(head.origin_z - self.origin_z);
             if ((visible(head)) && (result<80) && (head.gorging == FALSE) && (visible_distance<dist))
@@ -443,6 +439,12 @@ The monster is walking it's beat
 */
 void(float dist) gremlin_walk =
    {
+     if (self.stoleweapon) //Ry: Put away weapon when walking (Such as when charmed)
+     {
+       self.weapon = 0;
+       self.currentammo = 0;
+       self.stoleweapon = FALSE;
+     }
 	movedist = dist;
 
 	// check for noticing a player
@@ -463,8 +465,8 @@ The monster is staying in one place for a while, with slight angle turns
 */
 void() gremlin_stand =
    {
-   if (FindTarget ())
-		return;
+   if (GremlinFindTarget ()) //Ry: This was only "FindTarget" before
+     return;
 
 	if (time > self.pausetime)
       {
@@ -476,6 +478,8 @@ void() gremlin_stand =
 //============================================================================
 float() GremlinCheckNoAmmo;
 void() gremlin_glook1;
+void() gremlin_look1;
+void(float running) Gremlin_AbandonGorge;
 /*
 =============
 gremlin_run
@@ -506,6 +510,9 @@ void(float dist) gremlin_run =
    }
    else
      GremlinFindItem(); //Ry: Gremlin will attempt to find stealable weapon items when engaging the player
+   
+   if (self.gorging && self.enemy.health > 0) //Ry: If targetting a living foe, ensure the gorging var is disabled
+     self.gorging = FALSE;
 
    if (self.gorging)
       {
@@ -518,12 +525,18 @@ void(float dist) gremlin_run =
       traceline(self.origin, self.enemy.origin, TRUE, self);
       if (trace_fraction != 1.0)
          {
-         self.gorging = FALSE;
+         //self.gorging = FALSE;
+         //self.enemy = entity_null; //Ry: Lose target
+         //gremlin_look1();
+         Gremlin_AbandonGorge(TRUE);
          return;
          }
       if (!visible(self.enemy))
          {
-         self.gorging = FALSE;
+         //self.gorging = FALSE;
+         //self.enemy = entity_null; //Ry: Lose target
+         //gremlin_look1();
+         Gremlin_AbandonGorge(TRUE);
          return;
          }
       r = vlen(self.enemy.origin - self.origin);
@@ -610,7 +623,8 @@ void(float dist) gremlin_run =
             {
             if (self.t_length==1)
                {
-               remove(self.trigger_field);
+               //if (self.trigger_field) //Ry: Check
+                 remove(self.trigger_field);
                self.goalentity = self.enemy;
                self.t_length = 0;
                self.retreating = FALSE;
@@ -623,7 +637,8 @@ void(float dist) gremlin_run =
             { //Ry: Keep distance either when initially stealing, or when using an explosive weapon
             if (r<150 && (self.retreating || (self.weapon == IT_ROCKET_LAUNCHER) || (self.weapon == IT_GRENADE_LAUNCHER) || (self.weapon == IT_PROXIMITY_GUN)) )
                {
-               self.trigger_field = spawn();
+               //if (!self.trigger_field) //Ry: Check
+                 self.trigger_field = spawn();
                setsize(self.trigger_field,'-1 -1 -1','1 1 1');
                self.t_length = 1;
                }
@@ -632,7 +647,8 @@ void(float dist) gremlin_run =
             {
             if (r > 250)
                {
-               remove(self.trigger_field);
+               //if (self.trigger_field) //Ry: Check
+                 remove(self.trigger_field);
                self.goalentity = self.enemy;
                self.t_length = 0;
                self.retreating = FALSE;
@@ -933,6 +949,13 @@ void()   gremlin_gorge11   =[ $maul11.asc,     gremlin_gorge12] {ai_charge(0);};
 void()   gremlin_gorge12   =[ $maul12.asc,     gremlin_gorge13] {ai_charge(0);};
 void()   gremlin_gorge13   =[ $maul13.asc,     gremlin_gorge1] {ai_charge(0);};
 
+
+void()  gremlin_look = //Ry: Check if there's any more targets around
+{
+  if (GremlinFindTarget())
+    gremlin_run1();
+}
+
 void()   gremlin_look1   =[ $look1.asc,     gremlin_look2] {self.nextthink = time + 0.2;};
 void()   gremlin_look2   =[ $look2.asc,     gremlin_look3] {self.nextthink = time + 0.2;};
 void()   gremlin_look3   =[ $look3.asc,     gremlin_look4] {self.nextthink = time + 0.2;};
@@ -943,7 +966,8 @@ void()   gremlin_look7   =[ $look7.asc,     gremlin_look8] {self.nextthink = tim
 void()   gremlin_look8   =[ $look8.asc,     gremlin_look9] {self.nextthink = time + 0.2;};
 void()   gremlin_look9   =[ $look9.asc,     gremlin_run1]
    {
-   if (self.oldenemy.health > 0)
+   Gremlin_AbandonGorge(FALSE);
+   /*if (self.oldenemy.health > 0)
       {
       self.enemy = self.oldenemy;
       HuntTarget ();
@@ -955,42 +979,30 @@ void()   gremlin_look9   =[ $look9.asc,     gremlin_run1]
          self.th_walk ();
       else
          self.th_stand ();
-      }
+      }*/
    };
 
-
-void()  gremlin_glook = //Ry: Check if there's any more foes to shoot
-{
-  if (FindTarget())
-    gremlin_run1();
-}
-
-void() GremlinDropBackpack;
-void()   gremlin_glook1   =[ $glook1.asc,     gremlin_glook2] {gremlin_glook();};
-void()   gremlin_glook2   =[ $glook2.asc,     gremlin_glook3] {gremlin_glook();};
-void()   gremlin_glook3   =[ $glook3.asc,     gremlin_glook4] {gremlin_glook();};
-void()   gremlin_glook4   =[ $glook4.asc,     gremlin_glook5] {gremlin_glook();};
-void()   gremlin_glook5   =[ $glook5.asc,     gremlin_glook6] {gremlin_glook();};
-void()   gremlin_glook6   =[ $glook6.asc,     gremlin_glook7] {gremlin_glook();};
-void()   gremlin_glook7   =[ $glook7.asc,     gremlin_glook8] {gremlin_glook();};
-void()   gremlin_glook8   =[ $glook8.asc,     gremlin_glook9] {gremlin_glook();};
-void()   gremlin_glook9   =[ $glook9.asc,     gremlin_glook10] {gremlin_glook();};
-void()   gremlin_glook10   =[ $glook10.asc,     gremlin_glook11] {gremlin_glook();};
-void()   gremlin_glook11   =[ $glook11.asc,     gremlin_glook12] {gremlin_glook();};
-void()   gremlin_glook12   =[ $glook12.asc,     gremlin_glook13] {gremlin_glook();};
-void()   gremlin_glook13   =[ $glook13.asc,     gremlin_glook14] {gremlin_glook();};
-void()   gremlin_glook14   =[ $glook14.asc,     gremlin_glook15] {gremlin_glook();};
-void()   gremlin_glook15   =[ $glook15.asc,     gremlin_glook16] {gremlin_glook();};
-void()   gremlin_glook16   =[ $glook16.asc,     gremlin_glook17] {gremlin_glook();};
-void()   gremlin_glook17   =[ $glook17.asc,     gremlin_glook18] {gremlin_glook();};
-void()   gremlin_glook18   =[ $glook18.asc,     gremlin_glook19] {gremlin_glook();};
-void()   gremlin_glook19   =[ $glook19.asc,     gremlin_glook20] {gremlin_glook();};
+void()   gremlin_glook1   =[ $glook1.asc,     gremlin_glook2] {gremlin_look();};
+void()   gremlin_glook2   =[ $glook2.asc,     gremlin_glook3] {gremlin_look();};
+void()   gremlin_glook3   =[ $glook3.asc,     gremlin_glook4] {gremlin_look();};
+void()   gremlin_glook4   =[ $glook4.asc,     gremlin_glook5] {gremlin_look();};
+void()   gremlin_glook5   =[ $glook5.asc,     gremlin_glook6] {gremlin_look();};
+void()   gremlin_glook6   =[ $glook6.asc,     gremlin_glook7] {gremlin_look();};
+void()   gremlin_glook7   =[ $glook7.asc,     gremlin_glook8] {gremlin_look();};
+void()   gremlin_glook8   =[ $glook8.asc,     gremlin_glook9] {gremlin_look();};
+void()   gremlin_glook9   =[ $glook9.asc,     gremlin_glook10] {gremlin_look();};
+void()   gremlin_glook10   =[ $glook10.asc,     gremlin_glook11] {gremlin_look();};
+void()   gremlin_glook11   =[ $glook11.asc,     gremlin_glook12] {gremlin_look();};
+void()   gremlin_glook12   =[ $glook12.asc,     gremlin_glook13] {gremlin_look();};
+void()   gremlin_glook13   =[ $glook13.asc,     gremlin_glook14] {gremlin_look();};
+void()   gremlin_glook14   =[ $glook14.asc,     gremlin_glook15] {gremlin_look();};
+void()   gremlin_glook15   =[ $glook15.asc,     gremlin_glook16] {gremlin_look();};
+void()   gremlin_glook16   =[ $glook16.asc,     gremlin_glook17] {gremlin_look();};
+void()   gremlin_glook17   =[ $glook17.asc,     gremlin_glook18] {gremlin_look();};
+void()   gremlin_glook18   =[ $glook18.asc,     gremlin_glook19] {gremlin_look();};
+void()   gremlin_glook19   =[ $glook19.asc,     gremlin_glook20] {gremlin_look();};
 void()   gremlin_glook20   =[ $glook20.asc,     gremlin_glook20]
    {
-   //GremlinDropBackpack(); //Ry: Just put away weapon when idling too long
-   self.weapon = 0;
-   self.currentammo = 0;
-   self.stoleweapon = FALSE;
    if (self.oldenemy.health > 0)
       {
       self.enemy = self.oldenemy;
@@ -998,6 +1010,10 @@ void()   gremlin_glook20   =[ $glook20.asc,     gremlin_glook20]
       }
    else
       {
+      //GremlinDropBackpack(); //Ry: Just put away weapon when idling too long
+      self.weapon = 0;
+      self.currentammo = 0;
+      self.stoleweapon = FALSE;
       self.enemy = entity_null; //Ry: Clear foe so can properly target again
       if (self.movetarget)
          self.th_walk ();
@@ -1137,7 +1153,25 @@ void() GremlinItemSafety = //Ry: Ensure that a weapon item dropped by a Gremlin 
     else
       self.nextthink = time + 1;
   }
-}
+};
+
+void(float running) Gremlin_AbandonGorge = //Ry: New
+{
+  self.gorging = FALSE;
+  if ( self.oldenemy.health > 0 )
+  {
+    self.enemy = self.oldenemy;
+    HuntTarget ();
+    if (!running)
+      gremlin_run1();
+    return;
+  }
+  self.enemy = entity_null;
+  if (self.movetarget)
+     self.th_walk ();
+  else
+     self.th_stand ();
+};
 
 /*
 ===============
@@ -1329,6 +1363,7 @@ void() gremlin_die =
    vec = normalize (damage_attacker.origin - self.origin);
 	dot = vec * v_forward;
 
+   self.gorging = FALSE; //Ry: Reset this so the body can be gorged (if not gibbed)
    if (self.health < -35)
       {
 		sound (self, CHAN_VOICE, "player/udeath.wav", 1, ATTN_NORM);
@@ -1360,8 +1395,14 @@ void() Gremlin_MeleeAttack =
       {
       self.gorging = FALSE;
       if (self.stoleweapon == 1)
-        objerror("gremlin meleeing with stolen weapon");
-      else if ((self.enemy.flags & FL_CLIENT) && random() < 0.4)
+      {
+        //objerror("gremlin meleeing with stolen weapon");
+       self.weapon = 0;
+       self.currentammo = 0;
+       self.stoleweapon = FALSE;
+       dprint("gremlin tried to melee with stolen weapon\n");
+      }
+      if ((self.enemy.flags & FL_CLIENT) && random() < 0.4)
         if (GremlinAttemptWeaponSteal())
           return;
       num = random();
@@ -1430,7 +1471,7 @@ float() GremlinCheckNoAmmo =
     else if (self.items > 0)
     {
       self.weapon = W_BestWeapon(); //Ry: Check if another weapon is available
-      if ((self.weapon == IT_AXE) || (self.weapon == IT_SHOTGUN) || (self.weapon == IT_MJOLNIR))
+      if ((self.weapon == IT_AXE) || (self.weapon == IT_MJOLNIR))
       {
         self.weapon = 0;
         self.stoleweapon = FALSE;
@@ -1841,6 +1882,8 @@ void() Gremlin_MissileAttack =
 */
 void() monster_gremlin =
 {
+   hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
+  
    if (deathmatch)
 	{
 		remove(self);
@@ -1860,8 +1903,10 @@ void() monster_gremlin =
    precache_sound ("grem/idle.wav");
    precache_sound ("grem/sight1.wav");
 
+   self.netname = "Gremlin"; //Ry: Name for Deathmatch
+
    self.solid = SOLID_SLIDEBOX;
-	self.movetype = MOVETYPE_STEP;
+	 self.movetype = MOVETYPE_STEP;
 
    setmodel (self, "progs/grem.mdl");
 
@@ -2159,8 +2204,15 @@ void() Gremlin_Split =
 //   grem.max_health = 101;
 //   grem.gorging = FALSE;
 
-   grem.charmer = self.charmer; //Ry: Also copy Horn of Conjuring status
-   grem.charmed = self.charmed;
+   grem.isspawnee = TRUE; //Ry: Note that this was a spawned Gremlin
+   if (self.charmed) //Ry: Also copy Horn of Conjuring status
+   {
+     grem.charmer = self.charmer; 
+     grem.charmed = self.charmed;
+     grem.empathy_item = self.empathy_item;
+     if (grem.empathy_item) //Ry: Increment count on the item so the newly spawned gremlin will also have to be killed for the horn to come back
+       grem.empathy_item.count = grem.empathy_item.count + 1;
+   }
    
    grem.stoleweapon = FALSE;
    grem.items = 0;
@@ -2182,6 +2234,14 @@ void(float side)  Gremlin_Gorge =
 	local	float	ldmg;
 	local vector	delta;
    local entity temp;
+   
+  //Ry: Gorge target has either come back to life, or is a bodyque that got whisked away for another player's death
+  if ( (!self.enemy) || (self.enemy.health > 0) || ((self.enemy.classname == "bodyque") && (!(visible(self.enemy)) || visible_distance > 128)) )
+  {
+    dprint("Gremlin's gorge target lost; aborting\n");
+    Gremlin_AbandonGorge(FALSE);
+    return;
+  }
 
 //   ai_face ();
 //   walkmove (self.ideal_yaw, 6);   // allow a little closing
@@ -2191,7 +2251,7 @@ void(float side)  Gremlin_Gorge =
 
     sound (self, CHAN_WEAPON, "demon/dhit2.wav", 1, ATTN_NORM);
 //    sound (self, CHAN_WEAPON, "grem/attack.wav", 1, ATTN_NORM);
-   if (skill < 3) //Ry: Gorge faster in Nightmare
+   if (skill < 3 && !deathmatch) //Ry: Gorge faster in Nightmare and Deathmatch
      ldmg = 7+5*random();
    else
      ldmg = 14+10*random();

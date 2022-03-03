@@ -75,6 +75,8 @@ void()   decoy_walk1 =[  $rockrun1,  decoy_walk1  ]
 void(entity decoy) setup_decoy =
 {
    local entity pl;
+   
+   decoy.netname = "Ranger"; //Ry: Name for Deathmatch
 
    decoy.classname = "monster_decoy";
    setmodel (decoy, "progs/player.mdl");

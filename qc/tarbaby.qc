@@ -201,6 +201,8 @@ void() monster_tarbaby =
 	precache_sound2 ("blob/hit1.wav");
 	precache_sound2 ("blob/land1.wav");
 	precache_sound2 ("blob/sight1.wav");
+  
+  self.netname = "Spawn"; //Ry: Name for Deathmatch
 	
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

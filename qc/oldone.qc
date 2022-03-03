@@ -267,15 +267,7 @@ void() finale_5 =
 
 void() finale_6 =
 {
-	if (!coop)
-	{
-		localcmd("menu_credits\n");
-		localcmd("disconnect\n");
-	}
-	else
-	{
-		changelevel("start");
-	}
+  changelevel("start"); //Ry: Go straight to the hipnotic START map
 };
 
 //============================================================================
@@ -304,6 +296,8 @@ void() monster_oldone =
 	precache_sound2 ("boss2/idle.wav");
 	precache_sound2 ("boss2/sight.wav");
 	precache_sound2 ("boss2/pop2.wav");
+  
+  self.netname = "Shub-Niggurath"; //Ry: Name for Deathmatch
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

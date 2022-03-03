@@ -89,14 +89,16 @@ void(entity targ, entity attacker) Killed =
 	if (self.health < -99)
 		self.health = -99;		// don't let sbar look bad if a player
 //MED
-   if (self.charmed)
-      {
-      self.effects = self.effects - (self.effects & EF_DIMLIGHT);
-      }
-//      self.effects = self.effects - EF_BRIGHTFIELD;
+  if (self.charmed)
+  {
+    self.effects = self.effects - (self.effects & EF_DIMLIGHT);
+    if (self.trigger_field) //Ry: Remove charmed monster's goal entity
+      remove(self.trigger_field);
+  }
 
 	if (self.movetype == MOVETYPE_PUSH || self.movetype == MOVETYPE_NONE)
 	{	// doors, triggers, etc
+    activator = attacker; //Ry: Forward this
 		self.th_die ();
 		self = oself;
 		return;
@@ -105,7 +107,7 @@ void(entity targ, entity attacker) Killed =
 	self.enemy = attacker;
 
 // bump the monster counter
-   if (self.flags & FL_MONSTER)
+  if (self.flags & FL_MONSTER)
 	{
     killed_monsters = killed_monsters + 1;
 		WriteByte (MSG_ALL, SVC_KILLEDMONSTER);
@@ -114,95 +116,105 @@ void(entity targ, entity attacker) Killed =
       if ((attacker.classname == "player") ) //Ry: Remaster mechanic of giving a frag for each killed monster
         attacker.frags = (attacker.frags + 1);
     }
-    else if (self.classname == "monster_armagon") //Ry: Armagon gives frags in Deathmatch
+    else
     {
-      if (attacker.classname != "player") //Ry: In case Armagon suicides with rockets
-        attacker = self.lastdamager;
-      local float killerfrags = 2;
-      local entity killer = attacker; //Ry: Store killing player separately, since it could be a charmed monster that got the final hit
-      if (killer.charmer)
-        killer = killer.charmer;
-      bprint("Armagon was bested by ");
-      bprint(killer.netname);
-      bprint("\n");
-      
-      local float playercount = 0;
-      local entity e,player1,player2,player3;
-      
-      for (e = find(world, classname, "player") ; e ; e = find(e, classname, "player") ) //Ry: Sort Top 3 damagers
+      if (self.charmed && self.empathy_item) //Ry: If monster was summoned from a Horn, run the function on the horn to count the monsters killed
       {
-        if (e.flags & FL_CLIENT)
+        local entity stemp = self;
+        self = self.empathy_item;
+        self.use();
+        self = stemp;
+      }
+      else if (self.classname == "monster_armagon") //Ry: Armagon gives frags in Deathmatch
+      {
+        if (attacker.classname != "player") //Ry: In case Armagon suicides with rockets
+          attacker = self.lastdamager;
+        local float killerfrags = 2;
+        local entity killer = attacker; //Ry: Store killing player separately, since it could be a charmed monster that got the final hit
+        if (killer.charmer)
+          killer = killer.charmer;
+        bprint("Armagon was bested by ");
+        bprint(killer.netname);
+        bprint("\n");
+        
+        local float playercount = 0;
+        local entity e,player1,player2,player3;
+        
+        for (e = find(world, classname, "player") ; e ; e = find(e, classname, "player") ) //Ry: Sort Top 3 damagers
         {
-          playercount = playercount + 1;
-          if (e.bossdamage > 0)
+          if (e.flags & FL_CLIENT)
           {
-            HighestBossDamage(e,player1);
-            player1 = sort1;
-            if (sort2)
+            playercount = playercount + 1;
+            if (e.bossdamage > 0)
             {
-              HighestBossDamage(sort2,player2);
-              player2 = sort1;
+              HighestBossDamage(e,player1);
+              player1 = sort1;
               if (sort2)
               {
-                HighestBossDamage(sort2,player3);
-                player3 = sort1;
+                HighestBossDamage(sort2,player2);
+                player2 = sort1;
+                if (sort2)
+                {
+                  HighestBossDamage(sort2,player3);
+                  player3 = sort1;
+                }
               }
             }
           }
         }
-      }
-      
-      if (player1 && playercount > 1)
-      {
-        bprint(" Most damage from ");
-        bprint(player1.netname);
         
-        if ( !player2 || (player1.bossdamage >= player2.bossdamage * 3) ) //Ry: Player 1 gets all the points
-          if (player1 == killer) //Ry: If the killer also did enough damage to be top 3, store the frags and add them after
-            killerfrags = killerfrags + 3;
-          else
-            ClientAwardFrag(self,player1,killer,3);
-        else if (!player3 || (player1.bossdamage >= player2.bossdamage * 2)) //Ry: Player 1 gets 2 points, Player 2 gets 1
+        if (player1 && playercount > 1)
         {
-          if (player1 == killer)
-            killerfrags = killerfrags + 2;
-          else
-            ClientAwardFrag(self,player1,killer,2);
-          if (player2)
+          bprint(" Most damage from ");
+          bprint(player1.netname);
+          
+          if ( !player2 || (player1.bossdamage >= player2.bossdamage * 3) ) //Ry: Player 1 gets all the points
+            if (player1 == killer) //Ry: If the killer also did enough damage to be top 3, store the frags and add them after
+              killerfrags = killerfrags + 3;
+            else
+              ClientAwardFrag(self,player1,killer,3);
+          else if (!player3 || (player1.bossdamage >= player2.bossdamage * 2)) //Ry: Player 1 gets 2 points, Player 2 gets 1
           {
-            bprint(" and ");
+            if (player1 == killer)
+              killerfrags = killerfrags + 2;
+            else
+              ClientAwardFrag(self,player1,killer,2);
+            if (player2)
+            {
+              bprint(" and ");
+              bprint(player2.netname);
+              if (player2 == killer)
+                killerfrags = killerfrags + 1;
+              else
+                ClientAwardFrag(self,player2,killer,1);
+            }
+          }
+          else //Ry: Even distribution between 3 players
+          {
+            if (player1 == killer)
+              killerfrags = killerfrags + 1;
+            else
+              ClientAwardFrag(self,player1,killer,1);
+
+            bprint(", ");
             bprint(player2.netname);
             if (player2 == killer)
               killerfrags = killerfrags + 1;
             else
               ClientAwardFrag(self,player2,killer,1);
+
+            bprint(", and ");
+            bprint(player3.netname);
+            if (player3 == killer)
+              killerfrags = killerfrags + 1;
+            else
+              ClientAwardFrag(self,player3,killer,1);
+
           }
-        }
-        else //Ry: Even distribution between 3 players
-        {
-          if (player1 == killer)
-            killerfrags = killerfrags + 1;
-          else
-            ClientAwardFrag(self,player1,killer,1);
-
-          bprint(", ");
-          bprint(player2.netname);
-          if (player2 == killer)
-            killerfrags = killerfrags + 1;
-          else
-            ClientAwardFrag(self,player2,killer,1);
-
-          bprint(", and ");
-          bprint(player3.netname);
-          if (player3 == killer)
-            killerfrags = killerfrags + 1;
-          else
-            ClientAwardFrag(self,player3,killer,1);
-
-        }
-        bprint("\n");
-      }  
-      ClientAwardFrag(self,killer,attacker,killerfrags); //Ry: Award accumulated frags to the killer
+          bprint("\n");
+        }  
+        ClientAwardFrag(self,killer,attacker,killerfrags); //Ry: Award accumulated frags to the killer
+      }
     }
 
 		if (((attacker != self) && (attacker.flags & FL_MONSTER))) //Ry: And I guess the achievement too
@@ -413,7 +425,12 @@ void(entity targ, entity inflictor, entity attacker, float damage) T_Damage=
   //Ry: Record who last damaged the player in DM, and at what time
   if (deathmatch  && (targ != attacker) && (teamdamage == 0) )
   {
-    if (attacker.classname == "player" || (attacker.flags & FL_MONSTER && attacker.charmer) ) //Set damager if damager is a player, or a charmed monster in SoA
+    if ((attacker.solid == SOLID_BSP) && (attacker != world) && attacker.lastdamager && (attacker.lastdamager.classname == "player") && (attacker.lastdamager != targ)) //Ry: Another player influenced a mechanism to crush this player
+    {
+      targ.lastdamagetime = time;
+      targ.lastdamager = attacker.lastdamager;
+    }
+    else if (attacker.classname == "player" || (attacker.flags & FL_MONSTER && attacker.charmer) ) //Set damager if damager is a player, or a charmed monster in SoA
     {
       targ.lastdamagetime = time;
       targ.lastdamager = attacker;
@@ -466,7 +483,7 @@ void(entity targ, entity inflictor, entity attacker, float damage) T_Damage=
   
 	if ((targ.classname == "player") && (take > 0)) //Ry: Track if has taken damage for Painless Maze
 	{
-		targ.took_damage = TRUE;
+		ach_damagetaken = TRUE;
 	}
 
 	if (targ.health <= 0)

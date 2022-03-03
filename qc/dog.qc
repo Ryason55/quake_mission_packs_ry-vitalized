@@ -342,6 +342,8 @@ void() monster_dog =
 	precache_sound ("dog/dpain1.wav");
 	precache_sound ("dog/dsight.wav");
 	precache_sound ("dog/idle.wav");
+  
+  self.netname = "Rottweiler"; //Ry: Name for Deathmatch
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

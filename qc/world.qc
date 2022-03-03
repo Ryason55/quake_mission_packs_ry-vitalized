@@ -398,10 +398,151 @@ void() worldspawn =
    //else
    //   footsteps = 0;
  
- 
+  ach_weaponfired = FALSE; //Ry: Remaster ID1 achievements, now handled globally for proper Co-op handling
+  ach_damagetaken = FALSE;
+  
   mapstartweapons = 0;
+  hipnoticmap = FALSE;
+  if (deathmatch)
+    hip_itemconverttime = time + 0.3;
+  else
+    hip_itemconverttime = time + 5;
   
   };
+  
+void() hip_powerup_touch; //Ry: Reference this
+
+void() ReplaceBiosuits = //Ry: Convert any Biosuits that are near water, but aren't near slime, to Wetsuits
+{
+  local vector checkoffset;
+  local float nearwater, nearslime, contentval;
+  local float count = 0;
+  local entity ent;
+  
+  for (ent = find(world, classname, "item_artifact_envirosuit") ; ent ; ent = find(ent, classname, "item_artifact_envirosuit") )
+  {
+    nearwater = FALSE;
+    nearslime = FALSE;
+    checkoffset = '-256 -256 -256';
+    if (world.model == "maps/e3m5.bsp") //Ry: Override for this map
+      nearwater = TRUE;
+    else
+    {
+      while (TRUE)
+      {
+        contentval = pointcontents(ent.origin+checkoffset);
+        if (contentval == CONTENT_SLIME)
+        {
+          nearslime = TRUE;
+          break;
+        }
+        else if (contentval == CONTENT_WATER)
+          nearwater = TRUE;
+        
+        checkoffset_x = checkoffset_x + 128;
+        if (checkoffset_x > 256)
+        {
+          checkoffset_x = -256;
+          checkoffset_y = checkoffset_y + 128;
+          if (checkoffset_y > 256)
+          {
+            checkoffset_y = -256;
+            checkoffset_z = checkoffset_z + 128;
+            if (checkoffset_z > 256)
+            {
+              break;
+            }
+          }
+        }
+      }
+    }
+    if (nearwater && !nearslime)
+    {
+      ent.classname = "item_artifact_wetsuit";
+      ent.touch = hip_powerup_touch;
+      ent.noise = "misc/weton.wav";
+      ent.mdl = "progs/wetsuit.mdl";
+      if (ent.model)
+      {
+        setmodel (ent, "progs/wetsuit.mdl");
+        setsize (ent, '-16 -16 -24', '16 16 32');
+      }
+      ent.netname = "Wetsuit";
+      ent.items = 0;
+      ent.items2 = HIP_IT_WETSUIT;
+      count = count + 1;
+    }
+  }
+  if (count > 0)
+  {
+    dprint("Converted ");
+    dprint(ftos(count));
+    dprint(" Biosuits to Wetsuits\n");
+  }
+};
+
+void() InjectHipnoticWeapons = //Ry: Changes relevant weapons on map start if the player already has the base weapon
+{
+  local entity ent;
+  if ( (mapstartweapons & IT_GRENADE_LAUNCHER) && (!(mapstartweapons & IT_PROXIMITY_GUN)) ) // Grenade Launcher > Proximity Gun
+  {
+    ent = find(world, classname, "weapon_grenadelauncher");
+    if (ent != world)
+    {
+      ent.classname = "weapon_proximity_gun";
+      ent.mdl = "progs/g_prox.mdl";
+      if (ent.model)
+      {
+        setmodel (ent, "progs/g_prox.mdl");
+        setsize (ent, '-16 -16 0', '16 16 56');
+      }
+      ent.weapon = IT_PROXIMITY_GUN;
+      ent.netname = "Proximity Gun";
+      ent.items = IT_PROXIMITY_GUN;
+      dprint("Converted a Grenade Launcher to the Proximity Gun\n");
+    }
+  }
+  
+  if ( mapstartweapons & IT_LIGHTNING ) // Thunderbolt > Laser Cannon > Mjolnir
+  {
+    if ( !(mapstartweapons & IT_LASER_CANNON) )
+    {
+      ent = find(world, classname, "weapon_lightning");
+      if (ent != world)
+      {
+        ent.classname = "weapon_laser_gun";
+        ent.mdl = "progs/g_laserg.mdl";
+        if (ent.model)
+        {
+          setmodel (ent, "progs/g_laserg.mdl");
+          setsize (ent, '-16 -16 0', '16 16 56');
+        }
+        ent.weapon = IT_LASER_CANNON;
+        ent.netname = "Laser Cannon";
+        ent.items = IT_LASER_CANNON;
+        dprint("Converted a Thunderbolt to the Laser Cannon\n");
+      }
+    }
+    else if ( !(mapstartweapons & IT_MJOLNIR) )
+    {
+      ent = find(world, classname, "weapon_lightning");
+      if (ent != world)
+      {
+        ent.classname = "weapon_mjolnir";
+        ent.mdl = "progs/g_hammer.mdl";
+        if (ent.model)
+        {
+          setmodel (ent, "progs/g_hammer.mdl");
+          setsize (ent, '-16 -16 0', '16 16 56');
+        }
+        ent.weapon = IT_MJOLNIR;
+        ent.netname = "Mjolnir";
+        ent.items = IT_MJOLNIR;
+        dprint("Converted a Thunderbolt to the Mjolnir\n");
+      }
+    }
+  }
+};
 
 void() StartFrame =
 {
@@ -418,6 +559,15 @@ void() StartFrame =
 		cvar_set("campaign", ftos(campaign));
 	}
 	framecount = framecount + 1;
+  
+  if ( (!hipnoticmap) && (time >= hip_itemconverttime) ) //Ry: Automatic replacements on ID1 maps
+  {
+    hipnoticmap = 2;
+    ReplaceBiosuits();
+    if (!deathmatch)
+      InjectHipnoticWeapons();
+  }
+  
 };
 
 /*
@@ -447,7 +597,20 @@ void() InitBodyQue =
 	bodyque_head.owner.owner.classname = "bodyque";
 	bodyque_head.owner.owner.owner = spawn();
 	bodyque_head.owner.owner.owner.classname = "bodyque";
-	bodyque_head.owner.owner.owner.owner = bodyque_head;
+  if (deathmatch) //Ry: Doubled number of bodyques available in Deathmatch
+  {
+    bodyque_head.owner.owner.owner.owner = spawn();
+    bodyque_head.owner.owner.owner.owner.classname = "bodyque";
+    bodyque_head.owner.owner.owner.owner.owner = spawn();
+    bodyque_head.owner.owner.owner.owner.owner.classname = "bodyque";
+    bodyque_head.owner.owner.owner.owner.owner.owner = spawn();
+    bodyque_head.owner.owner.owner.owner.owner.owner.classname = "bodyque";
+    bodyque_head.owner.owner.owner.owner.owner.owner.owner = spawn();
+    bodyque_head.owner.owner.owner.owner.owner.owner.owner.classname = "bodyque";
+    bodyque_head.owner.owner.owner.owner.owner.owner.owner.owner = bodyque_head;
+  }
+  else
+    bodyque_head.owner.owner.owner.owner = bodyque_head;
 };
 
 
@@ -455,6 +618,20 @@ void() InitBodyQue =
 // respawned elsewhere
 void(entity ent) CopyToBodyQue =
 {
+  local entity head;
+  if (ent.model == "progs/h_player.mdl") //Ry: Set this appropriately based on whether it's a head or not (For Gremlins)
+    bodyque_head.gorging = TRUE;
+  else
+    bodyque_head.gorging = FALSE;
+  bodyque_head.health = ent.health; //Ry: Copy health for Gremlins
+  if (bodyque_head.health > 0)
+    bodyque_head.health = 0;
+  
+  //Ry: Gremlins wanting to gorge on this player's corpse will update target to the bodyque
+  for (head = find(world, classname, "monster_gremlin") ; head ; head = find(head, classname, "monster_gremlin") )
+    if ( (head.health > 0) && (head.enemy == ent) )
+      head.enemy = bodyque_head;
+  
 	bodyque_head.angles = ent.angles;
 	bodyque_head.model = ent.model;
 	bodyque_head.modelindex = ent.modelindex;

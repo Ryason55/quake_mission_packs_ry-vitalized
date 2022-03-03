@@ -90,6 +90,8 @@ entity horn_charmer;
 
 .entity     conjoinedentity; //Ry: For Armagon, so we have something that doesn't conflict with the Horn of Conjuring
 
+.float      isspawnee; //Ry: To keep track of extra spawned Gremlins
+
 .float      autospawndelay;  //Ry: New auto spawn time for func_spawn
 .string     prespawnmessage; //Ry: Message when entity is close to auto-spawning
 .string     spawnmessage;    //Ry: Message when entity is auto-spawned
@@ -106,6 +108,11 @@ entity horn_charmer;
 
 // Miscellaneous
 .float gravity;
+
+entity horn_item; //Ry: Which horn is being used
+
+float NumGremlins; //Ry: Moved these to globals
+float NumSpawnGremlins;
 
 //MED 01/05/97 added discharge variable
 float discharged;

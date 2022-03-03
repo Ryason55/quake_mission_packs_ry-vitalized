@@ -489,6 +489,8 @@ void() ScourgeTriggerTouch =
 void() monster_scourge =
 {
    local entity trig;
+   
+   hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
 
 	if (deathmatch)
 	{
@@ -510,6 +512,8 @@ void() monster_scourge =
    precache_sound ("scourge/walk.wav");
    precache_sound2 ("shambler/smack.wav");
    precache_sound2 ("weapons/rocket1i.wav");
+   
+   self.netname = "Centroid"; //Ry: Name for Deathmatch
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

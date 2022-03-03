@@ -264,6 +264,7 @@ void() monster_army =
 
 	precache_sound ("player/udeath.wav");		// gib death
 
+  self.netname = "Grunt"; //Ry: Name for Deathmatch
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

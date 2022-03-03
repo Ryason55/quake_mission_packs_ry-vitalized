@@ -414,8 +414,13 @@ void() UpdateCharmerGoal =
 
    if (self.huntingcharmer == 1)
       {
-      targ = spawn();
-      self.trigger_field = targ;
+      //if (self.trigger_field) //Ry: Actually check for this instead of always spawning a new one... Except doing that causes other problems???
+      //  targ = self.trigger_field;
+      //else
+      //{
+        targ = spawn();
+        self.trigger_field = targ;
+      //}
       setorigin(targ,self.charmer.origin);
       self.huntingcharmer = 2;
       self.goalentity = targ;
@@ -466,7 +471,7 @@ void() FleeCharmer =
 void() StopHuntingCharmer =
 {
    self.goalentity = world;
-   if (self.huntingcharmer>1)
+   //if (self.huntingcharmer>1 && self.trigger_field) //Ry: Check
       remove(self.trigger_field);
    self.huntingcharmer = 0;
    self.think = self.th_stand;
@@ -652,7 +657,7 @@ float() FindTarget =
       head = findradius(self.origin, CHARMED_RADIUS);
       while(head)
          {
-         if(!(head.flags & FL_NOTARGET) && ((head.flags & FL_MONSTER) || (head.flags & FL_CLIENT)) && ((head.team == 0) || (head.team != self.team)) ) //Ry: Can now target players, and checks against team
+         if(!(head.flags & FL_NOTARGET) && (head.flags & (FL_CLIENT|FL_MONSTER)) && ((head.team == 0) || (head.team != self.team)) ) //Ry: Can now target players, and checks against team
             {
             if (visible(head) && (visible_distance < dist) && (head.health>0))
                {

@@ -5,6 +5,9 @@
    Distributed (unsupported) on 3.12.97
 */
 
+//Ry: New func, located in client.qc
+void(entity player, float type, string message1, string message2 = "", string message3 = "", string message4 = "", string message5 = "", string message6 = "") FilteredCenterPrint;
+
 float USE_GOLD_KEY = 1;
 
 void() keytrigger_use =
@@ -21,7 +24,7 @@ void() keytrigger_use =
       {
       if (self.message != "")
          {
-         centerprint (activator, self.message);
+         FilteredCenterPrint (activator, CPRINT_WORLD, self.message);
          }
       else
          {
@@ -29,30 +32,30 @@ void() keytrigger_use =
             {
             if (world.worldtype == 2)
                {
-               centerprint (activator, "You need the silver keycard");
+               FilteredCenterPrint (activator, CPRINT_WORLD, "You need the silver keycard");
                }
             else if (world.worldtype == 1)
                {
-               centerprint (activator, "You need the silver runekey");
+               FilteredCenterPrint (activator, CPRINT_WORLD, "You need the silver runekey");
                }
             else if (world.worldtype == 0)
                {
-               centerprint (activator, "You need the silver key");
+               FilteredCenterPrint (activator, CPRINT_WORLD, "You need the silver key");
                }
             }
          else
             {
             if (world.worldtype == 2)
                {
-               centerprint (activator, "You need the gold keycard");
+               FilteredCenterPrint (activator, CPRINT_WORLD, "You need the gold keycard");
                }
             else if (world.worldtype == 1)
                {
-               centerprint (activator, "You need the gold runekey");
+               FilteredCenterPrint (activator, CPRINT_WORLD, "You need the gold runekey");
                }
             else if (world.worldtype == 0)
                {
-               centerprint (activator, "You need the gold key");
+               FilteredCenterPrint (activator, CPRINT_WORLD, "You need the gold key");
                }
             }
          }

@@ -4,6 +4,10 @@ void() W_UpdateAmmo; //Ry: Added function name reference here
 BE .8 .3 .4 IN COLOR */
 
 
+//Ry: New func, located in client.qc
+void(entity player, float type, string message1, string message2 = "", string message3 = "", string message4 = "", string message5 = "", string message6 = "") FilteredCenterPrint;
+
+
 void() SUB_regen =
 {
 	self.model = self.mdl;		// restore original model
@@ -83,18 +87,21 @@ void(float spawntime) PrepareItemRespawn =
 {
   self.nextthink = spawntime;
   self.think = SUB_regen;
-  if (time >= (spawntime-5))
+  if (deathmatch)
   {
-    self.model = self.mdl;
-    self.alpha = 0.2;
-    if (self.trigger_field)
-      self.trigger_field.nextthink = -1;
-  }
-  else
-  {
-    CreateExtraItemThinker();
-    self.trigger_field.think = ItemPreSpawnGhost;
-    self.trigger_field.nextthink = spawntime-5;
+    if (time >= (spawntime-5))
+    {
+      self.model = self.mdl;
+      self.alpha = 0.2;
+      if (self.trigger_field)
+        self.trigger_field.nextthink = -1;
+    }
+    else
+    {
+      CreateExtraItemThinker();
+      self.trigger_field.think = ItemPreSpawnGhost;
+      self.trigger_field.nextthink = spawntime-5;
+    }
   }
 }
 
@@ -121,6 +128,23 @@ void() PlaceItem =
   self.remaintime = 0;
   self.nextspawntime = 0;
   
+  
+  if ( ((!deathmatch) && (!coop)) && (self.respawntimesp > 0) ) //Ry: Set respawn time if an override is set
+  {
+    self.respawntime = self.respawntimesp;
+    dprint("set respawn for SP item\n");
+  }
+  else if ( (coop) && (self.respawntimecoop > 0) )
+  {
+    self.respawntime = self.respawntimecoop;
+    dprint("set respawn for Co-op item\n");
+  }
+  else if ( (deathmatch) && (self.respawntimedm > 0) )
+  {
+    self.respawntime = self.respawntimedm;
+    dprint("set respawn for DM item\n");
+  }
+  
   if (self.nograv) //Ry: Added capability for items to be placed in the air
   {
     self.movetype = MOVETYPE_FLY;
@@ -138,14 +162,11 @@ void() PlaceItem =
     }
   }
   
-  if (self.delayspawn > 0.2 && deathmatch) //Ry: Delayed spawning
+  if (self.delayspawn > 0.2) //Ry: Delayed spawning
   {
     self.solid = SOLID_NOT;
     self.model = string_null;
     PrepareItemRespawn(time + self.delayspawn - 0.2); //Ry: Now also sets up a ghost for the item when close to spawning
-    //self.nextthink = time + self.delayspawn - 0.2;
-    //self.think = SUB_regen;
-    //PrepareSpawnGhost();
   }
   else
     self.effects = self.itemeffect; //Ry: Add item effect if defined
@@ -211,6 +232,8 @@ void() item_health =
 {
 	self.touch = health_touch;
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch) //Ry: DM Respawn time defined here now
+    self.respawntime = 20;
 
 	if (self.spawnflags & H_ROTTEN)
 	{
@@ -264,7 +287,7 @@ void() health_touch =
 	if (other.classname != "player")
 		return;
   
-  if ( coop && (other.flags & FL_CLIENT) && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the item
+  if ( coop && (!self.respawntime) && (other.flags & FL_CLIENT) && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the item
   {
     if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
       self.alpha = 0.25;
@@ -296,7 +319,7 @@ void() health_touch =
 
 	stuffcmd (other, "bf\n");
   
-  if (!coop) //Ry: Leave health in Co-op
+  if (!coop || self.respawntime) //Ry: Leave health in Co-op
   {
     self.model = string_null;
     self.solid = SOLID_NOT;
@@ -307,7 +330,7 @@ void() health_touch =
 	{
 // 11/02/96 removed SUPERHEALTH from defs.qc
 //      other.items = other.items | IT_SUPERHEALTH;
-    if (coop || deathmatch)
+    if (coop || self.respawntime)
     {
       CreateExtraItemThinker(); //Ry: Separate entity to do the thinking; Co-op has a thinker for the transparency, and the 1 second nextthinks from rotting screw with bots in DM
       self.trigger_field.nextthink = time + 5;
@@ -321,7 +344,7 @@ void() health_touch =
       //rot_ent.think = item_megahealth_rot;
       //rot_ent.owner = other;
       //rot_ent.enemy = self;
-      if (deathmatch && (deathmatch != 2)) //Ry: Max time; Rot thinker will lower it to 20 seconds when the rotting has finished
+      if (self.respawntime && (deathmatch != 2)) //Ry: Max time; Rot thinker will lower it to respawntime when the rotting has finished
       {
         self.nextthink = time + 300;
         self.think = SUB_regen;
@@ -334,15 +357,15 @@ void() health_touch =
       self.owner = other;
     }
 	}
-	else if (deathmatch && (deathmatch != 2))
+	else if (self.respawntime && (deathmatch != 2))
 	{
-    PrepareItemRespawn(time + 20); //Ry: Now also sets up a ghost for the item when close to spawning
+    PrepareItemRespawn(time + self.respawntime); //Ry: Now also sets up a ghost for the item when close to spawning
     //self.nextthink = time + 20;
     //self.think = SUB_regen;
     //PrepareSpawnGhost();
 	}
   
-  if (coop)
+  if (coop && (!self.respawntime))
   {
     self.pickers = self.pickers + other.playerindex; //Ry: Mark off that this player has picked the item
     if (!(self.alpha == 0.25))
@@ -389,12 +412,12 @@ void() item_megahealth_rot =
 // MED 11/02/96 removed SUPERHEALTH
 //   other.items = other.items - (other.items & IT_SUPERHEALTH);
 
-  if (coop) //Ry: Multiplayer modes now use a separate thinker for the rotting, which can be removed when the rot is done
+  if (coop && (!self.respawntime)) //Ry: Multiplayer modes now use a separate thinker for the rotting, which can be removed when the rot is done
     remove(self);
-	else if ( deathmatch && (deathmatch != 2) && (self.enemy.model == string_null) )
+	else if ( self.respawntime && (deathmatch != 2) && (self.enemy.model == string_null) )
 	{
     self = self.enemy;
-    PrepareItemRespawn(time + 20); //Ry: Now also sets up a ghost for the item when close to spawning
+    PrepareItemRespawn(time + self.respawntime); //Ry: Now also sets up a ghost for the item when close to spawning
 	}
 };
 
@@ -417,7 +440,7 @@ void() armor_touch =
 	if (other.classname != "player")
 		return;
   
-  if ( coop && (other.flags & FL_CLIENT) && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the item
+  if ( coop && (!self.respawntime) && (other.flags & FL_CLIENT) && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the item
   {
     if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
       self.alpha = 0.25;
@@ -452,7 +475,7 @@ void() armor_touch =
    other.items = other.items - (other.items & (IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3)) + bit;
 
   
-  if (coop)
+  if (coop && (!self.respawntime))
   {
     self.pickers = self.pickers + other.playerindex; //Ry: Mark off that this player has picked the item
     if (!(self.alpha == 0.25))
@@ -481,9 +504,9 @@ void() armor_touch =
   {
     self.solid = SOLID_NOT;
     self.model = string_null;
-    if (deathmatch == 1 || deathmatch > 2)
+    if ( self.respawntime && (deathmatch != 2) )
     {
-      PrepareItemRespawn(time + 20); //Ry: Now also sets up a ghost for the item when close to spawning
+      PrepareItemRespawn(time + self.respawntime); //Ry: Now also sets up a ghost for the item when close to spawning
       //self.nextthink = time + 20;
       //self.think = SUB_regen;
       //PrepareSpawnGhost(); //Ry: Ghost of the item appears when close to respawning
@@ -512,6 +535,8 @@ void() item_armor1 =
 	setmodel (self, "progs/armor.mdl");
 	self.skin = 0;
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch) //Ry: DM Respawn time defined here now
+    self.respawntime = 20;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -528,6 +553,8 @@ void() item_armor2 =
 	setmodel (self, "progs/armor.mdl");
 	self.skin = 1;
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch) //Ry: DM Respawn time defined here now
+    self.respawntime = 20;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -544,6 +571,8 @@ void() item_armorInv =
 	setmodel (self, "progs/armor.mdl");
 	self.skin = 2;
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch) //Ry: DM Respawn time defined here now
+    self.respawntime = 20;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -631,14 +660,14 @@ void() weapon_touch =
 	local	entity	stemp;
 	local	float	leave;
   local string itemname;
-  local float respawntime;
+  //local float respawntime;
 
 	if (!(other.flags & FL_CLIENT || ((other.classname == "monster_gremlin") && !(other.gorging) && !(self.stoleweapon) && !(other.super_item) && !(self.classname == "weapon_mjolnir")) )) //Ry: Gremlins now able to pick a weapon
 		return;
 	if (other.health <= 0) //Ry: Health wasn't being checked here
 		return;
     
-  if ( coop && (other.flags & FL_CLIENT) && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the weapon
+  if ( coop && (!self.respawntime) && (other.flags & FL_CLIENT) && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the weapon
   {
     if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
       self.alpha = 0.25;
@@ -654,18 +683,18 @@ void() weapon_touch =
 	self = stemp;
   
   itemname = self.netname;
-  respawntime = 30;
+  //respawntime = 30;
 
   if (deathmatch == 3) //Ry: Weapons respawn quickly (except Mjolnir), and if you already have a weapon, you just get a small amount of ammo from it
   {
     leave = 0;
-    if (deathmatch > 1)
-      respawntime = 5;
+    //if (deathmatch > 1)
+    //  respawntime = 5;
     if (self.classname == "weapon_nailgun")
     {
       hadammo = other.ammo_nails;
         
-      if (deathmatch && other.items & IT_NAILGUN)
+      if (other.items & IT_NAILGUN)
       {
         other.ammo_nails = other.ammo_nails + 10;
         itemname = "nails";
@@ -680,7 +709,7 @@ void() weapon_touch =
     {
       hadammo = other.ammo_nails;
         
-      if (deathmatch && other.items & IT_SUPER_NAILGUN)
+      if (other.items & IT_SUPER_NAILGUN)
       {
         other.ammo_nails = other.ammo_nails + 10;
         itemname = "nails";
@@ -696,7 +725,7 @@ void() weapon_touch =
       hadammo = other.ammo_shells;
         
       other.ammo_shells = other.ammo_shells + 5;
-      if (deathmatch && other.items & IT_SUPER_SHOTGUN)
+      if (other.items & IT_SUPER_SHOTGUN)
         itemname = "shells";
       else
         new = IT_SUPER_SHOTGUN;
@@ -705,7 +734,7 @@ void() weapon_touch =
     {
       hadammo = other.ammo_rockets;
         
-      if (deathmatch && other.items & IT_ROCKET_LAUNCHER)
+      if (other.items & IT_ROCKET_LAUNCHER)
       {
         other.ammo_rockets = other.ammo_rockets + 2;
         itemname = "rockets";
@@ -720,7 +749,7 @@ void() weapon_touch =
     {
       hadammo = other.ammo_rockets;
         
-      if (deathmatch && other.items & IT_GRENADE_LAUNCHER)
+      if (other.items & IT_GRENADE_LAUNCHER)
       {
         other.ammo_rockets = other.ammo_rockets + 2;
         itemname = "rockets";
@@ -735,7 +764,7 @@ void() weapon_touch =
     {
       hadammo = other.ammo_cells;
         
-      if (deathmatch && other.items & IT_LIGHTNING)
+      if (other.items & IT_LIGHTNING)
       {
         other.ammo_cells = other.ammo_cells + 3;
         itemname = "cells";
@@ -751,7 +780,7 @@ void() weapon_touch =
     {
       hadammo = other.ammo_cells;
         
-      if (deathmatch && other.items & IT_LASER_CANNON)
+      if (other.items & IT_LASER_CANNON)
       {
         other.ammo_cells = other.ammo_cells + 5;
         itemname = "cells";
@@ -766,9 +795,9 @@ void() weapon_touch =
      else if (self.classname == "weapon_mjolnir")
     {
       hadammo = other.ammo_cells;
-      respawntime = 30;
+      //respawntime = 30;
         
-      if (deathmatch && other.items & IT_MJOLNIR)
+      if (other.items & IT_MJOLNIR)
       {
         other.ammo_cells = other.ammo_cells + 15;
         itemname = "cells";
@@ -784,7 +813,7 @@ void() weapon_touch =
     {
       hadammo = other.ammo_rockets;
         
-      if (deathmatch && other.items & IT_PROXIMITY_GUN)
+      if (other.items & IT_PROXIMITY_GUN)
       {
         other.ammo_rockets = other.ammo_rockets + 2;
         itemname = "rockets";
@@ -800,10 +829,13 @@ void() weapon_touch =
   }
   else
   {
-    if (deathmatch == 2 || coop)
+    if ( deathmatch == 2 || (coop && (!self.respawntime)) )
       leave = 1;
     else
       leave = 0;
+    
+    if (deathmatch == 1) //Ry: deathmatch 1's original spawn times
+      self.respawntime = 30;
       
     if (self.classname == "weapon_nailgun")
     {
@@ -909,7 +941,7 @@ void() weapon_touch =
     sprint (other, "\n");
   
     stuffcmd (other, "bf\n");
-    if (coop)
+    if ( coop && (!self.respawntime) )
     {
       self.pickers = self.pickers + other.playerindex; //Ry: Mark off that this player has picked the item
       if (!(self.alpha == 0.25))
@@ -937,13 +969,13 @@ void() weapon_touch =
 
   if (self.classname == "monster_gremlin") //Ry: Gremlin
   {
-    stemp.stoleweapon = TRUE; //Ry: Make sure multiple Gremlins can't grab the item on the same frame
     self.stoleweapon = TRUE;
     if (!self.pickorigin)
       self.pickorigin = self.origin; //Ry: Track where the item was picked from, so it can be put back if something happens to the item
     W_UpdateAmmo();
     if (!deathmatch)
     {
+      stemp.stoleweapon = TRUE; //Ry: Ensure only one Gremlin can grab the item on a frame
       self.super_item = stemp; //Store the weapon item so Gremlin can drop it
       leave = FALSE;
     }
@@ -963,9 +995,9 @@ void() weapon_touch =
 	self.model = string_null;
 	self.solid = SOLID_NOT;
   
-	if (deathmatch) //Ry Edit: Respawn in Deathmatch always if the item doesn't stay
+	if (self.respawntime) //Ry Edit: Respawn in Deathmatch always if the item doesn't stay
   {
-    PrepareItemRespawn(time + respawntime); //Ry: Now also sets up a ghost for the item when close to spawning
+    PrepareItemRespawn(time + self.respawntime); //Ry: Now also sets up a ghost for the item when close to spawning
 		//self.nextthink = time + respawntime;
     //self.think = SUB_regen;
     //PrepareSpawnGhost(); //Ry: Ghost of the item appears when close to respawning
@@ -987,6 +1019,8 @@ void() weapon_supershotgun =
 	self.netname = "Double-barrelled Shotgun";
 	self.touch = weapon_touch;
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
+    self.respawntime = 5;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -1002,6 +1036,8 @@ void() weapon_nailgun =
 	self.netname = "nailgun";
 	self.touch = weapon_touch;
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
+    self.respawntime = 5;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -1017,6 +1053,8 @@ void() weapon_supernailgun =
 	self.netname = "Super Nailgun";
 	self.touch = weapon_touch;
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
+    self.respawntime = 5;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -1027,11 +1065,14 @@ void() weapon_supernailgun =
 void() weapon_grenadelauncher =
 {
 	precache_model ("progs/g_rock.mdl");
+  precache_model ("progs/g_prox.mdl"); //Ry: Also precache hipnotic's Proximity Gun
 	setmodel (self, "progs/g_rock.mdl");
-	self.weapon = 3;
+	self.weapon = IT_GRENADE_LAUNCHER; //Ry: Was 3; Fixed
 	self.netname = "Grenade Launcher";
 	self.touch = weapon_touch;
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
+    self.respawntime = 5;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -1043,10 +1084,12 @@ void() weapon_rocketlauncher =
 {
 	precache_model ("progs/g_rock2.mdl");
 	setmodel (self, "progs/g_rock2.mdl");
-	self.weapon = 3;
+	self.weapon = IT_ROCKET_LAUNCHER; //Ry: Was 3; Fixed
 	self.netname = "Rocket Launcher";
 	self.touch = weapon_touch;
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
+    self.respawntime = 5;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -1057,12 +1100,16 @@ void() weapon_rocketlauncher =
 
 void() weapon_lightning =
 {
-	precache_model ("progs/g_light.mdl");
+  precache_model ("progs/g_light.mdl");
+	precache_model ("progs/g_laserg.mdl"); //Ry: Also precache hipnotic's Laser Cannon and Mjolnir
+  precache_model ("progs/g_hammer.mdl");
 	setmodel (self, "progs/g_light.mdl");
-	self.weapon = 3;
+	self.weapon = IT_LIGHTNING; //Ry: Was 3; Fixed
 	self.netname = "Thunderbolt";
 	self.touch = weapon_touch;
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
+    self.respawntime = 5;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -1162,7 +1209,7 @@ void() ammo_touch =
       self.think = TransparentThink;
     }
   }
-  else //Ry: Only one Gremlin can grab the ammo
+  else if (!deathmatch) //Ry: Only one Gremlin can grab the ammo in campaign
     self.stoleweapon = TRUE;
   
   if (coop)
@@ -1272,6 +1319,8 @@ void() item_shells =
 	self.weapon = 1;
 	self.netname = "shells";
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch) //Ry: Unused for this item type currently
+    self.respawntime = 30;
 	setsize (self, '0 0 0', '32 32 56');
 	StartItem ();
 };
@@ -1299,6 +1348,8 @@ void() item_spikes =
 	self.weapon = 2;
 	self.netname = "nails";
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch) //Ry: Unused for this item type currently
+    self.respawntime = 30;
 	setsize (self, '0 0 0', '32 32 56');
 	StartItem ();
 };
@@ -1326,6 +1377,8 @@ void() item_rockets =
 	self.weapon = 3;
 	self.netname = "rockets";
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch) //Ry: Unused for this item type currently
+    self.respawntime = 30;
 	setsize (self, '0 0 0', '32 32 56');
 	StartItem ();
 };
@@ -1354,6 +1407,8 @@ void() item_cells =
 	self.weapon = 4;
 	self.netname = "cells";
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch) //Ry: Unused for this item type currently
+    self.respawntime = 30;
 	setsize (self, '0 0 0', '32 32 56');
 	StartItem ();
 };
@@ -1429,6 +1484,8 @@ void() item_weapon =
 	}
 
   self.enttype = "item"; //Ry: For easy searching
+  if (deathmatch) //Ry: Unused for this item type currently
+    self.respawntime = 30;
 	setsize (self, '0 0 0', '32 32 56');
 	StartItem ();
 };
@@ -1588,7 +1645,7 @@ local float		best;
 	if (other.health <= 0)
 		return;
 
-	centerprint (other, "You got the rune!");
+	FilteredCenterPrint (other, CPRINT_WORLD, "You got the rune!");
 
 	sound (other, CHAN_ITEM, self.noise, 1, ATTN_NORM);
 	stuffcmd (other, "bf\n");
@@ -1867,6 +1924,8 @@ void() item_artifact_invulnerability =
 	setmodel (self, "progs/invulner.mdl");
 	self.netname = "Pentagram of Protection";
 	self.items = IT_INVULNERABILITY;
+  if (deathmatch) //Ry: Unused for this item type currently
+    self.respawntime = 300;
 	setsize (self, '-16 -16 -24', '16 16 32');
   self.itemeffect = EF_PENTALIGHT; //Ry: New light for powerup
 	StartItem ();
@@ -1882,10 +1941,18 @@ void() item_artifact_envirosuit =
 	precache_model ("progs/suit.mdl");
 	precache_sound ("items/suit.wav");
 	precache_sound ("items/suit2.wav");
+  
+  precache_model ("progs/wetsuit.mdl"); //Ry: Precache Wetsuit too
+  precache_sound ("misc/wetsuit.wav");
+  precache_sound ("misc/weton.wav");
+  precache_sound ("items/suit2.wav");
+  
 	self.noise = "items/suit.wav";
 	setmodel (self, "progs/suit.mdl");
 	self.netname = "Biosuit";
 	self.items = IT_SUIT;
+  if (deathmatch) //Ry: Unused for this item type currently
+    self.respawntime = 60;
 	setsize (self, '-16 -16 -24', '16 16 32');
 	StartItem ();
 };
@@ -1906,6 +1973,8 @@ void() item_artifact_invisibility =
 	setmodel (self, "progs/invisibl.mdl");
 	self.netname = "Ring of Shadows";
 	self.items = IT_INVISIBILITY;
+  if (deathmatch) //Ry: Unused for this item type currently
+    self.respawntime = 300;
 	setsize (self, '-16 -16 -24', '16 16 32');
 	StartItem ();
 };
@@ -1926,6 +1995,8 @@ void() item_artifact_super_damage =
 	setmodel (self, "progs/quaddama.mdl");
 	self.netname = "Quad Damage";
 	self.items = IT_QUAD;
+  if (deathmatch) //Ry: Unused for this item type currently
+    self.respawntime = 120;
 	setsize (self, '-16 -16 -24', '16 16 32');
   self.itemeffect = EF_QUADLIGHT; //Ry: New light for powerup
 	StartItem ();

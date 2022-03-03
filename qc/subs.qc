@@ -4,6 +4,8 @@ void() SUB_Null = {};
 
 void() SUB_Remove = {remove(self);};
 
+//Ry: New func, located in client.qc
+void(entity player, float type, string message1, string message2 = "", string message3 = "", string message4 = "", string message5 = "", string message6 = "") FilteredCenterPrint;
 
 /*
 QuakeEd only writes a single float for angles (bad idea), so up and down are
@@ -234,7 +236,7 @@ void() SUB_UseTargets =
 //
 	if (activator.classname == "player" && self.message != "")
 	{
-		centerprint (activator, self.message);
+		FilteredCenterPrint (activator, CPRINT_WORLD, self.message);
 		if (!self.noise)
 			sound (activator, CHAN_VOICE, "misc/talk.wav", 1, ATTN_NORM);
 	}
@@ -272,6 +274,8 @@ void() SUB_UseTargets =
 			otemp = other;
 			self = t;
 			other = stemp;
+      //if (self.solid == SOLID_BSP) //Ry: Activated BSP entities now track who turned them on, so damage is tracked accordingly
+      //  self.lastdamager = act;
 			if (self.use != SUB_Null)
 			{
 				if (self.use)

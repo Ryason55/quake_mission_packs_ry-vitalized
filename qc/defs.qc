@@ -312,6 +312,13 @@ float	IT_INVULNERABILITY		= 1048576;
 float	IT_SUIT					= 2097152;
 float	IT_QUAD					= 4194304;
 
+//Ry: Values for custom centerprint stuff
+float	CPRINT_NONE  = 0;
+float	CPRINT_NAME  = 1;
+float	CPRINT_WORLD = 2;
+float	CPRINT_MOTD  = 3;
+float	CPRINT_FRAG  = 4;
+
 // point content values
 
 float	CONTENT_EMPTY			= -1;
@@ -424,6 +431,10 @@ float playerindexinuse; //Ry: To track player indexes in use
 float highestplayerindex; //Ry: Highest player index
 
 float mapstartweapons; //Ry: For giving the weapons everyone else has in Co-op
+float hipnoticmap; //Ry: Whether or not map has hipnotic entities on it
+float hip_itemconverttime; 
+
+float ach_weaponfired, ach_damagetaken; //Ry: Global versions of ID1 Remaster achievements
 
 //================================================
 
@@ -509,7 +520,6 @@ float	AS_MISSILE		= 4;
 
 .float    lastfragtime; //Ry: Last time player got a frag
 .float    fragcombo; //Ry: Frags in quick succession
-.float    fragmessageshowing; //Ry: If frag message should be up right now
 .float    lastspawntime; //Ry: Time that the player last spawned
 .float    justrespawned; //Ry: When a client just respawned
 
@@ -522,8 +532,12 @@ float	AS_MISSILE		= 4;
 
 .float    lastfiredweapon; //Ry: To better track what bots are firing, since they switch weapons faster than their recoil
 
-.float    fired_weapon; //Ry: For ID1 achievements
-.float    took_damage;
+.float    lastcenterprinttype; //Ry: For custom centerprint handler
+.float    lastcenterprinttime;
+.entity   lastprobedplayer;
+.float    lastprobetime;
+
+.float    mapsfinished; //Ry: How many maps the player has been around for the completion of
 
 .float		axhitme;
 
@@ -549,9 +563,9 @@ float	AS_MISSILE		= 4;
 .float    pickers; //Track which player indexes have already collected the item
 .float    playerindex; //Identifier for items
 .string   enttype; //Used for easily searching items
-//.string   ownername; //Name of the owner, if they've disconnected
 .float    displaced; //Item was displaced by a Gremlin
 .float    alpha; //Transparency
+.float    respawntimesp, respawntimecoop, respawntimedm, respawntime; //So respawn time can be overwritten
 
 //
 // object stuff

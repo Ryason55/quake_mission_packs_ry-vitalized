@@ -5,6 +5,9 @@ float DOOR_GOLD_KEY = 8;
 float DOOR_SILVER_KEY = 16;
 float DOOR_TOGGLE = 32;
 
+//Ry: New func, located in client.qc
+void(entity player, float type, string message1, string message2 = "", string message3 = "", string message4 = "", string message5 = "", string message6 = "") FilteredCenterPrint;
+
 /*
 
 Doors are similar to buttons, but can spawn a fat trigger field around them
@@ -37,6 +40,7 @@ void() door_blocked =
 // so let it just squash the object to death real fast
 	if (self.wait >= 0)
 	{
+    self.lastdamager = entity_null; //Ry: Reset activator
 		if (self.state == STATE_DOWN)
 			door_go_up ();
 		else
@@ -47,6 +51,7 @@ void() door_blocked =
 
 void() door_hit_top =
 {
+  self.lastdamager = entity_null; //Ry: Reset activator
 	sound (self, CHAN_VOICE, self.noise1, 1, ATTN_NORM);
 	self.state = STATE_TOP;
 	if (self.spawnflags & DOOR_TOGGLE)
@@ -57,6 +62,7 @@ void() door_hit_top =
 
 void() door_hit_bottom =
 {
+  self.lastdamager = entity_null; //Ry: Reset activator
 	sound (self, CHAN_VOICE, self.noise1, 1, ATTN_NORM);
 	self.state = STATE_BOTTOM;
 };
@@ -124,6 +130,7 @@ void() door_fire =
 			starte = self;
 			do
 			{
+        self.lastdamager = activator; //Ry: Record activator
 				door_go_down ();
 				self = self.enemy;
 			} while ( (self != starte) && (self != world) );
@@ -136,6 +143,7 @@ void() door_fire =
 	starte = self;
 	do
 	{
+    self.lastdamager = activator; //Ry: Record activator
 		door_go_up ();
 		self = self.enemy;
 	} while ( (self != starte) && (self != world) );
@@ -204,7 +212,7 @@ void() door_touch =
 
 	if (self.owner.message != "")
 	{
-		centerprint (other, self.owner.message);
+		FilteredCenterPrint (other, CPRINT_WORLD, self.owner.message);
 		sound (other, CHAN_VOICE, "misc/talk.wav", 1, ATTN_NORM);
 	}
 	
@@ -219,17 +227,17 @@ void() door_touch =
 		{
 			if (world.worldtype == 2)
 			{
-				centerprint (other, "You need the silver keycard");
+				FilteredCenterPrint (other, CPRINT_WORLD, "You need the silver keycard");
 				sound (self, CHAN_VOICE, self.noise3, 1, ATTN_NORM);
 			}
 			else if (world.worldtype == 1)
 			{
-				centerprint (other, "You need the silver runekey");
+				FilteredCenterPrint (other, CPRINT_WORLD, "You need the silver runekey");
 				sound (self, CHAN_VOICE, self.noise3, 1, ATTN_NORM);
 			}
 			else if (world.worldtype == 0)
 			{
-				centerprint (other, "You need the silver key");
+				FilteredCenterPrint (other, CPRINT_WORLD, "You need the silver key");
 				sound (self, CHAN_VOICE, self.noise3, 1, ATTN_NORM);
 			}
 		}
@@ -237,17 +245,17 @@ void() door_touch =
 		{
 			if (world.worldtype == 2)
 			{
-				centerprint (other, "You need the gold keycard");
+				FilteredCenterPrint (other, CPRINT_WORLD, "You need the gold keycard");
 				sound (self, CHAN_VOICE, self.noise3, 1, ATTN_NORM);
 			}
 			else if (world.worldtype == 1)
 			{
-				centerprint (other, "You need the gold runekey");
+				FilteredCenterPrint (other, CPRINT_WORLD, "You need the gold runekey");
 				sound (self, CHAN_VOICE, self.noise3, 1, ATTN_NORM);			
 			}
 			else if (world.worldtype == 0)
 			{
-				centerprint (other, "You need the gold key");
+				FilteredCenterPrint (other, CPRINT_WORLD, "You need the gold key");
 				sound (self, CHAN_VOICE, self.noise3, 1, ATTN_NORM);
 			}
 		}
@@ -258,6 +266,7 @@ void() door_touch =
 	self.touch = SUB_Null;
 	if (self.enemy)
 		self.enemy.touch = SUB_Null;	// get paired door
+  activator = other; //Ry: Forward this
 	door_use ();
 };
 
@@ -583,6 +592,8 @@ void () fd_secret_use =
 	self.message = string_null;		// no more message
 
 	SUB_UseTargets();				// fire all targets / killtargets
+  
+  self.lastdamager = activator; //Ry: Record activator
 	
 	if (!(self.spawnflags & SECRET_NO_SHOOT))
 	{
@@ -638,6 +649,7 @@ void () fd_secret_move2 =
 // Wait here until time to go back...
 void () fd_secret_move3 =
 {
+  self.lastdamager = entity_null; //Ry: Reset activator
 	sound(self, CHAN_VOICE, self.noise3, 1, ATTN_NORM);
 	if (!(self.spawnflags & SECRET_OPEN_ONCE))
 	{
@@ -704,7 +716,7 @@ void() secret_touch =
 	
 	if (self.message)
 	{
-		centerprint (other, self.message);
+		FilteredCenterPrint (other, CPRINT_WORLD, self.message);
 		sound (other, CHAN_BODY, "misc/talk.wav", 1, ATTN_NORM);
 	}
 };

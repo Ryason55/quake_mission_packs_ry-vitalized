@@ -390,6 +390,8 @@ void() monster_wizard =
 	precache_sound ("wizard/widle2.wav");
 	precache_sound ("wizard/wpain.wav");
 	precache_sound ("wizard/wsight.wav");
+  
+  self.netname = "Scrag"; //Ry: Name for Deathmatch
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

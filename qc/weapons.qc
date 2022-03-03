@@ -462,7 +462,10 @@ void() HIP_FireMjolnirLightning =
       discharged = 1;
 		T_RadiusDamage (self, self, 35*cells, world);
       discharged = 0;
-		W_SetCurrentAmmo ();
+    if (self.health > 0) //Ry: Don't run this function if the player survives, since it'll soft-lock the player if they don't gib
+      W_SetCurrentAmmo ();
+    else
+      W_UpdateAmmo();
 		return;
 	}
 
@@ -1053,7 +1056,10 @@ void() W_FireLightning =
       discharged = 1;
 		T_RadiusDamage (self, self, 35*cells, world);
       discharged = 0;
-		W_SetCurrentAmmo ();
+    if (self.health > 0) //Ry: Don't run this function if the player survives, since it'll soft-lock the player if they don't gib
+      W_SetCurrentAmmo ();
+    else
+      W_UpdateAmmo();
 		return;
 	}
 
@@ -1263,7 +1269,7 @@ void() ProximityBomb =
       {
       if (head != self) //Ry: Don't blow up when detecting self
       {
-        if ((head.health > 0) && (head.flags & (FL_CLIENT|FL_MONSTER)) && (head.classname!=self.classname))
+        if ((head.health > 0) && (head.flags & (FL_CLIENT|FL_MONSTER)) && (!head.invisible_finished) && (head.classname!=self.classname)) //Ry: No longer react to invisible players
            blowup = 1;
         if ((head.classname == self.classname) && (head.state==0))
            blowup = 1;
@@ -1709,7 +1715,7 @@ void() W_Attack =
   
   if ( (self.weapon != IT_AXE) && (self.weapon != IT_MJOLNIR) ) //Ry: For the Pacifist achievement
 	{
-		self.fired_weapon = TRUE;
+		ach_weaponfired = TRUE;
 	}
 
 	if (self.weapon == IT_AXE)
@@ -2347,22 +2353,34 @@ void () DeleteWall = //Ry: Just a fun thing (impulse 207)
 void () ProbeEntityData = //Ry: Debugging (impulse 208)
 {
   local vector org = self.origin+self.view_ofs;
-  traceline (org, org + v_forward*600, FALSE, self);
+  traceline (org, org + v_forward*2048, FALSE, self);
   if ((trace_fraction < 1) && (trace_ent != world))
   {
     dprint("==== ");
     dprint(trace_ent.classname);
-    dprint(" ====\n");
-    dprint("Origin: ");
-    dprint(vtos(trace_ent.origin));
-    dprint("\nMins: ");
-    dprint(vtos(trace_ent.mins));
-    dprint("\nMaxs: ");
-    dprint(vtos(trace_ent.maxs));
-    dprint("\nTarget: ");
-    dprint(trace_ent.target);
-    dprint("\nTargetName: ");
-    dprint(trace_ent.targetname);
+    dprint(" ====");
+    if (trace_ent.flags & FL_CLIENT|FL_MONSTER)
+    {
+      dprint("\nName: ");
+      dprint(trace_ent.netname);
+      dprint("\nHealth: ");
+      dprint(ftos(trace_ent.health));
+      dprint("\nTeam: ");
+      dprint(ftos(trace_ent.team));
+    }
+    else
+    {
+      dprint("\nOrigin: ");
+      dprint(vtos(trace_ent.origin));
+      dprint("\nMins: ");
+      dprint(vtos(trace_ent.mins));
+      dprint("\nMaxs: ");
+      dprint(vtos(trace_ent.maxs));
+      dprint("\nTarget: ");
+      dprint(trace_ent.target);
+      dprint("\nTargetName: ");
+      dprint(trace_ent.targetname);
+    }
     dprint("\n");
   }
 }
