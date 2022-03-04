@@ -78,7 +78,7 @@ QuakeC Changes
 -Spike Mines now properly slow down when the player is looking at them. It was incorrectly implemented, instead checking if the mine was looking at the player, which effectively made it random since it constantly spins around.  
 -Armagon's health now scales to the player count in Co-op, giving him an additional 50% HP per extra player. For example: Hard which normally has 3500 HP, will be 8750 HP with 4 players.  
 -The cutscene Ranger used in the ending cutscene will no longer react to damage. Before it was possible to leave Proxy Bombs before the ending cutscene started to damage cutscene Ranger, who would then get angry at the player and effectively lock up the cutscene.  
--[UPDATED] Monsters spawned via func_spawn now use a telefrag trigger like regular enemy teleports, as to prevent the spawned monster from getting stuck in players or other monsters. However, charmed monsters called by the Horn of Conjuring with not be self-telefragged by players, and will instead delay their spawn if a player is in the way.  
+-[UPDATED] Monsters spawned via func_spawn now use a telefrag trigger like regular enemy teleports, as to prevent the spawned monster from getting stuck in players or other monsters. However, charmed monsters called by the Horn of Conjuring will not be self-telefragged by players, and will instead delay their spawn if a player is in the way.  
 -[NEW] If ID1 campaign maps are played in any mode, Wetsuits will show up instead of Biosuits when they're near water but not near slime. E3M5 is an exception which will always have Wetsuits.  
 -[NEW] If ID1 campaign maps are played in SP/Co-op:  
 &nbsp;&nbsp;-If you already have the Grenade Launcher at map start, the Proximity Gun will show up instead of the Grenade Launcher.  
@@ -207,10 +207,10 @@ HIPEND - Armagon's Lair
 -A certain teleport trigger that causes a crash no longer appears.  
 
 [NEW] END - Shub-Niggurath's Pit  
+-SP/Co-op: Laser Cannon added to the room after the lava portal, to the left when coming in.  
 -Deathmatch: Fixed a spawn point that was in a wall.  
 -Deathmatch: Laser Cannon added to the main path on the outside, between the Grenade Launcher and Super Nailgun.  
 -Deathmatch: Proximity Gun added to a new platform in the lava, near the Quad Damage; Bot nav has been adjusted to be able to reach this.  
--SP/Co-op: Laser Cannon added to the room after the lava portal, to the left when coming in.  
 -All non-player teleporters on the map now no longer make the portal sound.  
 
 Other Changes
