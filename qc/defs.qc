@@ -567,6 +567,8 @@ float	AS_MISSILE		= 4;
 .float    alpha; //Transparency
 .float    respawntimesp, respawntimecoop, respawntimedm, respawntime; //So respawn time can be overwritten
 
+float modelindex_eyes, modelindex_player, modelindex_hammer; //Ry: Moved from player.qc, so it's global now
+
 //
 // object stuff
 //
@@ -753,7 +755,7 @@ float() finaleFinished = #79;
 
 //============================================================================
 
-float() finaleFinished; //Remaster
+void localsound( entity client, string sample ) = #80; //New function in Remaster
 
 //
 // subs.qc

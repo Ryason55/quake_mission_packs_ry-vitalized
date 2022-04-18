@@ -7,8 +7,6 @@ void() player_stand1;
 void (vector org) spawn_tfog;
 void (vector org, entity death_owner) spawn_tdeath;
 
-float modelindex_eyes, modelindex_player, modelindex_hammer;
-
 void(entity item) UpdateItemTransparency; //Ry: Added reference here
 
 //Ry: Custom function that only displays the centerprint if the current one has either expired, or is of equal or higher value
@@ -93,7 +91,12 @@ void() SetSpawnAmmo = //Ry: Players will retain a small amount of the ammo they 
 
 void() SetChangeParms =
 {
-  local entity e;
+  if (deathmatch) //Ry: Shouldn't carry over inventory in Deathmatch, in the case that map rotation is used
+  {
+    SetNewParms ();
+    parm10 = self.mapsfinished+1;
+    return;
+  }
   
 	if (self.health <= 0)
 	{
@@ -105,6 +108,7 @@ void() SetChangeParms =
     parm5 = self.ammo_nails;
     parm6 = self.ammo_rockets;
     parm7 = self.ammo_cells;
+    parm10 = self.mapsfinished+1;
     return;
 	}
 
@@ -153,7 +157,6 @@ void() SetNewParms =
 
 void() DecodeLevelParms =
 {
-//HIPNOTIC
   if (!self.justrespawned) //Ry: Don't take away weapons on respawn
   {
     if (world.model == "maps/start.bsp")
@@ -175,7 +178,6 @@ void() DecodeLevelParms =
       SetNewParms ();
     if (world.model == "maps/end.bsp")
       SetNewParms ();
-
   }
 
 	self.items = parm1;
@@ -793,7 +795,6 @@ void() ClientKill =
       bprint (self.netname);
       bprint (" suicides\n");
       set_suicide_frame ();
-      self.modelindex = modelindex_player;
       self.frags = self.frags - 2;	// extra penalty
       
       //Ry: Drop powerups and backpack
@@ -2429,8 +2430,6 @@ void(entity targ, entity attacker, entity inflictor, float add) ClientAwardFrag 
         addedfrags = " (+4)";
       else if (add == 5)
         addedfrags = " (+5)";
-      //streakmessage = "";
-      //attacker.fragstreak = attacker.fragstreak + 1;
       if (time > attacker.lastfragtime+3)
         attacker.fragcombo = 1;
       else
@@ -2450,34 +2449,21 @@ void(entity targ, entity attacker, entity inflictor, float add) ClientAwardFrag 
             combomessage = "\nPENTA Kill!";
           else
             combomessage = "\nPenta Kill!";
-        else if ((attacker.fragcombo > 6) && (attacker.fragcombo < 10))
+        else if ((attacker.fragcombo > 5) && (attacker.fragcombo < 10))
           combomessage = "\nOverkill!";
         else if (attacker.fragcombo >= 10)
           combomessage = "\nAvatar of Death!";
       }
-      //if (attacker.fragstreak > 4)
-      //{
-      //  if (attacker.fragstreak < 10) //5-9
-      //    streakmessage = "\n[KILLING SPREE]";
-      //  else if (attacker.fragstreak < 20) //10-19
-      //    streakmessage = "\n[RAGE]";
-      //  else if (attacker.fragstreak < 30) //20-29
-      //    streakmessage = "\n[GOD MODE]";
-      //  else
-      //    streakmessage = "\n[FRENETIC]";
-      //}
       
       if ((attacker != inflictor) && inflictor.netname)
         if (inflictor.flags & FL_CLIENT) //Ry: A different player got the kill
           FilteredCenterPrint(attacker,CPRINT_FRAG,"You assisted with fragging ",targ.netname,addedfrags,combomessage);
-          //centerprint(attacker,"You assisted with fragging ",targ.netname,addedfrags,combomessage);
         else //Ry: A summoned monster got the kill
           FilteredCenterPrint(attacker,CPRINT_FRAG,"Your ",inflictor.netname," fragged ",targ.netname,addedfrags,combomessage);
-          //centerprint(attacker,"Your ",inflictor.netname," fragged ",targ.netname,addedfrags,combomessage);
       else
         FilteredCenterPrint(attacker,CPRINT_FRAG,"You fragged ",targ.netname,addedfrags,combomessage);
-        //centerprint(attacker,"You fragged ",targ.netname,addedfrags,combomessage);
       attacker.lastfragtime = time;
+      //localsound(attacker,"doors/runeuse.wav"); //Ry: Local frag sound, via new Remaster function... Though there isn't a way to adjust volume
     }
   }
 }

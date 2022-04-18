@@ -711,16 +711,39 @@ void() PlayerDie =
 };
 
 void() set_suicide_frame =
-{	// used by klill command and diconnect command
-	if (self.model != "progs/player.mdl")
-		return;	// allready gibbed
-	self.frame = $deatha11;
+{	// used by kill command and diconnect command
+  if ((self.modelindex == modelindex_hammer) || (self.weapon == IT_MJOLNIR)) //Ry: Properly handle Hammer Ranger model
+  {
+    self.modelindex = modelindex_hammer;
+    self.frame = 31;
+  }
+  else if (self.modelindex == modelindex_eyes) //Ry: Set back to regular model if using Ring of Shadows
+  {
+    self.modelindex = modelindex_player;
+    if (self.weapon == IT_MJOLNIR) //Ry: Use appropriate model and frame if using Mjolnir/Axe
+    {
+      self.modelindex = modelindex_hammer;
+      self.frame = 31;
+    }
+    else if (self.weapon == IT_AXE)
+      self.frame = $axdeth9;
+    else
+      self.frame = $deatha11;
+  }
+  else
+  {
+    if (self.model != "progs/player.mdl")
+      return;	// allready gibbed
+    if (self.weapon == IT_AXE) //Ry: Only check Axe here, since Mjolnir with no Ring is handled earlier
+      self.frame = $axdeth9;
+    else
+      self.frame = $deatha11;
+  }
 	self.solid = SOLID_NOT;
 	self.movetype = MOVETYPE_TOSS;
 	self.deadflag = DEAD_DEAD;
 	self.nextthink = -1;
 };
-
 
 void()	player_diea1	=	[	$deatha1,	player_diea2	] {};
 void()	player_diea2	=	[	$deatha2,	player_diea3	] {};
