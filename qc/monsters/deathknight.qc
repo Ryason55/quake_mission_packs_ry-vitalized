@@ -185,7 +185,14 @@ void()	hknight_die8	=[	$death8,	hknight_die9	] {ai_forward(10);};
 void()	hknight_die9	=[	$death9,	hknight_die10	] {ai_forward(11);};
 void()	hknight_die10	=[	$death10,	hknight_die11	] {};
 void()	hknight_die11	=[	$death11,	hknight_die12	] {};
-void()	hknight_die12	=[	$death12,	hknight_die12	] {};
+void()	hknight_die12	=[	$death12,	hknight_die12	]
+{
+	if (horde_ent) //Ry: Horde mode fade out
+	{
+		self.think = MonsterFade;
+		self.nextthink = time + FADETIME;
+	}
+};
 
 void()	hknight_dieb1	=[	$deathb1,	hknight_dieb2	] {};
 void()	hknight_dieb2	=[	$deathb2,	hknight_dieb3	] {};
@@ -196,7 +203,14 @@ void()	hknight_dieb5	=[	$deathb5,	hknight_dieb6	] {};
 void()	hknight_dieb6	=[	$deathb6,	hknight_dieb7	] {};
 void()	hknight_dieb7	=[	$deathb7,	hknight_dieb8	] {};
 void()	hknight_dieb8	=[	$deathb8,	hknight_dieb9	] {};
-void()	hknight_dieb9	=[	$deathb9,	hknight_dieb9	] {};
+void()	hknight_dieb9	=[	$deathb9,	hknight_dieb9	]
+{
+	if (horde_ent) //Ry: Horde mode fade out
+	{
+		self.think = MonsterFade;
+		self.nextthink = time + FADETIME;
+	}
+};
 
 void() hknight_die =
 {
@@ -399,11 +413,9 @@ void() hknight_melee =
 */
 void() monster_hell_knight =
 {
-	if (deathmatch)
-	{
-		remove(self);
+	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
 		return;
-	}
+
 	precache_model2 ("progs/hknight.mdl");
 	precache_model2 ("progs/k_spike.mdl");
 	precache_model2 ("progs/h_hellkn.mdl");
@@ -422,6 +434,9 @@ void() monster_hell_knight =
 	precache_sound ("knight/sword2.wav");
   
   self.netname = "Death Knight"; //Ry: Name for Deathmatch
+  
+	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+	self.combat_style = CS_MIXED;
 	
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

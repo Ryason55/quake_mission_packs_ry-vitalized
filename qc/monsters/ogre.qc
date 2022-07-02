@@ -89,7 +89,7 @@ OgreFireGrenade
 */
 void() OgreFireGrenade =
 {
-	local	entity missile, mpuff;
+	local	entity missile;
 
 	self.effects = self.effects | EF_MUZZLEFLASH;
 
@@ -115,8 +115,6 @@ void() OgreFireGrenade =
 	missile.avelocity = '300 300 300';
 
 	missile.angles = vectoangles(missile.velocity);
-  
-  missile.effects = EF_CANDLELIGHT; //Ry: Remaster thing
 
 	missile.touch = OgreGrenadeTouch;
 
@@ -250,8 +248,12 @@ void() ogre_smash7	=[	$smash7,		ogre_smash8	] {ai_charge(4); chainsaw(0);};
 void() ogre_smash8	=[	$smash8,		ogre_smash9	] {ai_charge(10); chainsaw(0);};
 void() ogre_smash9	=[	$smash9,		ogre_smash10 ] {ai_charge(13); chainsaw(0);};
 void() ogre_smash10	=[	$smash10,		ogre_smash11 ] {chainsaw(1);};
-void() ogre_smash11	=[	$smash11,		ogre_smash12 ] {ai_charge(2); chainsaw(0);
-self.nextthink = self.nextthink + random()*0.2;};	// slight variation
+void() ogre_smash11	=[	$smash11,		ogre_smash12 ]
+{
+  ai_charge(2);
+  chainsaw(0);
+  self.nextthink = time + 0.05 + (random()*0.15); // slight variation
+};
 void() ogre_smash12	=[	$smash12,		ogre_smash13 ] {ai_charge(0);}; // Cataboligne 9.17.3 - fixed this compiler warning
 void() ogre_smash13	=[	$smash13,		ogre_smash14 ] {ai_charge(4);};
 void() ogre_smash14	=[	$smash14,		ogre_run1	] {ai_charge(12);};
@@ -372,7 +374,14 @@ void()	ogre_die10	=[	$death10,	ogre_die11	] {};
 void()	ogre_die11	=[	$death11,	ogre_die12	] {};
 void()	ogre_die12	=[	$death12,	ogre_die13	] {};
 void()	ogre_die13	=[	$death13,	ogre_die14	] {};
-void()	ogre_die14	=[	$death14,	ogre_die14	] {};
+void()	ogre_die14	=[	$death14,	ogre_die14	]
+{
+	if (horde_ent) //Ry: Horde mode fade out
+	{
+		self.think = MonsterFade;
+		self.nextthink = time + FADETIME;
+	}
+};
 
 void()	ogre_bdie1	=[	$bdeath1,	ogre_bdie2	] {};
 void()	ogre_bdie2	=[	$bdeath2,	ogre_bdie3	] {ai_forward(5);};
@@ -385,7 +394,14 @@ void()	ogre_bdie6	=[	$bdeath6,	ogre_bdie7	] {ai_forward(7);};
 void()	ogre_bdie7	=[	$bdeath7,	ogre_bdie8	] {ai_forward(25);};
 void()	ogre_bdie8	=[	$bdeath8,	ogre_bdie9	] {};
 void()	ogre_bdie9	=[	$bdeath9,	ogre_bdie10	] {};
-void()	ogre_bdie10	=[	$bdeath10,	ogre_bdie10	] {};
+void()	ogre_bdie10	=[	$bdeath10,	ogre_bdie10	]
+{
+	if (horde_ent) //Ry: Horde mode fade out
+	{
+		self.think = MonsterFade;
+		self.nextthink = time + FADETIME;
+	}
+};
 
 void() ogre_die =
 {
@@ -422,11 +438,9 @@ void() ogre_melee =
 */
 void() monster_ogre =
 {
-	if (deathmatch)
-	{
-		remove(self);
+	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
 		return;
-	}
+
 	precache_model ("progs/ogre.mdl");
 	precache_model ("progs/h_ogre.mdl");
 	precache_model ("progs/grenade.mdl");
@@ -439,7 +453,27 @@ void() monster_ogre =
 	precache_sound ("ogre/ogsawatk.wav");
 	precache_sound ("ogre/ogwake.wav");
   
+  //Ry: Precache Centroid as well in case Ogre is replaced in ID1
+  precache_model2 ("progs/scor.mdl");
+  precache_model2 ("progs/h_scourg.mdl");
+	precache_model2 ("progs/laser.mdl");
+  precache_model2 ("progs/s_light.mdl");
+  precache_model2 ("progs/spike.mdl");
+
+  precache_sound ("misc/null.wav");
+  precache_sound ("scourge/idle.wav");
+  precache_sound ("scourge/pain.wav");
+  precache_sound ("scourge/pain2.wav");
+  precache_sound ("scourge/sight.wav");
+  precache_sound ("scourge/tailswng.wav");
+  precache_sound ("scourge/walk.wav");
+  precache_sound2 ("shambler/smack.wav");
+  precache_sound2 ("weapons/rocket1i.wav");
+  
   self.netname = "Ogre"; //Ry: Name for Deathmatch
+  
+	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+	self.combat_style = CS_MIXED_ABOVE;
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

@@ -58,7 +58,7 @@ float SPAWN_LYINGDOWN   = 4;
 
 .float inpain;
 
-void() zombie_stand1	=[	$stand1,		zombie_stand2	] {ai_stand();};
+void() zombie_stand1	=[	$stand1,		zombie_stand2	] {ai_stand();self.busy = FALSE;};
 void() zombie_stand2	=[	$stand2,		zombie_stand3	] {ai_stand();};
 void() zombie_stand3	=[	$stand3,		zombie_stand4	] {ai_stand();};
 void() zombie_stand4	=[	$stand4,		zombie_stand5	] {ai_stand();};
@@ -83,7 +83,7 @@ void() zombie_cruc4	=	[	$cruc_4,		zombie_cruc5	] {self.nextthink = time + 0.1 + 
 void() zombie_cruc5	=	[	$cruc_5,		zombie_cruc6	] {self.nextthink = time + 0.1 + random()*0.1;};
 void() zombie_cruc6	=	[	$cruc_6,		zombie_cruc1	] {self.nextthink = time + 0.1 + random()*0.1;};
 
-void() zombie_walk1		=[	$walk1,		zombie_walk2	] {ai_walk(0);};
+void() zombie_walk1		=[	$walk1,		zombie_walk2	] {ai_walk(0);self.busy = FALSE;};
 void() zombie_walk2		=[	$walk2,		zombie_walk3	] {ai_walk(2);};
 void() zombie_walk3		=[	$walk3,		zombie_walk4	] {ai_walk(3);};
 void() zombie_walk4		=[	$walk4,		zombie_walk5	] {ai_walk(2);};
@@ -106,7 +106,7 @@ ai_walk(0);
 if (random() < 0.2)
 	sound (self, CHAN_VOICE, "zombie/z_idle.wav", 1, ATTN_IDLE);};
 
-void() zombie_run1		=[	$run1,		zombie_run2	] {ai_run(1);self.inpain = 0;};
+void() zombie_run1		=[	$run1,		zombie_run2	] {ai_run(1);self.busy = FALSE;self.inpain = 0;};
 void() zombie_run2		=[	$run2,		zombie_run3	] {ai_run(1);};
 void() zombie_run3		=[	$run3,		zombie_run4	] {ai_run(0);};
 void() zombie_run4		=[	$run4,		zombie_run5	] {ai_run(1);};
@@ -163,7 +163,7 @@ ZombieFireGrenade
 */
 void(vector st) ZombieFireGrenade =
 {
-	local	entity missile, mpuff;
+	local	entity missile;
 	local	vector	org;
 
 	sound (self, CHAN_WEAPON, "zombie/z_shot1.wav", 1, ATTN_NORM);
@@ -263,7 +263,7 @@ PAIN
 =============================================================================
 */
 
-void() zombie_paina1	=[	$paina1,	zombie_paina2	] {sound (self, CHAN_VOICE, "zombie/z_pain.wav", 1, ATTN_NORM);};
+void() zombie_paina1	=[	$paina1,	zombie_paina2	] {self.solid = SOLID_SLIDEBOX; sound (self, CHAN_VOICE, "zombie/z_pain.wav", 1, ATTN_NORM);};
 void() zombie_paina2	=[	$paina2,	zombie_paina3	] {ai_painforward(3);};
 void() zombie_paina3	=[	$paina3,	zombie_paina4	] {ai_painforward(1);};
 void() zombie_paina4	=[	$paina4,	zombie_paina5	] {ai_pain(1);};
@@ -276,7 +276,7 @@ void() zombie_paina10	=[	$paina10,	zombie_paina11	] {};
 void() zombie_paina11	=[	$paina11,	zombie_paina12	] {};
 void() zombie_paina12	=[	$paina12,	zombie_run1		] {};
 
-void() zombie_painb1	=[	$painb1,	zombie_painb2	] {sound (self, CHAN_VOICE, "zombie/z_pain1.wav", 1, ATTN_NORM);};
+void() zombie_painb1	=[	$painb1,	zombie_painb2	] {self.solid = SOLID_SLIDEBOX; sound (self, CHAN_VOICE, "zombie/z_pain1.wav", 1, ATTN_NORM);};
 void() zombie_painb2	=[	$painb2,	zombie_painb3	] {ai_pain(2);};
 void() zombie_painb3	=[	$painb3,	zombie_painb4	] {ai_pain(8);};
 void() zombie_painb4	=[	$painb4,	zombie_painb5	] {ai_pain(6);};
@@ -305,7 +305,7 @@ void() zombie_painb26	=[	$painb26,	zombie_painb27	] {};
 void() zombie_painb27	=[	$painb27,	zombie_painb28	] {};
 void() zombie_painb28	=[	$painb28,	zombie_run1		] {};
 
-void() zombie_painc1	=[	$painc1,	zombie_painc2	] {sound (self, CHAN_VOICE, "zombie/z_pain1.wav", 1, ATTN_NORM);};
+void() zombie_painc1	=[	$painc1,	zombie_painc2	] {self.solid = SOLID_SLIDEBOX; sound (self, CHAN_VOICE, "zombie/z_pain1.wav", 1, ATTN_NORM);};
 void() zombie_painc2	=[	$painc2,	zombie_painc3	] {};
 void() zombie_painc3	=[	$painc3,	zombie_painc4	] {ai_pain(3);};
 void() zombie_painc4	=[	$painc4,	zombie_painc5	] {ai_pain(1);};
@@ -324,7 +324,7 @@ void() zombie_painc16	=[	$painc16,	zombie_painc17	] {};
 void() zombie_painc17	=[	$painc17,	zombie_painc18	] {};
 void() zombie_painc18	=[	$painc18,	zombie_run1	] {};
 
-void() zombie_paind1	=[	$paind1,	zombie_paind2	] {sound (self, CHAN_VOICE, "zombie/z_pain.wav", 1, ATTN_NORM);};
+void() zombie_paind1	=[	$paind1,	zombie_paind2	] {self.solid = SOLID_SLIDEBOX; sound (self, CHAN_VOICE, "zombie/z_pain.wav", 1, ATTN_NORM);};
 void() zombie_paind2	=[	$paind2,	zombie_paind3	] {};
 void() zombie_paind3	=[	$paind3,	zombie_paind4	] {};
 void() zombie_paind4	=[	$paind4,	zombie_paind5	] {};
@@ -338,9 +338,11 @@ void() zombie_paind11	=[	$paind11,	zombie_paind12	] {};
 void() zombie_paind12	=[	$paind12,	zombie_paind13	] {};
 void() zombie_paind13	=[	$paind13,	zombie_run1	] {};
 
-void() zombie_paine1	=[	$paine1,	zombie_paine2	] {
-sound (self, CHAN_VOICE, "zombie/z_pain.wav", 1, ATTN_NORM);
-self.health = 60;
+void() zombie_paine1	=[	$paine1,	zombie_paine2	]
+{
+  sound (self, CHAN_VOICE, "zombie/z_pain.wav", 1, ATTN_NORM);
+  self.health = 60;
+  self.busy = TRUE;
 };
 void() zombie_paine2	=[	$paine2,	zombie_paine3	] {ai_pain(8);};
 void() zombie_paine3	=[	$paine3,	zombie_paine4	] {ai_pain(5);};
@@ -350,11 +352,51 @@ void() zombie_paine6	=[	$paine6,	zombie_paine7	] {ai_pain(2);};
 void() zombie_paine7	=[	$paine7,	zombie_paine8	] {ai_pain(1);};
 void() zombie_paine8	=[	$paine8,	zombie_paine9	] {ai_pain(1);};
 void() zombie_paine9	=[	$paine9,	zombie_paine10	] {ai_pain(2);};
-void() zombie_paine10	=[	$paine10,	zombie_paine11	] {
-sound (self, CHAN_BODY, "zombie/z_fall.wav", 1, ATTN_NORM);
-self.solid = SOLID_NOT;
+void() zombie_paine10	=[	$paine10,	zombie_paine11	]
+{
+  local entity ent, stemp;
+
+  sound (self, CHAN_BODY, "zombie/z_fall.wav", 1, ATTN_NORM);
+  self.solid = SOLID_NOT;
+
+  ent = nextent(world); //Ry: Check if any monsters are angry at the Zombie
+  stemp = self;
+  while (ent)
+  {
+    if ( (ent.flags & FL_MONSTER) && (ent.enemy == self) && (ent.health > 0) )
+    {
+      self = ent;
+      if (self.classname == "monster_gremlin" && self.gremstate <= GREM_GORGING) //Ry: Gremlins will start gorging
+      {
+        Gremlin_UpdateState(GREM_GORGING);
+      }
+      else //Ry: Other monster give up on the Zombie
+      {
+        self.enemy = world;
+        if (self.charmed)
+        {
+          self.huntingcharmer = 0;
+          HuntCharmer();
+        }
+        else if (self.oldenemy.health > 0)
+        {
+          self.enemy = self.oldenemy;
+          HuntTarget ();
+        }
+        else if (!FindTarget())
+        {
+          if (self.movetarget)
+            self.th_walk ();
+          else
+            self.th_stand ();
+        }
+      }
+      self = stemp;
+    }
+    ent = nextent(ent);
+  }
 };
-void() zombie_paine11	=[	$paine11,	zombie_paine12	] {self.nextthink = self.nextthink + 5;self.health = 60;};
+void() zombie_paine11	=[	$paine11,	zombie_paine12	] {self.nextthink = time + 5;self.health = 60;};
 void() zombie_paine12	=[	$paine12,	zombie_paine13	]{
 // see if ok to stand up
 self.health = 60;
@@ -418,6 +460,12 @@ void(entity attacker, float take) zombie_pain =
 {
 	local float r;
 
+  if ( (attacker.classname == "monster_gremlin") && (self.think == zombie_paine12) ) //Ry: Gremlins will gorge Zombies to (re)death
+  {
+    self.nextthink = time + 5; //Ry: Extend think time to give the Gremlin more time
+    return;
+  }
+  
 	self.health = 60;		// allways reset health
 
 	if (take < 9)
@@ -466,11 +514,16 @@ void(entity attacker, float take) zombie_pain =
 //HIPNOTIC
 void() zombie_lay12   =[ $paine12,   zombie_paine13 ]
    {self.th_pain = zombie_pain;};
+   
+void(entity attacker, float damage) zombie_laypain = //Ry: New function to appease the compiler
+{
+  zombie_lay12();
+}
 
 void() zombie_lay   =[ $paine11,   zombie_lay ]
    {
    self.th_stand = zombie_stand1;
-   self.th_pain = zombie_lay12;
+   self.th_pain = zombie_laypain;
 
    self.nextthink = self.nextthink + 0.1;
    self.health = 60;
@@ -493,11 +546,8 @@ when awakened by the player.
 */
 void() monster_zombie =
 {
-	if (deathmatch)
-	{
-		remove(self);
+	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
 		return;
-	}
 
 	precache_model ("progs/zombie.mdl");
 	precache_model ("progs/h_zombie.mdl");
@@ -515,6 +565,9 @@ void() monster_zombie =
 	precache_sound ("zombie/idle_w2.wav");
   
   self.netname = "Zombie"; //Ry: Name for Deathmatch
+  
+	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+	self.combat_style = CS_RANGED;
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

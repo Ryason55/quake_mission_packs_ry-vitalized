@@ -81,7 +81,8 @@ if (random() > 0.8)
 
 void() sham_smash1     =[      $smash1,       sham_smash2    ] {
 sound (self, CHAN_VOICE, "shambler/melee1.wav", 1, ATTN_NORM);
-ai_charge(2);};
+ai_charge(2);
+self.busy = TRUE;};
 void() sham_smash2     =[      $smash2,       sham_smash3    ] {ai_charge(6);};
 void() sham_smash3     =[      $smash3,       sham_smash4    ] {ai_charge(6);};
 void() sham_smash4     =[      $smash4,       sham_smash5    ] {ai_charge(5);};
@@ -144,7 +145,8 @@ local float 	ldmg;
 
 void() sham_swingl1	=[      $swingl1,      sham_swingl2   ] {
 sound (self, CHAN_VOICE, "shambler/melee2.wav", 1, ATTN_NORM);
-ai_charge(5);};
+ai_charge(5);
+self.busy = TRUE;};
 void() sham_swingl2 =[      $swingl2,      sham_swingl3   ] {ai_charge(3);};
 void() sham_swingl3 =[      $swingl3,      sham_swingl4   ] {ai_charge(7);};
 void() sham_swingl4 =[      $swingl4,      sham_swingl5   ] {ai_charge(3);};
@@ -160,7 +162,8 @@ if (random()<0.5)
 
 void() sham_swingr1	=[      $swingr1,      sham_swingr2   ] {
 sound (self, CHAN_VOICE, "shambler/melee1.wav", 1, ATTN_NORM);
-ai_charge(1);};
+ai_charge(1);
+self.busy = TRUE;};
 void() sham_swingr2	=[      $swingr2,      sham_swingr3   ] {ai_charge(8);};
 void() sham_swingr3 =[      $swingr3,      sham_swingr4   ] {ai_charge(14);};
 void() sham_swingr4 =[      $swingr4,      sham_swingr5   ] {ai_charge(7);};
@@ -217,20 +220,21 @@ void() CastLightning =
   
   self.frags = (self.frags + 1); //Ry: Part of the Shambler Dance achievement
 
-	LightningDamage (org, trace_endpos, self, self, 10); //Ry: Added inflictor, which is just the self again
+	LightningDamage (org, trace_endpos, self, self, 10, TRUE); //Ry: Added inflictor, and use extra traces
 };
 
 void() sham_magic1     =[      $magic1,       sham_magic2    ] {ai_face();
 	sound (self, CHAN_WEAPON, "shambler/sattck1.wav", 1, ATTN_NORM);
+  self.busy = TRUE;
 };
 void() sham_magic2     =[      $magic2,       sham_magic3    ] {ai_face();};
-void() sham_magic3     =[      $magic3,       sham_magic4    ] {ai_face();self.nextthink = self.nextthink + 0.2;
+void() sham_magic3     =[      $magic3,       sham_magic4    ] {ai_face();self.nextthink = time + 0.2;
 local entity o;
 
 self.effects = self.effects | EF_MUZZLEFLASH;
 ai_face();
-self.owner = spawn();
-o = self.owner;
+self.trigger_field = spawn(); //Ry: No longer uses "owner" to fix the bug where rockets go through the Shambler
+o = self.trigger_field;
 setmodel (o, "progs/s_light.mdl");
 setorigin (o, self.origin);
 o.angles = self.angles;
@@ -240,16 +244,16 @@ o.think = SUB_Remove;
 void() sham_magic4     =[      $magic4,       sham_magic5    ]
 {
 self.effects = self.effects | EF_MUZZLEFLASH;
-self.owner.frame = 1;
+self.trigger_field.frame = 1;
 };
 void() sham_magic5     =[      $magic5,       sham_magic6    ]
 {
 self.effects = self.effects | EF_MUZZLEFLASH;
-self.owner.frame = 2;
+self.trigger_field.frame = 2;
 };
 void() sham_magic6     =[      $magic6,       sham_magic9    ]
 {
-remove (self.owner);
+remove (self.trigger_field);
 CastLightning();
 sound (self, CHAN_WEAPON, "shambler/sboom.wav", 1, ATTN_NORM);
 };
@@ -277,18 +281,21 @@ void(entity attacker, float damage)	sham_pain =
 {
 	sound (self, CHAN_VOICE, "shambler/shurt2.wav", 1, ATTN_NORM);
   
-	if ((((damage >= self.health) && (attacker.classname == "player")) && (attacker.weapon == IT_AXE))) //Ry: Remaster Shambler achievements
-	{
-		msg_entity = attacker;
-		WriteByte(MSG_ONE, SVC_ACHIEVEMENT);
-		WriteString(MSG_ONE, "ACH_CLOSE_SHAVE");
-	}
-	if ((((damage >= self.health) && (attacker.classname == "player")) && (self.frags == 0)))
-	{
-		msg_entity = attacker;
-		WriteByte(MSG_ONE, SVC_ACHIEVEMENT);
-		WriteString(MSG_ONE, "ACH_SHAMBLER_DANCE");
-	}
+  if (!self.charmed) //Ry: Don't do these for a charmed Shambler
+  {
+    if ((((damage >= self.health) && (attacker.classname == "player")) && (attacker.weapon == IT_AXE))) //Ry: Remaster Shambler achievements
+    {
+      msg_entity = attacker;
+      WriteByte(MSG_ONE, SVC_ACHIEVEMENT);
+      WriteString(MSG_ONE, "ACH_CLOSE_SHAVE");
+    }
+    if ((((damage >= self.health) && (attacker.classname == "player")) && (self.frags == 0)))
+    {
+      msg_entity = attacker;
+      WriteByte(MSG_ONE, SVC_ACHIEVEMENT);
+      WriteString(MSG_ONE, "ACH_SHAMBLER_DANCE");
+    }
+  }
 
 	if (self.health <= 0)
 		return;		// allready dying, don't go into pain frame
@@ -299,6 +306,8 @@ void(entity attacker, float damage)	sham_pain =
 	if (self.pain_finished > time)
 		return;
 	self.pain_finished = time + 2;
+  
+  self.busy = FALSE;
 		
 	sham_pain1 ();
 };
@@ -316,7 +325,14 @@ void() sham_death7      =[      $death7,       sham_death8     ] {};
 void() sham_death8      =[      $death8,       sham_death9     ] {};
 void() sham_death9      =[      $death9,       sham_death10    ] {};
 void() sham_death10     =[      $death10,      sham_death11    ] {};
-void() sham_death11     =[      $death11,      sham_death11    ] {};
+void() sham_death11     =[      $death11,      sham_death11    ]
+{
+	if (horde_ent) //Ry: Horde mode fade out
+	{
+		self.think = MonsterFade;
+		self.nextthink = time + FADETIME;
+	}
+};
 
 void() sham_die =
 {
@@ -343,11 +359,9 @@ void() sham_die =
 */
 void() monster_shambler =
 {
-	if (deathmatch)
-	{
-		remove(self);
+	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
 		return;
-	}
+
 	precache_model ("progs/shambler.mdl");
 	precache_model ("progs/s_light.mdl");
 	precache_model ("progs/h_shams.mdl");
@@ -364,6 +378,9 @@ void() monster_shambler =
 	precache_sound ("shambler/smack.wav");
   
   self.netname = "Shambler"; //Ry: Name for Deathmatch
+  
+	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+	self.combat_style = CS_MIXED;
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

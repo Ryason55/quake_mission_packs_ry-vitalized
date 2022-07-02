@@ -15,8 +15,6 @@ void() finale_1;
 void() finale_2;
 void() finale_3;
 void() finale_4;
-void() finale_5; //Ry: Remaster
-void() finale_6;
 
 
 entity	shub;
@@ -28,8 +26,8 @@ $frame old30 old31 old32 old33 old34 old35 old36 old37 old38 old39
 $frame old40 old41 old42 old43 old44 old45 old46 
 
 $frame shake1 shake2 shake3 shake4 shake5 shake6 shake7 shake8
-$frame shake9 shake10 shake11 shake12 shake12 shake13 shake14
-$frame shake15 shake16 shake17 shake18 shake19 shake20
+$frame shake9 shake10 shake11 shake12 shake13 shake14 shake15
+$frame shake16 shake17 shake18 shake19 shake20 shake21
 
 //void() old_stand     =[      $old1,       old_stand    ] {};
 
@@ -113,8 +111,8 @@ void() finale_1 =
 	local entity	pos, pl;
 	local entity	timer;
 
-	intermission_exittime = time + 10000000;	// never allow exit
-	intermission_running = 1;
+	intermission_exittime = time + 10000000;	//Ry: Block exiting until ending sequence has finished
+	intermission_running = 3; //Ry: Start on 3, so next skip attempt will land on 4
 
 	// find the intermission spot
 	pos = find (world, classname, "info_intermission");
@@ -228,6 +226,10 @@ void() finale_4 =
 		}
 		z = z + 96;
 	}
+
+  killed_monsters = killed_monsters + 1; //Ry: Count Shub as a kill
+  WriteByte (MSG_ALL, SVC_KILLEDMONSTER); 
+
 	// start the end text
 	WriteByte (MSG_ALL, SVC_FINALE);
 	WriteString (MSG_ALL, "Congratulations and well done! You have\nbeaten the hideous Shub-Niggurath, and\nher hundreds of ugly changelings and\nmonsters. You have proven that your\nskill and your cunning are greater than\nall the powers of Quake. You are the\nmaster now. Id Software salutes you.");
@@ -249,30 +251,12 @@ void() finale_4 =
 	lightstyle(0, "m");	
 	local entity timer = spawn();
 	timer.nextthink = (time + 1);
-	timer.think = finale_5;
-};
-
-void() finale_5 =
-{
-	if (finaleFinished())
-	{
-		self.nextthink = (time + 5);
-		self.think = finale_6;
-	}
-	else
-	{
-		self.nextthink = (time + 0.1);
-	}
-};
-
-void() finale_6 =
-{
-  changelevel("start"); //Ry: Go straight to the hipnotic START map
+	timer.think = finale_check; //Ry: From here, logic in client.qc will take over, allowing the player to exit 5 seconds after the text has finished
 };
 
 //============================================================================
 
-void () nopain =
+void (entity attacker, float damage) nopain =
 {
 	self.health = 40000;
 };
@@ -284,11 +268,8 @@ void () nopain =
 */
 void() monster_oldone =
 {
-	if (deathmatch)
-	{
-		remove(self);
+	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
 		return;
-	}
 
 	precache_model2 ("progs/oldone.mdl");
 

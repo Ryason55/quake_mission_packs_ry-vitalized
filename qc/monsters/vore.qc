@@ -21,7 +21,7 @@ $frame death1 death2 death3 death4 death5 death6 death7
 $frame	walk1 walk2 walk3 walk4 walk5 walk6 walk7 walk8 walk9 walk10
 $frame	walk11 walk12
 
-void() shalrath_pain;
+void(entity attacker, float damage) shalrath_pain;
 void() ShalMissile;
 void() shal_stand     =[      $walk1,       shal_stand    ] {ai_stand();};
 
@@ -61,7 +61,7 @@ void() shal_attack1     =[      $attack1,       shal_attack2    ] {
 sound (self, CHAN_VOICE, "shalrath/attack.wav", 1, ATTN_NORM);
 ai_face();
 };
-void() shal_attack2     =[      $attack2,       shal_attack3    ] {ai_face();};
+void() shal_attack2     =[      $attack2,       shal_attack3    ] {ai_face(); self.busy = TRUE;};
 void() shal_attack3     =[      $attack3,       shal_attack4    ] {ai_face();};
 void() shal_attack4     =[      $attack4,       shal_attack5    ] {ai_face();};
 void() shal_attack5     =[      $attack5,       shal_attack6    ] {ai_face();};
@@ -84,13 +84,22 @@ void() shal_death3      =[      $death3,        shal_death4     ] {};
 void() shal_death4      =[      $death4,        shal_death5     ] {};
 void() shal_death5      =[      $death5,        shal_death6     ] {};
 void() shal_death6      =[      $death6,        shal_death7     ] {};
-void() shal_death7      =[      $death7,        shal_death7    ] {};
+void() shal_death7      =[      $death7,        shal_death7     ]
+{
+	if (horde_ent) //Ry: Horde mode fade out
+	{
+		self.think = MonsterFade;
+		self.nextthink = time + FADETIME;
+	}
+};
 
 
-void() shalrath_pain =
+void(entity attacker, float damage) shalrath_pain =
 {
 	if (self.pain_finished > time)
 		return;
+  
+  self.busy = FALSE;
 
 	sound (self, CHAN_VOICE, "shalrath/pain.wav", 1, ATTN_NORM);
 	shal_pain1();
@@ -121,6 +130,24 @@ void() shalrath_die =
 ShalMissile
 ================
 */
+void() ShalExplosion = //Ry: Now standalone
+{
+	T_RadiusDamage (self, self.owner, 40, world);
+	sound (self, CHAN_WEAPON, "weapons/r_exp3.wav", 1, ATTN_NORM);
+
+	WriteByte (MSG_BROADCAST, SVC_TEMPENTITY);
+	WriteByte (MSG_BROADCAST, TE_EXPLOSION);
+	WriteCoord (MSG_BROADCAST, self.origin_x);
+	WriteCoord (MSG_BROADCAST, self.origin_y);
+	WriteCoord (MSG_BROADCAST, self.origin_z);
+
+	self.velocity = '0 0 0';
+	self.touch = SUB_Null;
+	setmodel (self, "progs/s_explod.spr");
+	self.solid = SOLID_NOT;
+	s_explode1 ();
+}
+
 void() ShalMissileTouch;
 void() ShalHome;
 void() ShalMissile =
@@ -154,22 +181,40 @@ void() ShalMissile =
 	missile.think = ShalHome;
 	missile.enemy = self.enemy;
 	missile.touch = ShalMissileTouch;
+  
+  if (skill >= 3)
+    missile.invincible_time = time + ((dist/350) + 7); //Ry: Time to reach foe if they stood still, plus some
+  else
+    missile.invincible_time = time + ((dist/250) + 5);
 };
 
 void() ShalHome =
 {
 	local vector	dir, vtemp;
+  local float   speed, mult, drop;
 	vtemp = self.enemy.origin + '0 0 10';
-	if (self.enemy.health < 1)
-	{
-		remove(self);
-		return;
-	}
-	dir = normalize(vtemp - self.origin);
+	if ((self.enemy.health < 1) && (time < self.invincible_time)) //Ry: If foe dies, drop out of the air
+    self.invincible_time = time;
 	if (skill >= 3)
-    self.velocity = dir * 350;
+    speed = 350;
 	else
-    self.velocity = dir * 250;
+    speed = 250;
+  if (time > self.invincible_time) //Ry: Drop out of the air after a time
+  {
+    mult = ((time - self.invincible_time)/3);
+    if (mult > 1)
+      mult = 1;
+    speed = speed * (1-mult);
+    drop = (-400 * mult) + self.velocity_z;
+  }
+  
+	dir = normalize(vtemp - self.origin);
+  self.velocity = dir * speed;
+  if (drop)
+  {
+    if (self.velocity_z > drop)
+      self.velocity_z = drop;
+  }
 	self.nextthink = time + 0.2;
 	self.think = ShalHome;
 };
@@ -181,20 +226,8 @@ void() ShalMissileTouch =
 
 	if (other.classname == "monster_zombie")
 		T_Damage (other, self, self, 110);
-	T_RadiusDamage (self, self.owner, 40, world);
-	sound (self, CHAN_WEAPON, "weapons/r_exp3.wav", 1, ATTN_NORM);
-
-	WriteByte (MSG_BROADCAST, SVC_TEMPENTITY);
-	WriteByte (MSG_BROADCAST, TE_EXPLOSION);
-	WriteCoord (MSG_BROADCAST, self.origin_x);
-	WriteCoord (MSG_BROADCAST, self.origin_y);
-	WriteCoord (MSG_BROADCAST, self.origin_z);
-
-	self.velocity = '0 0 0';
-	self.touch = SUB_Null;
-	setmodel (self, "progs/s_explod.spr");
-	self.solid = SOLID_NOT;
-	s_explode1 ();
+  
+  ShalExplosion();
 };
 
 //=================================================================
@@ -203,11 +236,9 @@ void() ShalMissileTouch =
 */
 void() monster_shalrath =
 {
-	if (deathmatch)
-	{
-		remove(self);
+	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
 		return;
-	}
+
 	precache_model2 ("progs/shalrath.mdl");
 	precache_model2 ("progs/h_shal.mdl");
 	precache_model2 ("progs/v_spike.mdl");
@@ -220,6 +251,9 @@ void() monster_shalrath =
 	precache_sound2 ("shalrath/sight.wav");
   
   self.netname = "Vore"; //Ry: Name for Deathmatch
+  
+	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+	self.combat_style = CS_RANGED;
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

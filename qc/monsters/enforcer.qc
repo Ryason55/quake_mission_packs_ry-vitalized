@@ -271,8 +271,13 @@ void()	enf_die11	=[	$death11,	enf_die12	] {ai_forward(5);};
 void()	enf_die12	=[	$death12,	enf_die13	] {ai_forward(5);};
 void()	enf_die13	=[	$death13,	enf_die14	] {};
 void()   enf_die14   =[ $death14,   enf_die14   ]
-   {
-   };
+{
+	if (horde_ent) //Ry: Horde mode fade out
+	{
+		self.think = MonsterFade;
+		self.nextthink = time + FADETIME;
+	}
+};
 
 void()   enf_fdie1   =[ $fdeath1,   enf_fdie2   ] {};
 void()	enf_fdie2	=[	$fdeath2,	enf_fdie3	] {};
@@ -286,8 +291,13 @@ void()	enf_fdie8	=[	$fdeath8,	enf_fdie9	] {};
 void()	enf_fdie9	=[	$fdeath9,	enf_fdie10	] {};
 void()	enf_fdie10	=[	$fdeath10,	enf_fdie11	] {};
 void()   enf_fdie11  =[ $fdeath11,  enf_fdie11  ]
-   {
-   };
+{
+	if (horde_ent) //Ry: Horde mode fade out
+	{
+		self.think = MonsterFade;
+		self.nextthink = time + FADETIME;
+	}
+};
 
 
 void() enf_die =
@@ -317,11 +327,9 @@ void() enf_die =
 */
 void() monster_enforcer =
 {
-	if (deathmatch)
-	{
-		remove(self);
+	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
 		return;
-	}
+
 	precache_model2 ("progs/enforcer.mdl");
 	precache_model2 ("progs/h_mega.mdl");
 	precache_model2 ("progs/laser.mdl");
@@ -338,6 +346,9 @@ void() monster_enforcer =
 	precache_sound2 ("enforcer/sight4.wav");
   
   self.netname = "Enforcer"; //Ry: Name for Deathmatch
+  
+	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+	self.combat_style = CS_RANGED;
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

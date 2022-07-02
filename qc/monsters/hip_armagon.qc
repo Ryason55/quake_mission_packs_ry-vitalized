@@ -680,18 +680,22 @@ void()   armagon_die14    =[ $ldie12.asc, armagon_die14    ]
    armagon_think();
    multi_explosion( self.origin + '0 0 80', 20, 10, 3, 0.1, 0.5);
    // legs
-   self.nextthink = -1;
    if (!deathmatch) //Ry: There's elevators and such in the DM map
      self.movetype = MOVETYPE_NONE;
 	self.takedamage = DAMAGE_NO;
    self.solid = SOLID_NOT;
    setsize (self, '-32 -32 -24', '32 32 32' );
    self.flags = 0;
-   self.gorging = TRUE;
+   self.gremstate = GREM_GORGING;
    self.wait = time + 5;
    
-   self.nextthink = time + 120; //Ry: Remove Armagon legs after some time has passed
-   self.think = SUB_Remove;
+    if (horde_ent || deathmatch) //Ry: Horde mode fade out... But let's also use it in DM
+    {
+      self.think = MonsterFade;
+      self.nextthink = time + 60;
+    }
+    else
+      self.nextthink = -1;
 
    //body
    body = self.conjoinedentity;
@@ -705,13 +709,11 @@ void()   armagon_die14    =[ $ldie12.asc, armagon_die14    ]
 //   setsize (body, '-32 -32 30', '32 32 64' );
    body.think = armagon_body_explode1;
    body.nextthink = time + 0.1;
-   body.gorging = TRUE;
+   body.gremstate = GREM_GORGING;
    };
 
 void()   armagon_body_explode2 =
    {
-   local entity expl;
-
    sound (self , CHAN_AUTO, "misc/longexpl.wav", 1, ATTN_ARMAGON);
    self.think = armagon_body_explode2;
    ThrowGib ("progs/gib1.mdl", -200);
@@ -926,98 +928,85 @@ float()  ArmagonCheckAttack =
 */
 void() monster_armagon =
 {
-   local entity body;
-   local float sk;
-   
-   hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
-   
-   if (deathmatch)
-	{
-		remove(self);
-		return;
-	}
+  local entity body;
 
-   self.lefty = 0;
+  hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
 
-   sk = cvar("skill");
-   if (skill) //Ry: Not sure why they specifically read the cvar here, but
-     sk = skill;
+  if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
+    return;
 
-   precache_model ("progs/armabody.mdl");
-   precache_model ("progs/armalegs.mdl");
+  precache_model ("progs/armabody.mdl");
+  precache_model ("progs/armalegs.mdl");
 
-   precache_sound ("armagon/footfall.wav");
-   precache_sound ("armagon/servo.wav");
-//   precache_sound ("armagon/footfall2.wav");
-   precache_sound ("armagon/death.wav");
-//   precache_sound ("armagon/death2.wav");
-   precache_sound ("armagon/pain.wav");
-   precache_sound ("armagon/repel.wav");
-//   precache_sound ("armagon/idle.wav");
-   precache_sound ("armagon/sight.wav");
-   precache_sound ("armagon/idle1.wav");
-   precache_sound ("armagon/idle2.wav");
-   precache_sound ("armagon/idle3.wav");
-   precache_sound ("armagon/idle4.wav");
+  precache_sound ("armagon/footfall.wav");
+  precache_sound ("armagon/servo.wav");
+  precache_sound ("armagon/death.wav");
+  precache_sound ("armagon/pain.wav");
+  precache_sound ("armagon/repel.wav");
+  precache_sound ("armagon/sight.wav");
+  precache_sound ("armagon/idle1.wav");
+  precache_sound ("armagon/idle2.wav");
+  precache_sound ("armagon/idle3.wav");
+  precache_sound ("armagon/idle4.wav");
 
-   body = spawn();
-   body.origin = self.origin;
-   body.origin = body.origin - '0 0 64';
-//  SUB_CopyEntity(self,body);
+  self.netname = "Armagon"; //Ry: Give name for frag message
+  self.health = 100000; //Ry: HP will be properly set when Armagon starts moving, based on difficulty and player count
+  self.justrespawned = TRUE;
 
+  body = spawn();
+  body.classname = "monster_armagon_body";
+  body.origin = self.origin - '0 0 64';
   body.angles = self.angles; //Ry: Try and correct angle on body if Armagon spawns turned
   body.fixangle = TRUE;
+  body.think = armagon_body_think; //Ry: Make sure the body stays with the head while falling
+  body.nextthink = time;
 
-   self.solid = SOLID_SLIDEBOX;
-   self.fixangle = 0;
+  self.solid = SOLID_SLIDEBOX;
+  self.fixangle = 0;
 	self.movetype = MOVETYPE_STEP;
-   body.solid = SOLID_NOT;
-   body.movetype = MOVETYPE_STEP;
-   body.classname = "monster_armagon_body"; //Ry: For Debugging
-   self.netname = "Armagon"; //Ry: Give name for frag message
-   self.conjoinedentity = body; //Ry: This used to use "trigger_field", which conflicts with the Horn of Conjuring
-   body.conjoinedentity = self;
+  body.solid = SOLID_NOT;
+  body.movetype = MOVETYPE_STEP;
+
+  self.conjoinedentity = body; //Ry: This used to use "trigger_field", which conflicts with the Horn of Conjuring
+  body.conjoinedentity = self;
+
+  setmodel (body, "progs/armabody.mdl");
+  setmodel (self, "progs/armalegs.mdl");
+
+  setsize (self, '-48 -48 -24', '48 48 84' );
+  setorigin (self, self.origin);
+  setorigin (body, body.origin);
+  
+  if (skill==0)
+  {
+    self.yaw_speed = 5;
+    self.worldtype = 0.9;
+  }
+  else if (skill==1)
+  {
+    self.yaw_speed = 9;
+    self.worldtype = 0.85;
+  }
+  else
+  {
+    self.yaw_speed = 12;
+    self.worldtype = 0.75;
+  }
+  self.lefty = 0;
+  self.state = 0;
+  self.super_time = 0;
+  self.endtime = 0;
+
+	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+	self.combat_style = CS_RANGED;
+  
+  self.th_stand = armagon_stand1;
+  self.th_walk = armagon_walk1;
+  self.th_run = armagon_run1;
+  self.th_die = armagon_die1;
+  self.th_missile = armagon_missile_attack;
+  self.th_melee = armagon_stop1;
+  self.th_pain = armagon_pain;
    
-   body.think = armagon_body_think; //Ry: Make sure the body stays with the head while falling
-   body.nextthink = time;
-
-   setmodel (body, "progs/armabody.mdl");
-   setmodel (self, "progs/armalegs.mdl");
-
-   setsize (self, '-48 -48 -24', '48 48 84' );
-   setorigin (self, self.origin);
-   setorigin (body, body.origin);
-   if (sk==0)
-      {
-      self.yaw_speed = 5;
-      //self.health = 2000;
-      self.worldtype = 0.9;
-      }
-   else if (sk==1)
-      {
-      self.yaw_speed = 9;
-      //self.health = 2500;
-      self.worldtype = 0.85;
-      }
-   else
-      {
-      self.yaw_speed = 12;
-      //self.health = 3500;
-      self.worldtype = 0.75;
-      }
-   self.state = 0;
-   self.super_time = 0;
-   self.endtime = 0;
-   
-   self.health = 100000; //Ry: HP will be properly set when Armagon starts moving
-   self.justrespawned = TRUE;
-
-   self.th_stand = armagon_stand1;
-   self.th_walk = armagon_walk1;
-   self.th_run = armagon_run1;
-   self.th_die = armagon_die1;
-   self.th_missile = armagon_missile_attack;
-   self.th_melee = armagon_stop1;
-   self.th_pain = armagon_pain;
-   walkmonster_start();
+  walkmonster_start();
 };

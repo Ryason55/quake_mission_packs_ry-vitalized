@@ -29,8 +29,8 @@ $frame painb10 painb11
 //frame attack1 attack2 attack3 attack4 attack5 attack6 attack7
 //frame attack8 attack9 attack10 attack11
 
-$frame attackb1 attackb1 attackb2 attackb3 attackb4 attackb5
-$frame attackb6 attackb7 attackb8 attackb9 attackb10
+$frame attackb1 attackb2 attackb3 attackb4 attackb5 attackb6
+$frame attackb7 attackb8 attackb9 attackb10 attackb11
 
 $frame walk1 walk2 walk3 walk4 walk5 walk6 walk7 walk8 walk9
 $frame walk10 walk11 walk12 walk13 walk14
@@ -193,7 +193,14 @@ void()	knight_die6	=[	$death6,	knight_die7	] {};
 void()	knight_die7	=[	$death7,	knight_die8	] {};
 void()	knight_die8	=[	$death8,	knight_die9	] {};
 void()	knight_die9	=[	$death9,	knight_die10] {};
-void()	knight_die10=[	$death10,	knight_die10] {};
+void()	knight_die10=[	$death10,	knight_die10]
+{
+	if (horde_ent) //Ry: Horde mode fade out
+	{
+		self.think = MonsterFade;
+		self.nextthink = time + FADETIME;
+	}
+};
 
 
 void()	knight_dieb1	=[	$deathb1,	knight_dieb2	] {};
@@ -207,7 +214,14 @@ void()	knight_dieb7	=[	$deathb7,	knight_dieb8	] {};
 void()	knight_dieb8	=[	$deathb8,	knight_dieb9	] {};
 void()	knight_dieb9	=[	$deathb9,	knight_dieb10] {};
 void()	knight_dieb10 = [	$deathb10,	knight_dieb11] {};
-void()	knight_dieb11 = [	$deathb11,	knight_dieb11] {};
+void()	knight_dieb11 = [	$deathb11,	knight_dieb11]
+{
+	if (horde_ent) //Ry: Horde mode fade out
+	{
+		self.think = MonsterFade;
+		self.nextthink = time + FADETIME;
+	}
+};
 
 
 void() knight_die =
@@ -236,22 +250,37 @@ void() knight_die =
 */
 void() monster_knight =
 {
-	if (deathmatch)
-	{
-		remove(self);
+	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
 		return;
-	}
+
 	precache_model ("progs/knight.mdl");
 	precache_model ("progs/h_knight.mdl");
-
+  
 	precache_sound ("knight/kdeath.wav");
 	precache_sound ("knight/khurt.wav");
 	precache_sound ("knight/ksight.wav");
 	precache_sound ("knight/sword1.wav");
 	precache_sound ("knight/sword2.wav");
 	precache_sound ("knight/idle.wav");
+
+  //Ry: Precache Gremlin as well in case Knight is replaced in ID1
+  precache_model ("progs/grem.mdl");
+  precache_model ("progs/h_grem.mdl");
+  
+  precache_sound ("grem/death.wav");
+  precache_sound ("grem/attack.wav");
+  precache_sound ("demon/djump.wav");
+  precache_sound ("demon/dhit2.wav");
+  precache_sound ("grem/pain1.wav");
+  precache_sound ("grem/pain2.wav");
+  precache_sound ("grem/pain3.wav");
+  precache_sound ("grem/idle.wav");
+  precache_sound ("grem/sight1.wav");
   
   self.netname = "Knight"; //Ry: Name for Deathmatch
+  
+	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+	self.combat_style = CS_MELEE;
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

@@ -131,9 +131,14 @@ void() f_death17 =[      $death17,       f_death18       ] {};
 void() f_death18 =[      $death18,       f_death19       ] {};
 void() f_death19 =[      $death19,       f_death20       ] {};
 void() f_death20 =[      $death20,       f_death21       ] {};
-//MED 01/15/97 removed solid from here
-//void() f_death21 =[      $death21,       f_death21       ] {self.solid = SOLID_NOT;};
-void() f_death21 =[      $death21,       f_death21       ] {};
+void() f_death21 =[      $death21,       f_death21       ]
+{
+	if (horde_ent) //Ry: Horde mode fade out
+	{
+		self.think = MonsterFade;
+		self.nextthink = time + FADETIME;
+	}
+};
 
 //MED 01/15/97 added fish_die
 void() fish_die =
@@ -177,11 +182,9 @@ void(entity attacker, float damage)	fish_pain =
 */
 void() monster_fish =
 {
-	if (deathmatch)
-	{
-		remove(self);
+	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
 		return;
-	}
+
 	precache_model2 ("progs/fish.mdl");
 
 	precache_sound2 ("fish/death.wav");

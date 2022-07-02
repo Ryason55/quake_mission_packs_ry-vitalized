@@ -71,12 +71,20 @@ void()   decoy_walk1 =[  $rockrun1,  decoy_walk1  ]
    self.frame = self.frame + self.walkframe;
 	self.walkframe = self.walkframe + 1;
    };
+   
+void(entity attacker, float damage)   decoy_pain =  //Ry: New function to appease the compiler
+{
+  decoy_stand1();
+}
 
 void(entity decoy) setup_decoy =
 {
    local entity pl;
    
    decoy.netname = "Ranger"; //Ry: Name for Deathmatch
+   
+	 self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+	 self.combat_style = CS_RANGED;
 
    decoy.classname = "monster_decoy";
    setmodel (decoy, "progs/player.mdl");
@@ -92,7 +100,7 @@ void(entity decoy) setup_decoy =
    decoy.th_walk = decoy_walk1;
    decoy.th_run = decoy_walk1;
    decoy.th_missile = decoy_stand1;
-   decoy.th_pain = decoy_stand1;
+   decoy.th_pain = decoy_pain;
    decoy.th_die = decoy_stand1;
 
    pl = find (world, classname, "player");
@@ -103,20 +111,17 @@ void(entity decoy) setup_decoy =
 */
 void() monster_decoy =
 {
-   if (deathmatch)
-	{
-		remove(self);
-		return;
-	}
-   setup_decoy(self);
+  if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
+    return;
 
-   walkmonster_start ();
-   total_monsters = total_monsters - 1;
+  setup_decoy(self);
+
+  walkmonster_start ();
+  total_monsters = total_monsters - 1;
 };
 
 void(string targ, vector orig) become_decoy =
 {
-   local entity pl;
    local entity decoy;
    local entity temp;
 
@@ -166,6 +171,6 @@ void(string targ, vector orig) become_decoy =
 	}
 
 // spread think times so they don't all happen at same time
-   decoy.nextthink = decoy.nextthink + random()*0.5;
+   decoy.nextthink = time + 0.05 + (random()*0.45);
    self = temp;
 };

@@ -195,7 +195,7 @@ void() dog_painb14	=[	$painb14 ,	dog_painb15	] {};
 void() dog_painb15	=[	$painb15 ,	dog_painb16	] {};
 void() dog_painb16	=[	$painb16 ,	dog_run1	] {};
 
-void() dog_pain =
+void(entity attacker, float damage) dog_pain =
 {
 	sound (self, CHAN_VOICE, "dog/dpain1.wav", 1, ATTN_NORM);
 
@@ -213,7 +213,14 @@ void() dog_die5		=[	$death5,	dog_die6	] {};
 void() dog_die6		=[	$death6,	dog_die7	] {};
 void() dog_die7		=[	$death7,	dog_die8	] {};
 void() dog_die8		=[	$death8,	dog_die9	] {};
-void() dog_die9		=[	$death9,	dog_die9	] {};
+void() dog_die9		=[	$death9,	dog_die9	]
+{
+	if (horde_ent) //Ry: Horde mode fade out
+	{
+		self.think = MonsterFade;
+		self.nextthink = time + FADETIME;
+	}
+};
 
 void() dog_dieb1		=[	$deathb1,	dog_dieb2	] {};
 void() dog_dieb2		=[	$deathb2,	dog_dieb3	] {};
@@ -223,7 +230,14 @@ void() dog_dieb5		=[	$deathb5,	dog_dieb6	] {};
 void() dog_dieb6		=[	$deathb6,	dog_dieb7	] {};
 void() dog_dieb7		=[	$deathb7,	dog_dieb8	] {};
 void() dog_dieb8		=[	$deathb8,	dog_dieb9	] {};
-void() dog_dieb9		=[	$deathb9,	dog_dieb9	] {};
+void() dog_dieb9		=[	$deathb9,	dog_dieb9	]
+{
+	if (horde_ent) //Ry: Horde mode fade out
+	{
+		self.think = MonsterFade;
+		self.nextthink = time + FADETIME;
+	}
+};
 
 
 void() dog_die =
@@ -303,8 +317,6 @@ float()	CheckDogJump =
 
 float()	DogCheckAttack =
 {
-	local	vector	vec;
-	
 // if close enough for slashing, go for it
 	if (CheckDogMelee ())
 	{
@@ -329,11 +341,9 @@ float()	DogCheckAttack =
 */
 void() monster_dog =
 {
-	if (deathmatch)
-	{
-		remove(self);
+	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
 		return;
-	}
+
 	precache_model ("progs/h_dog.mdl");
 	precache_model ("progs/dog.mdl");
 
@@ -344,6 +354,9 @@ void() monster_dog =
 	precache_sound ("dog/idle.wav");
   
   self.netname = "Rottweiler"; //Ry: Name for Deathmatch
+  
+	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+	self.combat_style = CS_MELEE;
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;

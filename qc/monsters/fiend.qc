@@ -148,7 +148,14 @@ void()	demon1_die6		=[	$death6,		demon1_die7	]
 {self.solid = SOLID_NOT;};
 void()	demon1_die7		=[	$death7,		demon1_die8	] {};
 void()	demon1_die8		=[	$death8,		demon1_die9	] {};
-void()	demon1_die9		=[	$death9,		demon1_die9 ] {};
+void()	demon1_die9		=[	$death9,		demon1_die9 ]
+{
+	if (horde_ent) //Ry: Horde mode fade out
+	{
+		self.think = MonsterFade;
+		self.nextthink = time + FADETIME;
+	}
+};
 
 void() demon_die =
 {
@@ -179,11 +186,9 @@ void() Demon_MeleeAttack =
 */
 void() monster_demon1 =
 {
-	if (deathmatch)
-	{
-		remove(self);
+	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
 		return;
-	}
+
 	precache_model ("progs/demon.mdl");
 	precache_model ("progs/h_demon.mdl");
 
@@ -195,6 +200,9 @@ void() monster_demon1 =
 	precache_sound ("demon/sight2.wav");
   
   self.netname = "Fiend"; //Ry: Name for Deathmatch
+  
+	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+	self.combat_style = CS_MELEE;
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;
@@ -279,8 +287,6 @@ float()	CheckDemonJump =
 
 float()	DemonCheckAttack =
 {
-	local	vector	vec;
-	
 // if close enough for slashing, go for it
 	if (CheckDemonMelee ())
 	{

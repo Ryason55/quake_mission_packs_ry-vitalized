@@ -25,20 +25,6 @@ $frame sting7.asc sting8.asc sting9.asc sting10.asc sting11.asc
 $frame pain1.asc pain2.asc pain3.asc pain4.asc pain5.asc
 
 $frame death1.asc death2.asc death3.asc death4.asc death5.asc
-//
-
-$frame stand1.asc stand2.asc stand3.asc stand4.asc stand5.asc stand6.asc stand7.asc
-
-$frame sting1.asc sting2.asc sting3.asc sting4.asc sting5.asc sting6.asc sting7.asc sting8.asc
-$frame sting9.asc sting10.asc sting11.asc
-
-$frame walk1.asc walk2.asc walk3.asc walk4.asc walk5.asc walk6.asc
-
-$frame shoot1.asc shoot2.asc
-
-$frame pain1.asc pain2.asc pain3.asc pain4.asc pain5.asc
-
-$frame death1.asc death2.asc death3.asc death4.asc death5.asc death6.asc death7.asc
 /*
 ===========
 ScourgeCheckAttack
@@ -365,9 +351,20 @@ void(entity attacker, float damage) scourge_pain =
 
 void()   scourge_die1 =[ $death1.asc, scourge_die2 ] {self.spawnsilent = 0;scourge_think();};
 void()   scourge_die2 =[ $death2.asc, scourge_die3 ] {};
-void()   scourge_die3 =[ $death3.asc, scourge_die4 ] {self.solid = SOLID_NOT;};
+void()   scourge_die3 =[ $death3.asc, scourge_die4 ]
+{ //Ry: Centroids that replace Ogres in ID1 will drop backpacks containing Nails
+  self.solid = SOLID_NOT;
+  DropBackpack(TRUE);
+};
 void()   scourge_die4 =[ $death4.asc, scourge_die5 ] {};
-void()   scourge_die5 =[ $death5.asc, scourge_die5 ] {};
+void()   scourge_die5 =[ $death5.asc, scourge_die5 ]
+{
+	if (horde_ent) //Ry: Horde mode fade out
+	{
+		self.think = MonsterFade;
+		self.nextthink = time + FADETIME;
+	}
+};
 
 void() scourge_die =
 {
@@ -376,7 +373,7 @@ void() scourge_die =
    remove (self.lastvictim);
    self.spawnsilent = 0;
    scourge_think();
-   if (self.health < -35)
+   if ( (!self.ammo_nails && self.health < -35) || self.health < -80 ) //Ry: More resiliant to gibbing when carrying ammo in ID1
    {
 		sound (self, CHAN_VOICE, "player/udeath.wav", 1, ATTN_NORM);
       ThrowHead ("progs/h_scourg.mdl", self.health);
@@ -395,18 +392,10 @@ void() scourge_die =
 // scourge_melee
 //
 void() scourge_melee =
-   {
-	local float chance;
-
-//   chance = random();
-//   if (chance < 0.5 )
-//      {
-      scourge_melee1();
-//      }
-//   else
-//      return;
-   SUB_AttackFinished (2*random());
-   };
+{
+  scourge_melee1();
+  SUB_AttackFinished (2*random());
+};
 
 //
 // ScourgeTriggerThink
@@ -488,52 +477,48 @@ void() ScourgeTriggerTouch =
 */
 void() monster_scourge =
 {
-   local entity trig;
-   
-   hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
+  hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
 
-	if (deathmatch)
-	{
-		remove(self);
+	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
 		return;
-	}
-   precache_model2 ("progs/scor.mdl");
-   precache_model2 ("progs/h_scourg.mdl");
+
+  precache_model2 ("progs/scor.mdl");
+  precache_model2 ("progs/h_scourg.mdl");
 	precache_model2 ("progs/laser.mdl");
-   precache_model2 ("progs/s_light.mdl");
-   precache_model2 ("progs/spike.mdl");
+  precache_model2 ("progs/s_light.mdl");
+  precache_model2 ("progs/spike.mdl");
 
-   precache_sound ("misc/null.wav");
-   precache_sound ("scourge/idle.wav");
-   precache_sound ("scourge/pain.wav");
-   precache_sound ("scourge/pain2.wav");
-   precache_sound ("scourge/sight.wav");
-   precache_sound ("scourge/tailswng.wav");
-   precache_sound ("scourge/walk.wav");
-   precache_sound2 ("shambler/smack.wav");
-   precache_sound2 ("weapons/rocket1i.wav");
-   
-   self.netname = "Centroid"; //Ry: Name for Deathmatch
+  precache_sound ("misc/null.wav");
+  precache_sound ("scourge/idle.wav");
+  precache_sound ("scourge/pain.wav");
+  precache_sound ("scourge/pain2.wav");
+  precache_sound ("scourge/sight.wav");
+  precache_sound ("scourge/tailswng.wav");
+  precache_sound ("scourge/walk.wav");
+  precache_sound2 ("shambler/smack.wav");
+  precache_sound2 ("weapons/rocket1i.wav");
 
+  setmodel (self, "progs/scor.mdl");
+  setsize (self, VEC_HULL2_MIN, VEC_HULL2_MAX);
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;
+  
+  self.netname = "Centroid"; //Ry: Name for Deathmatch
+  self.health = 300;
+  self.yaw_speed = 60;
+  self.attack_state = AS_DODGING;
+  self.state = 0;
+  
+	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+	self.combat_style = CS_MIXED;
 
-   setmodel (self, "progs/scor.mdl");
-
-   setsize (self, VEC_HULL2_MIN, VEC_HULL2_MAX);
-   self.health = 300;
-
-   self.th_stand = scourge_stand1;
-   self.th_walk = scourge_walk1;
-   self.th_run = scourge_run1;
-   self.th_pain = scourge_pain;
-   self.th_die = scourge_die;
-   self.th_melee = scourge_melee;
-   self.th_missile = scourge_atk1;
-//   self.th_turn = scourge_turn1;
-   self.yaw_speed = 60;
-   self.attack_state = AS_DODGING;
-   self.state = 0;
+  self.th_stand = scourge_stand1;
+  self.th_walk = scourge_walk1;
+  self.th_run = scourge_run1;
+  self.th_pain = scourge_pain;
+  self.th_die = scourge_die;
+  self.th_melee = scourge_melee;
+  self.th_missile = scourge_atk1;
 
 	walkmonster_start();
 };

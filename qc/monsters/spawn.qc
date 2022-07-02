@@ -190,11 +190,9 @@ void()	tbaby_die2	=[	$exp,		tbaby_run1	]
 */
 void() monster_tarbaby =
 {
-	if (deathmatch)
-	{
-		remove(self);
+	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
 		return;
-	}
+
 	precache_model2 ("progs/tarbaby.mdl");
 
 	precache_sound2 ("blob/death1.wav");
@@ -203,6 +201,9 @@ void() monster_tarbaby =
 	precache_sound2 ("blob/sight1.wav");
   
   self.netname = "Spawn"; //Ry: Name for Deathmatch
+  
+	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+	self.combat_style = CS_MELEE;
 	
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;
