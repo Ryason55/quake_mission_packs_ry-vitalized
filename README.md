@@ -1,7 +1,7 @@
-Ry Mod for Quake: Scourge of Armagon  
+Armagon Ry-vitalized for Quake: Scourge of Armagon  
 ====================================  
 
-This mod makes miscellaneous changes to Armagon Cooperative and Deathmatch in Quake Remaster. Various quality of life, rebalancing, and bug fixes.  
+This mod implements a lot of quality of life, rebalancing, and bug fixes into the Quake Remaster version of Quake Mission Pack 1: Scourge of Armagon, with changes applied to both campaign play and Deathmatch. Also some fun things thrown in here and there.  
 
 QuakeC Changes
 ---------------------------
