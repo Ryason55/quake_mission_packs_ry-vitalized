@@ -30,12 +30,6 @@ time > .pausetime.
 walkmove(angle, speed) primitive is all or nothing
 */
 
-
-//
-// globals
-//
-float	current_yaw;
-
 //
 // when a monster becomes angry at a player, that monster will be used
 // as the sight target the next frame so that monsters near that one
@@ -44,6 +38,46 @@ float	current_yaw;
 entity	sight_entity;
 float	sight_entity_time;
 void() FoundTarget;
+
+
+
+//======================
+//  New Subs by Ryason
+//======================
+
+entity() SelectTargetForCharmed = //Ry: Separated out from FindTarget
+{
+  local entity head;
+  local entity selected;
+  local float dist;
+
+  selected = world;
+  dist = CHARMED_RADIUS;
+  head = findradius(self.origin, CHARMED_RADIUS);
+  while(head)
+  {
+    //Ry: Can now target players, checks against team, and won't target downed Zombies
+    if (!(head.flags & FL_NOTARGET) && (head.flags & (FL_CLIENT|FL_MONSTER)) && (head.solid) && ((head.team == 0) || (head.team != self.team)) )
+    {
+      if (visible(head) && (visible_distance < dist) && (head.health>0))
+      {
+        if ((head !=self) && (head != self.charmer) && (head.charmer != self.charmer))
+        {
+          selected = head;
+          dist = visible_distance;
+        }
+      }
+    }
+    head = head.chain;
+  }
+  return selected;
+}
+
+//===================
+//  End of new subs
+//===================
+
+
 
 float(float v) anglemod =
 {
@@ -347,135 +381,69 @@ float(entity targ) infront =
 	return FALSE;
 };
 
-
-//============================================================================
-
-/*
-===========
-ChangeYaw
-
-Turns towards self.ideal_yaw at self.yaw_speed
-Sets the global variable current_yaw
-Called every 0.1 sec by monsters
-============
-*/
-/*
-
-void() ChangeYaw =
-{
-	local float		ideal, move;
-
-//current_yaw = self.ideal_yaw;
-// mod down the current angle
-	current_yaw = anglemod( self.angles_y );
-	ideal = self.ideal_yaw;
-
-	if (current_yaw == ideal)
-		return;
-
-	move = ideal - current_yaw;
-	if (ideal > current_yaw)
-	{
-		if (move > 180)
-			move = move - 360;
-	}
-	else
-	{
-		if (move < -180)
-			move = move + 360;
-	}
-
-	if (move > 0)
-	{
-		if (move > self.yaw_speed)
-			move = self.yaw_speed;
-	}
-	else
-	{
-		if (move < 0-self.yaw_speed )
-			move = 0-self.yaw_speed;
-	}
-
-	current_yaw = anglemod (current_yaw + move);
-
-	self.angles_y = current_yaw;
-};
-
-*/
-
 //MED 10/18/96 added charmed stuff
 //============================================================================
 void() UpdateCharmerGoal =
-   {
-   local entity targ;
-   local vector d;
+{
+  local entity targ;
+  local vector d;
+  
+  d = normalize(self.origin-self.charmer.origin);
 
-   d = normalize(self.origin-self.charmer.origin);
-
-   if (self.huntingcharmer == 1)
-      {
-      //if (self.trigger_field) //Ry: Actually check for this instead of always spawning a new one... Except doing that causes other problems???
-      //  targ = self.trigger_field;
-      //else
-      //{
-        targ = spawn();
-        self.trigger_field = targ;
-      //}
-      setorigin(targ,self.charmer.origin);
-      self.huntingcharmer = 2;
+  if (self.huntingcharmer == 1)
+  {
+    self.huntingcharmer = 2;
+    self.goalentity = self.charmer; //Ry: Directly follow Charmer, since there's proper pathing now
+  }
+  else if (self.huntingcharmer > 2)
+  {
+    if (!self.customtarget)
+    {
+      targ = spawn();
+      targ.classname = "charm_followtarget";
+      self.customtarget = targ;
+    }
+    else
+      targ = self.customtarget;
+    if (!(self.goalentity == targ))
       self.goalentity = targ;
-      }
-   if (self.huntingcharmer == 2)
-      {
-      targ = self.trigger_field;
-      traceline(self.origin,self.charmer.origin,TRUE,self);
-      if (trace_fraction == 1.0)
-         {
-//         dprint("can see ");
-//         dprint(vtos(self.charmer.origin));
-//         dprint("\n");
-         setorigin(targ,self.charmer.origin);
-         }
-      }
-   else
-      {
-      targ = self.trigger_field;
-      setorigin(targ,self.charmer.origin + (d*300));
-      }
-   };
+    setorigin(targ,self.charmer.origin + (d*300));
+  }
+};
 
 //============================================================================
 void() HuntCharmer =
 {
-   self.huntingcharmer = 1;
-   UpdateCharmerGoal();
+  self.huntingcharmer = 1;
+  UpdateCharmerGoal();
 //   self.goalentity = self.charmer;
-   self.think = self.th_walk;
-   self.ideal_yaw = vectoyaw(self.goalentity.origin - self.origin);
-   self.nextthink = time + 0.1;
+  visible(self.charmer);
+    self.think = self.th_walk;
+  self.ideal_yaw = vectoyaw(self.goalentity.origin - self.origin);
+  self.nextthink = time + 0.1;
 };
 
 //============================================================================
 void() FleeCharmer =
 {
-   self.huntingcharmer = 1;
-   UpdateCharmerGoal();
-   self.huntingcharmer = 3;
-//   self.goalentity = self.charmer;
-   self.think = self.th_walk;
-//   self.ideal_yaw = vectoyaw(self.originself.goalentity.origin - self.origin);
-   self.nextthink = time + 0.1;
+  self.huntingcharmer = 1;
+  UpdateCharmerGoal();
+  self.huntingcharmer = 3;
+//  self.goalentity = self.charmer;
+  self.think = self.th_walk;
+//  self.ideal_yaw = vectoyaw(self.originself.goalentity.origin - self.origin);
+  self.nextthink = time + 0.1;
 };
 
 //============================================================================
 void() StopHuntingCharmer =
 {
-   self.goalentity = world;
-   //if (self.huntingcharmer>1 && self.trigger_field) //Ry: Check
-      remove(self.trigger_field);
-   self.huntingcharmer = 0;
-   self.think = self.th_stand;
-   self.nextthink = time + 0.1;
+  self.goalentity = world;
+  //if (self.huntingcharmer>1 && self.customtarget) //Ry: Check
+  //  remove(self.customtarget);
+  self.huntingcharmer = 0;
+  self.think = self.th_stand;
+  self.nextthink = time + 0.1;
 };
 
 //============================================================================
@@ -511,8 +479,6 @@ local float	rsnd;
 		sound (self, CHAN_VOICE, "hknight/sight1.wav", 1, ATTN_NORM);
 	else if (self.classname == "monster_tarbaby")
 		sound (self, CHAN_VOICE, "blob/sight1.wav", 1, ATTN_NORM);
-	else if (self.classname == "monster_vomit")
-		sound (self, CHAN_VOICE, "vomitus/v_sight1.wav", 1, ATTN_NORM);
 	else if (self.classname == "monster_enforcer")
 	{
 		rsnd = rint(random() * 3);
@@ -530,44 +496,47 @@ local float	rsnd;
 	else if (self.classname == "monster_shalrath")
 		sound (self, CHAN_VOICE, "shalrath/sight.wav", 1, ATTN_NORM);
 //MED
-   else if (self.classname == "monster_gremlin")
-      {
-      if (self.stoleweapon == 0)
-         sound (self, CHAN_VOICE, "grem/sight1.wav", 1, ATTN_NORM);
-      }
+  else if (self.classname == "monster_gremlin")
+  {
+    if (self.gremstate < GREM_ARMED)
+      sound (self, CHAN_VOICE, "grem/sight1.wav", 1, ATTN_NORM);
+  }
 //MED
-   else if (self.classname == "monster_scourge")
-      sound (self, CHAN_VOICE, "scourge/sight.wav", 1, ATTN_NORM);
+  else if (self.classname == "monster_scourge")
+    sound (self, CHAN_VOICE, "scourge/sight.wav", 1, ATTN_NORM);
 //MED
-   else if (self.classname == "monster_armagon")
-      sound (self, CHAN_VOICE, "armagon/sight.wav", 1, 0.1);
+  else if (self.classname == "monster_armagon")
+    sound (self, CHAN_VOICE, "armagon/sight.wav", 1, 0.1);
 };
 
 void() FoundTarget =
 {
 //MED
 	if (self.enemy.classname == "player")
+  {
+    if (self.charmed)
+    {
+      if ((self.charmer == self.enemy) || (self.charmer == self.enemy.charmer))
       {
-      if (self.charmed)
-         {
-         if ((self.charmer == self.enemy) || (self.charmer == self.enemy.charmer))
-            {
-            self.enemy = world;
-            return;
-            }
-         }
-      // let other monsters see this monster for a while
+        self.enemy = world;
+        return;
+      }
+    }
+    // let other monsters see this monster for a while
 		sight_entity = self;
 		sight_entity_time = time;
-      }
-   else if (self.charmed)
-      {
-      if ((self.charmer == self.enemy.charmer))
-         {
-         self.enemy = world;
-         return;
-         }
-      }
+  }
+  else if (self.charmed)
+  {
+    if ((self.charmer == self.enemy.charmer))
+    {
+      self.enemy = world;
+      return;
+    }
+  }
+  
+  if (self.huntingcharmer) //Ry: Make sure this is reset
+    self.huntingcharmer = 0;
       
   self.lastfoetime = time; //Ry: Note the time foe was last changed
 
@@ -607,92 +576,76 @@ float() FindTarget =
 // spawn flag works as well
 
 //MED 10/17/96 added charmed stuff
-   if (self.charmed)
-      {
+  if (self.charmed && !self.enemy)
+  {
+    if (!deathmatch)
       self.effects = self.effects | EF_DIMLIGHT;
-      if (self.huntingcharmer > 0)
-         {
-         UpdateCharmerGoal();
-//         self.goalentity = self.charmer;
-         r = vlen(self.origin - self.goalentity.origin);
-         if (r < MIN_CHARMER_DISTANCE)
-            {
-//            dprint("stopping\n");
-            if ((self.huntingcharmer == 3) && (r > TOOCLOSE_CHARMER_DISTANCE))
-               return FALSE;
-//            self.huntingcharmer = 0;
-            StopHuntingCharmer();
-            return TRUE;
-            }
-         }
-      else if (vlen (self.origin - self.charmer.origin) > MAX_CHARMER_DISTANCE)
-         {
-//         self.huntingcharmer = 1;
-//         dprint("hunting\n");
-         HuntCharmer();
-         return FALSE;
-         }
-      else if (vlen (self.origin - self.charmer.origin) < TOOCLOSE_CHARMER_DISTANCE)
-         {
-//         self.huntingcharmer = 1;
-//         dprint("fleeing\n");
-         FleeCharmer();
-         return FALSE;
-         }
-      }
-   if (sight_entity_time >= time - 0.1 && !(self.spawnflags & 3) && !(self.charmed) )
+    if (self.classname == "monster_gremlin" && self.gremstate) //Ry: Break if Gremlin is up to something
+    {
+      self.huntingcharmer = 0;
+    }
+    else if (self.huntingcharmer > 0)
+    {
+      UpdateCharmerGoal();
+//      self.goalentity = self.charmer;
+      r = vlen(self.origin - self.goalentity.origin);
+      if (r < MIN_CHARMER_DISTANCE)
       {
+//        dprint("stopping\n");
+        if ((self.huntingcharmer == 3) && (r > TOOCLOSE_CHARMER_DISTANCE))
+          return FALSE;
+//        self.huntingcharmer = 0;
+        StopHuntingCharmer();
+        return TRUE;
+      }
+    }
+    else if (vlen (self.origin - self.charmer.origin) > MAX_CHARMER_DISTANCE)
+    {
+//      self.huntingcharmer = 1;
+//      dprint("hunting\n");
+      HuntCharmer();
+      return FALSE;
+    }
+    else if (vlen (self.origin - self.charmer.origin) < TOOCLOSE_CHARMER_DISTANCE)
+    {
+//      self.huntingcharmer = 1;
+//      dprint("fleeing\n");
+      FleeCharmer();
+      return FALSE;
+    }
+  }
+  if (sight_entity_time >= time - 0.1 && !(self.spawnflags & 3) && !(self.charmed) )
+  {
 		client = sight_entity;
 		if (client.enemy == self.enemy)
 			return FALSE; // Cataboligne 9.17.3 - fixed this compiler warning
 	}
-   else if (self.charmed)
-      {
-      local entity head;
-      local entity selected;
-      local float dist;
-
-      selected = world;
-      dist = CHARMED_RADIUS;
-      head = findradius(self.origin, CHARMED_RADIUS);
-      while(head)
-         {
-         if(!(head.flags & FL_NOTARGET) && (head.flags & (FL_CLIENT|FL_MONSTER)) && ((head.team == 0) || (head.team != self.team)) ) //Ry: Can now target players, and checks against team
-            {
-            if (visible(head) && (visible_distance < dist) && (head.health>0))
-               {
-               if ((head !=self) && (head != self.charmer) && (head.charmer != self.charmer))
-                  {
-                  selected = head;
-                  dist = visible_distance;
-                  }
-               }
-            }
-         head = head.chain;
-         }
-      if (selected == world)
-         return FALSE;
-
-      client = selected;
-      }
-   else
+  else if (self.charmed)
+  {
+    local entity selected;
+    selected = SelectTargetForCharmed(); //Ry: Now a standalone function
+    if (selected == world)
+      return FALSE;
+    client = selected;
+  }
+  else
 	{
-		client = checkclient ();
-      if (!client)
-			return FALSE;	// current check entity isn't in PVS
+    client = checkclient ();
+    if (!client)
+      return FALSE;	// current check entity isn't in PVS
 	}
 
 	if (client == self.enemy)
 		return FALSE;
 
-   //MED 10/17/96 added charmed stuff
-   if (!self.charmed)
-      {
-      if (client.flags & FL_NOTARGET)
-         return FALSE;
-      }
-   if (client.items & IT_INVISIBILITY)
+  //MED 10/17/96 added charmed stuff
+  if (!self.charmed)
+  {
+    if (client.flags & FL_NOTARGET)
       return FALSE;
+  }
+  if (client.items & IT_INVISIBILITY)
+    return FALSE;
 
 	r = range (client);
 	if (r == RANGE_FAR)
@@ -701,39 +654,37 @@ float() FindTarget =
 	if (!visible (client))
 		return FALSE;
 
-   //MED 10/17/96 added charmed stuff
-   if (!self.charmed)
-      {
-      if (r == RANGE_NEAR)
-         {
-         if (client.show_hostile < time && !infront (client))
-            return FALSE;
-         }
-      else if (r == RANGE_MID)
-         {
-         if ( /* client.show_hostile < time || */ !infront (client))
-            return FALSE;
-         }
-      }
+  //MED 10/17/96 added charmed stuff
+  if (!self.charmed)
+  {
+    if (r == RANGE_NEAR)
+    {
+      if (client.show_hostile < time && !infront (client))
+        return FALSE;
+    }
+    else if (r == RANGE_MID)
+    {
+      if ( /* client.show_hostile < time || */ !infront (client))
+        return FALSE;
+    }
+  }
 
-//
-// got one
-//
+  // got one
 	self.enemy = client;
 
-//MED 10/17/96 added charmed stuff
-   if ((!self.charmed) && (!self.enemy.charmed))
-      {
+  //MED 10/17/96 added charmed stuff
+  if ((!self.charmed) && (!self.enemy.charmed))
+  {
+    if (self.enemy.classname != "player")
+    {
+      self.enemy = self.enemy.enemy;
       if (self.enemy.classname != "player")
-         {
-         self.enemy = self.enemy.enemy;
-         if (self.enemy.classname != "player")
-            {
-            self.enemy = world;
-            return FALSE;
-            }
-         }
+      {
+        self.enemy = world;
+        return FALSE;
       }
+    }
+  }
 
 	FoundTarget ();
 
@@ -795,24 +746,24 @@ The monster is walking it's beat
 */
 void(float dist) ai_walk =
 {
-	local vector		mtemp;
-
 	movedist = dist;
 
-//MED 01/20/97
+  //MED 01/20/97
 	// check for noticing a player
-   if (FindTarget ())
-      return;
+  if (FindTarget ())
+    return;
 
-//MED 11/02/96
-   if (self.huntingcharmer)
-      {
-//      movetogoal (dist*2);
-      movetogoal (dist);
+  //MED 11/02/96
+  if (self.huntingcharmer )
+  {
+    ai_pathtogoal(dist); //Ry: Charmed monsters use bot pathing if availible
+    if ( (self.classname == "monster_ogre") || (self.classname == "monster_hell_knight") || (self.classname == "monster_knight") )
+      self.nextthink = time + ((self.nextthink - time)/3);
+    else
       self.nextthink = time + ((self.nextthink - time)/2);
-      }
-   else
-      movetogoal (dist);
+  }
+  else
+    movetogoal (dist);
 };
 
 
@@ -1093,22 +1044,39 @@ The monster has an enemy it is trying to kill
 float RUN_STRAIGHT;
 void(float dist) ai_run =
 {
-	local	vector	delta;
 	local	float	axis;
-	local	float	direct, ang_rint, ang_floor, ang_ceil;
+  local entity newtarget;
+
+  if ( self.charmed && (self.goalentity == self.charmer) ) //Ry: Ensure charmed monsters walk after pain when following charmer
+  {
+    self.th_walk();
+    return;
+  }
+  if ( self.charmed && (time >= self.lastfoetime + 3) ) //Ry: Charmed monsters will look for other enemies when their current target isn't visible
+  {
+    if ( !visible(self.enemy) )
+    {
+      newtarget = SelectTargetForCharmed();
+      if ( newtarget != world )
+      {
+        self.enemy = newtarget;
+        FoundTarget();
+      }
+    }
+  }
 
 	movedist = dist;
-// see if the enemy is dead
-   if (self.enemy.health <= 0 || (self.charmed && (self.charmer == self.enemy)))
+  // see if the enemy is dead
+  if (self.enemy.health <= 0 || (self.charmed && (self.charmer == self.enemy)))
 	{
 		self.enemy = world;
-//MED 10/30/96 added charmed stuff
-      if (self.charmed)
-         {
-         HuntCharmer();
-         return;
-         }
-	// FIXME: look all around for other targets
+    //MED 10/30/96 added charmed stuff
+    if (self.charmed)
+    {
+      HuntCharmer();
+      return;
+    }
+	  // FIXME: look all around for other targets
 		if (self.oldenemy.health > 0)
 		{
 			self.enemy = self.oldenemy;
@@ -1133,7 +1101,7 @@ void(float dist) ai_run =
 
 // look for other coop players
 //MED 10/17/96 added charmed stuff
-   if (coop && self.search_time < time && !self.charmed)
+  if (coop && self.search_time < time && !self.charmed)
 	{
 		if (FindTarget ())
 			return;
@@ -1143,35 +1111,33 @@ void(float dist) ai_run =
 	enemy_yaw = vectoyaw(self.enemy.origin - self.origin);
 
 //MED
-   if (self.th_turn)
-      {
-      local float angledelta;
+  if (self.th_turn)
+  {
+    local float angledelta;
 
-      angledelta = fabs(self.angles_y - enemy_yaw);
-      if (angledelta > MIN_ANGLE_DELTA)
-         {
-         self.th_turn();
-         return;
-         }
-      }
+    angledelta = fabs(self.angles_y - enemy_yaw);
+    if (angledelta > MIN_ANGLE_DELTA)
+    {
+      self.th_turn();
+      return;
+    }
+  }
 
 	if (self.attack_state == AS_MISSILE)
 	{
-//dprint ("ai_run_missile\n");
 		ai_run_missile ();
 		return;
 	}
 	if (self.attack_state == AS_MELEE)
 	{
-//dprint ("ai_run_melee\n");
 		ai_run_melee ();
 		return;
 	}
 
 	if (CheckAnyAttack ())
-      {
-      return;              // beginning an attack
-      }
+  {
+    return;              // beginning an attack
+  }
 
 	if (self.attack_state == AS_SLIDING)
 	{
@@ -1179,28 +1145,31 @@ void(float dist) ai_run =
 		return;
 	}
 
-   if (self.attack_state == AS_DODGING)
+  if (self.attack_state == AS_DODGING)
 	{
-      ai_run_dodge ();
+    ai_run_dodge ();
 		return;
 	}
 
 //MED 11/11/96
-   if (RUN_STRAIGHT && time > self.endtime)
-      {
-      RUN_STRAIGHT = 0;
-      axis = walkmove (self.angles_y, movedist);
-      if (!axis)
-         {
-         self.endtime = time + 3;
-         movetogoal (dist);      // done in C code...
-         }
-//      else
-//         ChangeYaw();
-      }
-   else
-      {
-      // head straight in
+  if (RUN_STRAIGHT && time > self.endtime)
+  {
+    RUN_STRAIGHT = 0;
+    axis = walkmove (self.angles_y, movedist);
+    if (!axis)
+    {
+      self.endtime = time + 3;
       movetogoal (dist);      // done in C code...
-      }
+    }
+//    else
+//      ChangeYaw();
+  }
+  else
+  {
+    //Ry: Now charmed monsters, Gremlins, and Armagon use advanced pathing (or any monster in horde mode)
+    if (horde || self.charmed || self.classname == "monster_gremlin" || self.classname == "monster_armagon")
+      ai_pathtogoal(dist);
+    else // head straight in
+      movetogoal (dist);      // done in C code...
+  }
 };

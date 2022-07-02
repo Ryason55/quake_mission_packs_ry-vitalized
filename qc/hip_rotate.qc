@@ -320,22 +320,25 @@ If "deathtype" is set with a string, this is the message that will appear when a
 */
 
 void() func_rotate_entity =
-   {
-   self.solid    = SOLID_NOT;
-   self.movetype = MOVETYPE_NONE;
+{
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
 
-   setmodel (self, self.model);
-   setsize( self, self.mins, self.maxs );
+  self.solid    = SOLID_NOT;
+  self.movetype = MOVETYPE_NONE;
 
-   if ( self.speed != 0 )
-      {
-      self.cnt = 1 / self.speed;
-      }
+  setmodel (self, self.model);
+  setsize( self, self.mins, self.maxs );
 
-   self.think = rotate_entity_firstthink;
-   self.nextthink = time + 0.1;
-   self.ltime = time;
-   };
+  if ( self.speed != 0 )
+  {
+    self.cnt = 1 / self.speed;
+  }
+
+  self.think = rotate_entity_firstthink;
+  self.nextthink = time + 0.1;
+  self.ltime = time;
+};
 
 //************************************************
 //
@@ -720,65 +723,68 @@ void() rotate_train =
    };
 
 void() func_rotate_train =
-   {
-   if (!self.speed)
+{
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
+  if (!self.speed)
 		self.speed = 100;
 	if (!self.target)
-      objerror ("rotate_train without a target");
+    objerror ("rotate_train without a target");
 
-   if ( !self.noise )
-      {
-      if (self.sounds == 0)
-         {
-         self.noise = ("misc/null.wav");
-         }
+  if ( !self.noise )
+  {
+    if (self.sounds == 0)
+    {
+      self.noise = ("misc/null.wav");
+    }
 
-      if (self.sounds == 1)
-         {
-         self.noise = ("plats/train2.wav");
-         }
-      }
-   if ( !self.noise1 )
-      {
-      if (self.sounds == 0)
-         {
-         self.noise1 = ("misc/null.wav");
-         }
-      if (self.sounds == 1)
-         {
-         self.noise1 = ("plats/train1.wav");
-         }
-      }
+    if (self.sounds == 1)
+    {
+      self.noise = ("plats/train2.wav");
+    }
+  }
+  if ( !self.noise1 )
+  {
+    if (self.sounds == 0)
+    {
+      self.noise1 = ("misc/null.wav");
+    }
+    if (self.sounds == 1)
+    {
+      self.noise1 = ("plats/train1.wav");
+    }
+  }
 
-   precache_sound( self.noise );
-   precache_sound( self.noise1 );
+  precache_sound( self.noise );
+  precache_sound( self.noise1 );
 
-   self.cnt = 1;
-   self.solid    = SOLID_NOT;
-   self.movetype = MOVETYPE_STEP;
-   self.use = rotate_train_use;
+  self.cnt = 1;
+  self.solid    = SOLID_NOT;
+  self.movetype = MOVETYPE_STEP;
+  self.use = rotate_train_use;
 
-   setmodel (self, self.model);
-   setsize (self, self.mins, self.maxs);
+  setmodel (self, self.model);
+  setsize (self, self.mins, self.maxs);
 	setorigin (self, self.origin);
 
 // start trains on the second frame, to make sure their targets have had
 // a chance to spawn
-   self.ltime = time;
+  self.ltime = time;
 	self.nextthink = self.ltime + 0.1;
-   self.endtime = self.ltime + 0.1;
-   self.think = rotate_train_think;
-   self.think1 = rotate_train_find;
-   self.state = STATE_FIND;
+  self.endtime = self.ltime + 0.1;
+  self.think = rotate_train_think;
+  self.think1 = rotate_train_find;
+  self.state = STATE_FIND;
 
-   self.duration = 1;        // 1 / duration
-   self.cnt = 0.1;           // start time
-   self.dest2 = '0 0 0';     // delta
-   self.dest1 = self.origin; // original position
+  self.duration = 1;        // 1 / duration
+  self.cnt = 0.1;           // start time
+  self.dest2 = '0 0 0';     // delta
+  self.dest1 = self.origin; // original position
 
 
-   self.flags = self.flags | FL_ONGROUND;
-   };
+  self.flags = self.flags | FL_ONGROUND;
+};
 
 //************************************************
 //
@@ -853,44 +859,50 @@ NONBLOCKING makes the brush non-solid.  This is useless if VISIBLE is set.
 "dmg" specifies the damage to cause when touched or blocked.
 */
 void() func_movewall =
-   {
-   self.angles = '0 0 0';
-   self.movetype = MOVETYPE_PUSH;
-   if ( self.spawnflags & NONBLOCKING )
-      {
-      self.solid = SOLID_NOT;
-      }
-   else
-      {
-      self.solid = SOLID_BSP;
-      self.blocked = movewall_blocked;
-      }
-   if ( self.spawnflags & TOUCH )
-      {
-      self.touch = movewall_touch;
-      }
-   setmodel (self,self.model);
-   if ( !( self.spawnflags & VISIBLE ) )
-      {
-      self.model = string_null;
-      }
-   self.think = movewall_think;
-   self.nextthink = time + 0.02;
-   self.ltime = time;
-   };
+{
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
+  self.angles = '0 0 0';
+  self.movetype = MOVETYPE_PUSH;
+  if ( self.spawnflags & NONBLOCKING )
+  {
+    self.solid = SOLID_NOT;
+  }
+  else
+  {
+    self.solid = SOLID_BSP;
+    self.blocked = movewall_blocked;
+  }
+  if ( self.spawnflags & TOUCH )
+  {
+    self.touch = movewall_touch;
+  }
+  setmodel (self,self.model);
+  if ( !( self.spawnflags & VISIBLE ) )
+  {
+    self.model = string_null;
+  }
+  self.think = movewall_think;
+  self.nextthink = time + 0.02;
+  self.ltime = time;
+};
 
 /*QUAKED rotate_object (0 .5 .8) ?
 This defines an object to be rotated.  Used as the target of func_rotate_door.
 */
 void() rotate_object =
-   {
-   self.classname = "rotate_object";
-   self.solid = SOLID_NOT;
-   self.movetype = MOVETYPE_NONE;
-   setmodel (self,self.model);
-   setsize( self, self.mins, self.maxs );
-   self.think = SUB_Null;
-   };
+{
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
+  self.classname = "rotate_object";
+  self.solid = SOLID_NOT;
+  self.movetype = MOVETYPE_NONE;
+  setmodel (self,self.model);
+  setsize( self, self.mins, self.maxs );
+  self.think = SUB_Null;
+};
 
 //************************************************
 //
@@ -1004,7 +1016,6 @@ void() rotate_door_group_reversedirection =
 
 void() rotate_door_use =
    {
-   local entity t;
    local vector start;
 
    if ( ( self.state != STATE_OPEN ) && ( self.state != STATE_CLOSED ) )
@@ -1060,6 +1071,9 @@ once door from closing again when it's blocked.
 
 void() func_rotate_door =
    {
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
    if (!self.target)
       {
       objerror( "rotate_door without target." );

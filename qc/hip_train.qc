@@ -153,6 +153,9 @@ sounds
 */
 void() func_train2 =
 {
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
 	if (!self.speed)
 		self.speed = 100;
 	if (!self.target)

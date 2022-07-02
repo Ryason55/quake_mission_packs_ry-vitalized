@@ -435,7 +435,6 @@ void(entity me, entity camera) UpdateCamera =
 void() effect_finale_use =
 {
    local entity   pos, pl, targ;
-   local entity   temp;
 
    if (self.state == 1)
       return;
@@ -454,7 +453,7 @@ void() effect_finale_use =
    WriteString (MSG_ALL, "");
 
    //setup decoy
-   if (!self.spawnflags & 2)
+   if (!(self.spawnflags & 2))
       {
       if (self.spawnflags & 1)
          {

@@ -1,9 +1,22 @@
 ../progs.dat
 
+//Ry: Which game is being compiled (For future use)
+#define GAME_HIPNOTIC
+//#define GAME_DISSOLUTION
+
+//Ry: Which engine is being compiled for (Again for future use)
+#define ENGINE_KEX
+//#define ENGINE_WINQUAKE
+
 defs.qc
-hipdefs.qc   //JIM
+#ifdef GAME_HIPNOTIC
+  hip_defs.qc   //JIM
+#endif
+ry_defs.qc //Ry: My stuff, separated out
 motd.qc //Ry: Copied from Rogue
 subs.qc
+ry_subs.qc //Ry: My stuff, separated out
+ry_funcs.qc //Ry: My stuff, separated out
 maps.qc //Ry: From QuakeEnhancedQC
 fight.qc
 ai.qc
@@ -20,45 +33,48 @@ triggers.qc
 plats.qc
 misc.qc
 
-ogre.qc
-demon.qc
-shambler.qc
-knight.qc
-soldier.qc
-wizard.qc
-dog.qc
-zombie.qc
-boss.qc
+monsters/ogre.qc //Ry: Moved all monsters to their own folder, similar to Remaster
+monsters/fiend.qc
+monsters/shambler.qc
+monsters/knight.qc
+monsters/grunt.qc
+monsters/scrag.qc
+monsters/dog.qc
+monsters/zombie.qc
+monsters/chthon.qc
 
-tarbaby.qc  // registered
-hknight.qc  // registered
-fish.qc   // registered
-shalrath.qc  // registered
-enforcer.qc  // registered
-oldone.qc  // registered
+monsters/spawn.qc  // registered
+monsters/deathknight.qc  // registered
+monsters/fish.qc   // registered
+monsters/vore.qc  // registered
+monsters/enforcer.qc  // registered
+monsters/shub.qc  // registered
 
-// Hipnotic Quake additions
+#ifdef GAME_HIPNOTIC
+  // Hipnotic Quake additions
+  hip_subs.qc //Ry: Expanded the names of hipnotic qc files
+  hip_breakaway.qc
+  hip_train.qc
+  hip_exploder.qc
+  hip_quake.qc
+  hip_counter.qc
+  hip_items.qc
+  hip_rubble.qc
+  hip_push.qc
+  hip_particle.qc
+  hip_spawner.qc
+  hip_rotate.qc
+  hip_holes.qc
+  hip_clock.qc
+  hip_triggers.qc
+  hip_misc.qc
+  hip_water.qc
 
-hipsubs.qc
-hip_brk.qc
-hiptrain.qc
-hip_expl.qc
-hipquake.qc
-hipcount.qc
-hipitems.qc
-hiprubbl.qc
-hip_push.qc
-hip_part.qc
-hipspawn.qc
-hipgrem.qc
-hiparma.qc
-hipspike.qc
-hiprot.qc
-hipscrge.qc
-hipholes.qc
-hipclock.qc
-hiptrig.qc
-hipmisc.qc
-hipwater.qc
-hipdecoy.qc
+  monsters/hip_gremlin.qc //Ry: Armagon monsters in the monsters folder as well
+  monsters/hip_armagon.qc
+  monsters/hip_spikemine.qc
+  monsters/hip_centroid.qc
+  monsters/hip_decoy.qc
+#endif
 
+horde.qc //Ry: Remaster Horde mode handler

@@ -38,10 +38,22 @@ void() InitTrigger =
 	if (self.angles != '0 0 0')
 		SetMovedir ();
 	self.solid = SOLID_TRIGGER;
-	setmodel (self, self.model);	// set size and link into world
-	self.movetype = MOVETYPE_NONE;
-	self.modelindex = 0;
-	self.model = "";
+  if (self.model) //Ry: Check if a model is in place
+  {
+    setmodel (self, self.model);	// set size and link into world
+    self.modelindex = 0;
+    self.model = "";
+  }
+  else //Ry: If no model is set, use the mins/maxs set on the entity
+  {
+    if (!self.mins && !self.maxs)
+    {
+      self.mins = '-32 -32 -32';
+      self.maxs = '32 32 32';
+    }
+    setorigin (self, self.origin);
+  }
+  self.movetype = MOVETYPE_NONE;
 };
 
 /*
@@ -52,6 +64,8 @@ calculate self.velocity and self.nextthink to reach dest from
 self.origin traveling at speed
 ===============
 */
+void() MoveItemsWithElevator; //Ry: New sub
+
 void(entity ent, vector tdest, float tspeed, void() func) SUB_CalcMoveEnt =
 {
 local entity	stemp;
@@ -78,6 +92,7 @@ local float		len, traveltime;
 	{
 		self.velocity = '0 0 0';
 		self.nextthink = self.ltime + 0.1;
+    MoveItemsWithElevator();
 		return;
 	}
 		
@@ -94,6 +109,7 @@ local float		len, traveltime;
 	{
 		self.velocity = '0 0 0';
 		self.nextthink = self.ltime + 0.1;
+    MoveItemsWithElevator();
 		return;
 	}
 	
@@ -102,6 +118,7 @@ local float		len, traveltime;
 
 // scale the destdelta vector by the time spent traveling to get velocity
 	self.velocity = vdestdelta * (1/traveltime);	// qcc won't take vec/float	
+  MoveItemsWithElevator();
 };
 
 /*
@@ -116,6 +133,7 @@ void()  SUB_CalcMoveDone =
 	self.nextthink = -1;
 	if (self.think1)
 		self.think1();
+  MoveItemsWithElevator();
 };
 
 

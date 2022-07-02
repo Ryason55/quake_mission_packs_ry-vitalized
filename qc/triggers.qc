@@ -1,9 +1,3 @@
-
-entity stemp, otemp, s, old;
-
-//Ry: New func, located in client.qc
-void(entity player, float type, string message1, string message2 = "", string message3 = "", string message4 = "", string message5 = "", string message6 = "") FilteredCenterPrint;
-
 void() trigger_reactivate =
 {
 	self.solid = SOLID_TRIGGER;
@@ -13,6 +7,7 @@ void() trigger_reactivate =
 
 float	SPAWNFLAG_NOMESSAGE = 1;
 float	SPAWNFLAG_NOTOUCH = 1;
+float	SPAWNFLAG_ALLOWMONSTERS = 2; //Ry: New flag
 
 // the wait time has passed, so set back up for another activation
 void() multi_wait =
@@ -113,7 +108,8 @@ void() multi_use =
 
 void() multi_touch =
 {
-	if (other.classname != "player")
+  //Ry: React to cutscene Ranger as well, as well as monsters if the new spawn flag is set
+	if ( !( (other.classname == "player") || (other.classname == "monster_decoy") || ((self.spawnflags & SPAWNFLAG_ALLOWMONSTERS) && (other.flags & FL_MONSTER)) ) )
 		return;
 
 // if the trigger has an angles field, check player's facing direction
@@ -127,86 +123,6 @@ void() multi_touch =
 	self.enemy = other;
 	multi_trigger ();
 };
-
-void() coopelevatorcheck = //Ry: Checks if the trigger is linked to an elevator, and if it is, sets the delay to 1 second to give players time to get on
-{
-  local entity e;
-  local float valid,triggertop;
-  triggertop = (self.maxs_z+self.origin.z);
-  for (e = find(world,targetname,self.target) ; e ; e = find(e,targetname,self.target) )
-  {
-    if ( (e.classname == "door") || (e.classname == "plat") || (e.classname == "train") || (e.classname == "train2") )
-    {
-      dprint("Potential elevator trigger with target ");
-      dprint(self.target);
-      dprint(" targets ");
-      dprint(e.classname);
-      dprint("\n");
-      if (e.classname == "door") //Ry: Extra checks for this, since doors are used as doors sometimes, weirdly enough
-      {
-        if (triggertop <= (e.maxs_z + e.pos1_z)) //Ry: Elevators have the trigger above in the default position
-          dprint(" But trigger is below door\n");
-        else
-        {
-          if (e.movedir_z == 0)
-          {
-            dprint(" But door moves horizontally\n");
-          }
-          else
-          {
-            local float cont = TRUE;
-            local vector origvect,targvect;
-            origvect = '0 0 0';
-            origvect_x = (((e.maxs_x+e.mins_x)/2) + e.pos1_x);
-            origvect_y = (((e.maxs_y+e.mins_y)/2) + e.pos1_y);
-            origvect_z = ((e.maxs_z + e.pos1_z) - 4);
-            if (e.pos1_z < e.pos2_z) //Ry: If starts in bottom position, add player height (+4) to the trace length
-            {
-              targvect = (origvect + (e.pos2-e.pos1));
-              targvect.z = targvect.z + 60;
-            }
-            else //Ry: If it starts at the top position, make sure it isn't too close to the ceiling
-            {
-              targvect = (origvect + '0 0 60');
-              traceline(origvect,targvect,TRUE,e);
-              if (trace_fraction < 1 && !(trace_ent.targetname == self.target))
-              {
-                dprint(" But door starts too close to the ceiling\n");
-                cont = FALSE;
-              }
-              else
-                targvect = (origvect + (e.pos2-e.pos1));
-            }
-            if (cont)
-            {
-              traceline(origvect,targvect,TRUE,e);
-              if (trace_fraction < 1 && !(trace_ent.targetname == self.target)) //Ry: Collides with an entity that isn't part of the same mechanism
-                dprint(" But door moves into the ceiling/floor\n");
-              else
-              {
-                dprint(" Door is a valid elevator!\n");
-                valid = TRUE;
-                break;
-              }
-            }
-          }
-        }
-      }
-      else
-      {
-        valid = TRUE;
-        break;
-      }
-    }
-  }
-  if (valid)
-  {
-    self.delay = self.delay + 1;
-    if (self.delay > 2)
-      self.delay = 2;
-    dprint(" Added extra delay to trigger\n");
-  }
-}
 
 //MED 12/01/96 added count field
 /*QUAKED trigger_multiple (.5 .5 .5) ? notouch
@@ -225,6 +141,9 @@ set "message" to text string
 */
 void() trigger_multiple =
 {
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
 	if (self.sounds == 1)
 	{
 		precache_sound ("misc/secret.wav");
@@ -290,6 +209,9 @@ set "message" to text string
 */
 void() trigger_once =
 {
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
   self.wait = -1;
   if (deathmatch) //Ry: Immediately trigger all one-time triggers in Deathmatch
   {
@@ -325,6 +247,9 @@ set "message" to text string
 */
 void() trigger_secret =
 {
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
 	total_secrets = total_secrets + 1;
 	self.wait = -1;
 	if (!self.message)
@@ -351,8 +276,6 @@ void() trigger_secret =
 
 void() counter_use =
 {
-	local string junk;
-
 	self.count = self.count - 1;
 	if (self.count < 0)
 		return;
@@ -390,6 +313,9 @@ After the counter has been triggered "count" times (default 2), it will fire all
 */
 void() trigger_counter =
 {
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
   if (deathmatch) //Ry: Immediately trigger all one-time counters in Deathmatch
   {
     self.think = multi_trigger;
@@ -440,7 +366,7 @@ void() play_teleport =
 
 void(vector org) spawn_tfog =
 {
-	s = spawn ();
+	local entity s = spawn ();
 	s.origin = org;
 	s.nextthink = time + 0.2;
 	s.think = play_teleport;
@@ -465,7 +391,7 @@ void() tdeath_touch =
 			self.classname = "teledeath2";
 		if (self.owner.classname != "player")
 		{	// other monsters explode themselves
-      if (!(self.owner.charmed)) //Ry: Don't blow up a charmed monster that's spawning in
+      if (!(self.owner.charmed) || self.classname == "teledeath") //Ry: Don't blow up a charmed monster that's spawning in
         T_Damage (self.owner, self, self, 50000);
 			return;
 		}
@@ -500,8 +426,8 @@ local entity	death;
 
 void() teleport_touch =
 {
-local entity	t;
-local vector	org;
+  local entity	t;
+  local vector	org;
 
 	if (self.targetname)
 	{
@@ -551,6 +477,7 @@ local vector	org;
 	{
 		other.fixangle = 1;		// turn this way immediately
 		other.teleport_time = time + 0.7;
+    other.proxyimmunetime = time + 0.7; //Ry: Have Proxy Bombs ignore the player for a bit after teleporting
 		if (other.flags & FL_ONGROUND)
 			other.flags = other.flags - FL_ONGROUND;
 		other.velocity = v_forward * 300;
@@ -586,6 +513,9 @@ If the trigger_teleport has a targetname, it will only teleport entities when it
 */
 void() trigger_teleport =
 {
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
 	local vector o;
 
 	InitTrigger ();
@@ -625,6 +555,9 @@ Only used on start map.
 */
 void() trigger_setskill =
 {
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
 	InitTrigger ();
 	self.touch = trigger_skill_touch;
 };
@@ -667,6 +600,9 @@ Only fires if playing the registered version, otherwise prints the message
 */
 void() trigger_onlyregistered =
 {
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
 	precache_sound ("misc/talk.wav");
 	InitTrigger ();
 	self.touch = trigger_onlyregistered_touch;
@@ -691,30 +627,39 @@ void( entity ent, float amount ) hurt_setdamage =
 
 void() hurt_on =
 {
-	self.solid = SOLID_TRIGGER;
+	//self.solid = SOLID_TRIGGER;
 	self.nextthink = -1;
 };
 
 void() hurt_touch =
 {
-	if (other.takedamage)
-	{
-		self.solid = SOLID_NOT;
-		T_Damage (other, self, self, self.dmg);
-		self.think = hurt_on;
-		self.nextthink = time + 1;
-//MED 12/01/96 added count stuff
-      if (self.cnt > 0)
-         {
-         self.cnt = self.cnt - 1;
-         if (self.cnt == 0)
+  if ((time <= self.nextthink - 1) || (time >= self.nextthink)) //Ry: Allow hitting more than one thing at a time
+  {
+    if ( other.health > 0 && other.takedamage ) //Ry: Check health
+    {
+      if (!(self.spawnflags & PLAYER_ONLY) || (other.classname == "player")) //Ry: Spawn Flag 1 makes this only affect players
+      {
+        T_Damage (other, self, self, self.dmg);
+        if (time > self.nextthink) //Ry: Only set these once per frame
+        {
+          self.think = SUB_Null;
+          self.nextthink = time + 1;
+          //MED 12/01/96 added count stuff
+          if (self.cnt > 0)
+          {
+            self.cnt = self.cnt - 1;
+            if (self.cnt == 0)
             {
-            self.touch = SUB_Null;
-            self.nextthink = time + 0.1;
-            self.think = SUB_Remove;
+              //self.touch = SUB_Null;
+              self.nextthink = time + 0.1;
+              self.think = SUB_Remove;
             }
-         }
-   }
+          }
+        }
+      }
+    }
+    force_retouch = 1;
+  }
 
 	return;
 };
@@ -728,6 +673,9 @@ defalt dmg = 5
 */
 void() trigger_hurt =
 {
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
 	InitTrigger ();
 	self.touch = hurt_touch;
 	if (!self.dmg)
@@ -740,14 +688,39 @@ void() trigger_hurt =
 //============================================================================
 
 float PUSH_ONCE = 1;
+float ADDITIVE_PUSH = 2;
+float PUSH_START_OFF = 4;
 
 void() trigger_push_touch =
 {
-	if (other.classname == "grenade")
-		other.velocity = self.speed * self.movedir * 10;
-	else if (other.health > 0)
+	// yoder Sept 24 2021 horde merge
+	
+	if (horde_ent)
 	{
-		other.velocity = self.speed * self.movedir * 10;
+		if (other.spawnflags & PUSH_START_OFF) // ignore this spawnflag in horde mode
+			other.spawnflags-= PUSH_START_OFF;
+		
+		if ((other.classname != "player"))
+		{
+			if ((other.classname == "item_artifact_invulnerability") || (other.classname == "item_artifact_super_damage"))
+			{
+				if (self.spawnflags & ADDITIVE_PUSH)
+					other.velocity = other.velocity + (self.speed * self.movedir * 10 * frametime); 
+				else
+					other.velocity = self.speed * self.movedir * 10;
+			}
+			return;
+		}
+	}
+	
+	if (other.health > 0 || other.classname == "grenade")
+	{
+		if(other.flags & FL_INSHELTER) return;
+
+		if (self.spawnflags & ADDITIVE_PUSH) // yoder add, Jan 28 2021
+			other.velocity = other.velocity + self.speed * self.movedir * 10 * frametime;
+		else
+			other.velocity = self.speed * self.movedir * 10;
 		if (other.classname == "player")
 		{
 			if (other.fly_sound < time)
@@ -756,6 +729,7 @@ void() trigger_push_touch =
 				sound (other, CHAN_AUTO, "ambience/windfly.wav", 1, ATTN_NORM);
 			}
 		}
+		if(other.flags & FL_MONSTER) other.flags (-) FL_ONGROUND; //If a monster walks inside a trigger_push, make it fly
 	}
 	if (self.spawnflags & PUSH_ONCE)
 		remove(self);
@@ -767,6 +741,9 @@ Pushes the player
 */
 void() trigger_push =
 {
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
 	InitTrigger ();
 	precache_sound ("ambience/windfly.wav");
 	self.touch = trigger_push_touch;
@@ -778,8 +755,24 @@ void() trigger_push =
 
 void() trigger_monsterjump_touch =
 {
+  local float dot;
+
 	if ( other.flags & (FL_MONSTER | FL_FLY | FL_SWIM) != FL_MONSTER )
 		return;
+
+  if ( other.charmed && (!self.charmed) ) //Ry: Charmed monsters ignore these unless specifically set
+    return;
+
+  if (self.checkdirection) //Ry: Check if monster is moving in roughly the same direction as the trigger
+  {
+    makevectors(other.angles);
+    dot = self.movedir * v_forward;
+    if (dot < 0)
+      return;
+  }
+
+  if ((time < self.wait) && (other.flags & FL_ONGROUND)) //Ry: Don't react if in wait time, unless monster is already in the air [06-30-2022]
+    return;
 
 // set XY even if not on ground, so the jump will clear lips
 	other.velocity_x = self.movedir_x * self.speed;
@@ -790,18 +783,21 @@ void() trigger_monsterjump_touch =
 
 	other.flags = other.flags - FL_ONGROUND;
 
+  if (self.delay) //Ry: If a delay is set, wait after each activation [06-30-2022]
+    self.wait = time + self.delay;
+
 	other.velocity_z = self.height;
 //MED 12/01/96 added count stuff
-   if (self.cnt>0)
-      {
-      self.cnt = self.cnt - 1;
-      if (self.cnt == 0)
-         {
-         self.touch = SUB_Null;
-         self.nextthink = time + 0.1;
-         self.think = SUB_Remove;
-         }
-      }
+  if (self.cnt>0)
+  {
+    self.cnt = self.cnt - 1;
+    if (self.cnt == 0)
+    {
+      self.touch = SUB_Null;
+      self.nextthink = time + 0.1;
+      self.think = SUB_Remove;
+    }
+  }
 };
 
 //MED 12/01/96 added count field
@@ -813,6 +809,9 @@ Walking monsters that touch this will jump in the direction of the trigger's ang
 */
 void() trigger_monsterjump =
 {
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
 	if (!self.speed)
 		self.speed = 200;
 	if (!self.height)
@@ -820,43 +819,10 @@ void() trigger_monsterjump =
 	if (self.angles == '0 0 0')
 		self.angles = '0 360 0';
 //MED 12/01/96 added count stuff
-   if (self.cnt == 0)
-      self.cnt = -1;
+  if (self.cnt == 0)
+    self.cnt = -1;
+  if (self.delay < 0) //Ry: Added handler for setting a delay [06-30-2022]
+    self.delay = 0;
 	InitTrigger ();
 	self.touch = trigger_monsterjump_touch;
-};
-
-
-//Ry: Custom touchfield for DM2 Lava pit. Using via button will record the activator, and anyone triggering via touching will set the recorded activator as lastdamager on them
-void() damageownerfield_touch =
-{
-  if ( other.flags & (FL_CLIENT | FL_MONSTER) )
-  {
-    if (time <= (other.lastdamagetime + 3))
-      other.lastdamagetime = time;
-    else if (self.lastdamager && (self.lastdamager != other)) //Will be set once if the player wasn't already recently damaged by someone else
-    {
-      other.lastdamager = self.lastdamager;
-      other.lastdamagetime = time;
-    }
-
-  }
-};
-
-void() damageownerfield_use =
-{
-  self.lastdamager = activator;
-}
-
-void() func_damageownerfield =
-{
-  if (!self.mins && !self.maxs)
-  {
-    self.mins = '-64 -64 -64';
-    self.maxs = '64 64 64';
-  }
-	self.movetype = MOVETYPE_NONE;
-	self.solid = SOLID_TRIGGER;
-  self.touch = damageownerfield_touch;
-  self.use = damageownerfield_use;
 };

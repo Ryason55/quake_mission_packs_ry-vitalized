@@ -5,8 +5,8 @@ float DOOR_GOLD_KEY = 8;
 float DOOR_SILVER_KEY = 16;
 float DOOR_TOGGLE = 32;
 
-//Ry: New func, located in client.qc
-void(entity player, float type, string message1, string message2 = "", string message3 = "", string message4 = "", string message5 = "", string message6 = "") FilteredCenterPrint;
+//Yoder Sept24 Horde Merge
+void(float key_item)horde_key_spend;
 
 /*
 
@@ -34,7 +34,8 @@ void() door_go_up;
 
 void() door_blocked =
 {
-	T_Damage (other, self, self, self.dmg);
+  if (self.dmg > 0) //Ry: Don't damage if there's no damage
+    T_Damage (other, self, self, self.dmg);
 	
 // if a door has a negative wait, it would never come back if blocked,
 // so let it just squash the object to death real fast
@@ -118,7 +119,7 @@ void() door_fire =
 // play use key sound
 
 	if (self.items)
-		sound (self, CHAN_VOICE, self.noise4, 1, ATTN_NORM);
+		sound (self, CHAN_ITEM, self.noise4, 1, ATTN_NORM);
 
 	self.message = string_null;		// no more message
 	oself = self;
@@ -220,49 +221,15 @@ void() door_touch =
 	if (!self.items)
 		return;
 
-// FIXME: blink key on player's status bar
-	if ( (self.items & other.items) != self.items )
-	{
-		if (self.owner.items == IT_KEY1)
-		{
-			if (world.worldtype == 2)
-			{
-				FilteredCenterPrint (other, CPRINT_WORLD, "You need the silver keycard");
-				sound (self, CHAN_VOICE, self.noise3, 1, ATTN_NORM);
-			}
-			else if (world.worldtype == 1)
-			{
-				FilteredCenterPrint (other, CPRINT_WORLD, "You need the silver runekey");
-				sound (self, CHAN_VOICE, self.noise3, 1, ATTN_NORM);
-			}
-			else if (world.worldtype == 0)
-			{
-				FilteredCenterPrint (other, CPRINT_WORLD, "You need the silver key");
-				sound (self, CHAN_VOICE, self.noise3, 1, ATTN_NORM);
-			}
-		}
-		else
-		{
-			if (world.worldtype == 2)
-			{
-				FilteredCenterPrint (other, CPRINT_WORLD, "You need the gold keycard");
-				sound (self, CHAN_VOICE, self.noise3, 1, ATTN_NORM);
-			}
-			else if (world.worldtype == 1)
-			{
-				FilteredCenterPrint (other, CPRINT_WORLD, "You need the gold runekey");
-				sound (self, CHAN_VOICE, self.noise3, 1, ATTN_NORM);			
-			}
-			else if (world.worldtype == 0)
-			{
-				FilteredCenterPrint (other, CPRINT_WORLD, "You need the gold key");
-				sound (self, CHAN_VOICE, self.noise3, 1, ATTN_NORM);
-			}
-		}
+	if ( !AttemptUnlock() ) //Ry: Global function for this now
 		return;
-	}
 
-	other.items = other.items - self.items;
+	// Yoder sept24, 2021, horde merge
+	if (horde_ent)
+		horde_key_spend(self.items);
+	else // standard behavior
+		other.items = other.items - self.items;
+
 	self.touch = SUB_Null;
 	if (self.enemy)
 		self.enemy.touch = SUB_Null;	// get paired door
@@ -437,31 +404,11 @@ void() func_door =
 
 {
 
-	if (world.worldtype == 0)
-	{
-		precache_sound ("doors/medtry.wav");
-		precache_sound ("doors/meduse.wav");
-		self.noise3 = "doors/medtry.wav";
-		self.noise4 = "doors/meduse.wav";
-	}
-	else if (world.worldtype == 1)
-	{
-		precache_sound ("doors/runetry.wav");
-		precache_sound ("doors/runeuse.wav");
-		self.noise3 = "doors/runetry.wav";
-		self.noise4 = "doors/runeuse.wav";
-	}
-	else if (world.worldtype == 2)
-	{
-		precache_sound ("doors/basetry.wav");
-		precache_sound ("doors/baseuse.wav");
-		self.noise3 = "doors/basetry.wav";
-		self.noise4 = "doors/baseuse.wav";
-	}
-	else
-	{
-		dprint ("no worldtype set!\n");
-	}
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
+  PrepareKeyMechanismSounds(); //Ry: Global function for this now
+
 	if (self.sounds == 0)
 	{
 		precache_sound ("misc/null.wav");
@@ -523,7 +470,12 @@ void() func_door =
 	if (!self.lip)
 		self.lip = 8;
 	if (!self.dmg)
-		self.dmg = 2;
+  {
+    if (!self.items) //Ry: Key doors won't do damage innately [06-28-2022]
+      self.dmg = 2;
+  }
+  else if (self.dmg < 0) //Ry: Allow 0 damage if a negative is set
+    self.dmg = 0;
 
 	self.pos1 = self.origin;
 	self.pos2 = self.pos1 + self.movedir*(fabs(self.movedir*self.size) - self.lip);
@@ -589,7 +541,8 @@ void () fd_secret_use =
 	if (self.origin != self.oldorigin)
 		return;
 	
-	self.message = string_null;		// no more message
+  if (self.message)
+    self.message = string_null;		// no more message
 
 	SUB_UseTargets();				// fire all targets / killtargets
   
@@ -597,7 +550,7 @@ void () fd_secret_use =
 	
 	if (!(self.spawnflags & SECRET_NO_SHOOT))
 	{
-		self.th_pain = SUB_Null;
+		self.th_pain = SUB_Null_Pain;
 		self.takedamage = DAMAGE_NO;
 	}
 	self.velocity = '0 0 0';
@@ -630,6 +583,11 @@ void () fd_secret_use =
 	SUB_CalcMove(self.dest1, self.speed, fd_secret_move1);
 	sound(self, CHAN_VOICE, self.noise2, 1, ATTN_NORM);
 };
+
+void(entity attacker, float damage) fd_secret_pain = //Ry: New function to appease the compiler
+{
+  fd_secret_use();
+}
 
 // Wait after first movement...
 void () fd_secret_move1 = 
@@ -685,7 +643,7 @@ void () fd_secret_done =
 	{
 		self.health = 10000;
 		self.takedamage = DAMAGE_YES;
-		self.th_pain = fd_secret_use;	
+		self.th_pain = fd_secret_pain;	
 	}
 	sound(self, CHAN_VOICE, self.noise3, 1, ATTN_NORM);
 };
@@ -695,7 +653,8 @@ void () secret_blocked =
 	if (time < self.attack_finished)
 		return;
 	self.attack_finished = time + 0.5;
-	T_Damage (other, self, self, self.dmg);
+  if (self.dmg > 0) //Ry: Don't damage if there's no damage
+    T_Damage (other, self, self, self.dmg);
 };
 
 /*
@@ -741,6 +700,9 @@ If a secret door has a targetname, it will only be opened by it's botton or trig
 
 void () func_door_secret =
 {
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
 	if (self.sounds == 0)
 		self.sounds = 3;
 	if (self.sounds == 1)
@@ -771,6 +733,8 @@ void () func_door_secret =
 
 	if (!self.dmg)
 		self.dmg = 2;
+  else if (self.dmg < 0) //Ry: Allow 0 damage if a negative is set
+    self.dmg = 0;
 		
 	// Magic formula...
 	self.mangle = self.angles;
@@ -789,7 +753,7 @@ void () func_door_secret =
 	{
 		self.health = 10000;
 		self.takedamage = DAMAGE_YES;
-		self.th_pain = fd_secret_use;
+		self.th_pain = fd_secret_pain;
 		self.th_die = fd_secret_use;
 	}
 	self.oldorigin = self.origin;

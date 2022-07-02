@@ -69,7 +69,6 @@ void() plat_go_up =
 	sound (self, CHAN_VOICE, self.noise, 1, ATTN_NORM);
 	self.state = STATE_UP;
 	SUB_CalcMove (self.pos1, self.speed, plat_hit_top);
-  self.enemy.solid = SOLID_TRIGGER; //Ry: Re-enable trigger
 };
 
 void() plat_center_touch =
@@ -85,7 +84,7 @@ void() plat_center_touch =
   {
     if (coop) //Ry: Delay in Co-op
     {
-      self.enemy.solid = SOLID_NOT; //Ry: Disable trigger while waiting
+      self.state = STATE_HOLD; //Ry: Put into a new state so the trigger won't do anything
       self.think = plat_go_up;
       self.nextthink = self.ltime + 1;
     }
@@ -161,7 +160,12 @@ Set "sounds" to one of the following:
 void() func_plat =
 
 {
-local entity t;
+
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  {
+    remove(self);
+    return;
+  }
 
 	if (!self.t_length)
 		self.t_length = 80;
@@ -303,6 +307,11 @@ sounds
 */
 void() func_train =
 {	
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  {
+    remove(self);
+    return;
+  }
 	if (!self.speed)
 		self.speed = 100;
 	if (!self.target)
@@ -348,6 +357,11 @@ This is used for the final bos
 */
 void() misc_teleporttrain =
 {	
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  {
+    remove(self);
+    return;
+  }
 	if (!self.speed)
 		self.speed = 100;
 	if (!self.target)

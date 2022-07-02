@@ -11,103 +11,70 @@ Places a sprite on a wall.  Angles should be opposite of face.
 "model" sprite to place on wall.  Default is "progs/s_blood1.spr".
 */
 void() wallsprite =
-   {
-   if ( !self.model )
-      {
-      self.model = "progs/s_blood1.spr";
-      }
+{
+  if ( !self.model )
+  {
+    self.model = "progs/s_blood1.spr";
+  }
 
-   precache_model( self.model );
-   setmodel (self, self.model );
+  precache_model( self.model );
+  setmodel (self, self.model );
 
-   // QuakeEd doesn't save up and down angles properly.
-   if (self.angles == '0 -1 0')
-      self.angles = '-90 0 0';
+  // QuakeEd doesn't save up and down angles properly.
+  if (self.angles == '0 -1 0')
+    self.angles = '-90 0 0';
 	else if (self.angles == '0 -2 0')
-      self.angles = '90 0 0';
+    self.angles = '90 0 0';
 
-   // Pull the sprite away from the wall slightly to
-   // get rid of z sort errors.
-   makevectors(self.angles);
-   setorigin( self, self.origin - ( v_forward * 0.2 ) );
+  // Pull the sprite away from the wall slightly to
+  // get rid of z sort errors.
+  makevectors(self.angles);
+  setorigin( self, self.origin - ( v_forward * 0.2 ) );
 	makestatic (self);
-   };
+};
 
 void() InitBulletHoles =
-   {
-   precache_model ("progs/s_bullet.spr");
+{
+  local float count = 10;
+  local entity new, prev;
 
-   bulletholes = nullentity;
-   lastbullet = nullentity;
-   numbulletholes = 0;
-   };
+  precache_model ("progs/s_bullet.spr");
+
+  while (count > 0) //Ry: Set these up similar to Bodyque; The original method was crash-prone with Gremlins around, this seems more effecient in general
+  {
+    new = spawn();
+    new.classname = "bullethole";
+    new.owner = prev;
+    if (!bulletholes)
+      bulletholes = new;
+    prev = new;
+    count = count - 1;
+  }
+  bulletholes.owner = prev;
+};
 
 void() remove_bullethole =
-   {
-   local entity ent;
-
-   // There is a possibility that this is not the first bullet
-   // in the list, but it doesn't really matter.  All that
-   // matters is there is one less bullet.  Just make sure
-   // we don't remove the world!
-   if ( bulletholes == nullentity )
-      {
-      objerror("remove_bullethole: bulletholes == nullentity! " );
-      }
-
-   ent = bulletholes;
-   if ( ent.classname != "bullethole" )
-      {
-      objerror("remove_bullethole: Tried to remove non-bullethole!" );
-      }
-
-   bulletholes = bulletholes.lastvictim;
-   remove( ent );
-   if ( lastbullet == ent )
-      {
-      lastbullet = nullentity;
-      }
-   numbulletholes = numbulletholes - 1;
-   };
+{
+  setmodel(self, ""); //Ry: Move way out of bounds so clients don't have to process it
+  self.origin_z = self.origin_z + 1000;
+  setorigin(self,self.origin);
+};
 
 void( vector pos ) placebullethole =
 {
-   local entity new;
-   local entity ent;
-   local vector norm;
+  local vector norm;
 
-   new = spawn();
-   new.owner = new;
-   new.movetype = MOVETYPE_NONE;
-   new.solid = SOLID_NOT;
-   new.classname = "bullethole";
-   setmodel( new, "progs/s_bullet.spr" );
-   setsize (new, '0 0 0', '0 0 0');
+  norm = trace_plane_normal;
+  norm_x = 0 - norm_x;
+  norm_y = 0 - norm_y;
+  bulletholes.angles = vectoangles( norm );
+  makevectors(self.angles);
+  setorigin( bulletholes, pos - ( v_forward * 0.2 ) );
+  setmodel(bulletholes, "progs/s_bullet.spr" );
+  setsize (bulletholes, '0 0 0', '0 0 0');
 
-   norm = trace_plane_normal;
-   norm_x = 0 - norm_x;
-   norm_y = 0 - norm_y;
-   new.angles = vectoangles( norm );
-   makevectors(self.angles);
-   setorigin( new, pos - ( v_forward * 0.2 ) );
+  bulletholes.think = remove_bullethole;
+  bulletholes.nextthink = time + 300;
 
-   new.think = remove_bullethole;
-   new.nextthink = time + 300;
-
-   numbulletholes = numbulletholes + 1;
-   if ( numbulletholes > 10 )
-      {
-      remove_bullethole();
-      }
-
-   if ( lastbullet != nullentity )
-      {
-      lastbullet.lastvictim = new;
-      }
-   else
-      {
-      bulletholes = new;
-      }
-   new.lastvictim = nullentity;
-   lastbullet = new;
-   };
+  bulletholes = bulletholes.owner;
+};

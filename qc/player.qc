@@ -162,21 +162,24 @@ void()   player_run =[  $rockrun1,  player_run  ]
                {
                self.spawnsilent = 0.5*(self.spawnsilent - 95);
                }
-            r = random();
-            if (r < 0.14)
-               sound (self, CHAN_FOOT, "misc/foot1.wav", 0.5, ATTN_NORM); //Ry: Changed the sound channel that these use so they don't conflict with powerup pickup sounds
-            else if (r < 0.29)
-               sound (self, CHAN_FOOT, "misc/foot2.wav", 0.5, ATTN_NORM);
-            else if (r < 0.43)
-               sound (self, CHAN_FOOT, "misc/foot3.wav", 0.5, ATTN_NORM);
-            else if (r < 0.58)
-               sound (self, CHAN_FOOT, "misc/foot4.wav", 0.5, ATTN_NORM);
-            else if (r < 0.72)
-               sound (self, CHAN_FOOT, "misc/foot5.wav", 0.5, ATTN_NORM);
-            else if (r < 0.86)
-               sound (self, CHAN_FOOT, "misc/foot6.wav", 0.5, ATTN_NORM);
-            else
-               sound (self, CHAN_FOOT, "misc/foot7.wav", 0.5, ATTN_NORM);
+            if (!self.invisible_finished) //Ry: Don't play footsteps while under the effect of the Ring of Shadows
+            {
+              r = random();
+              if (r < 0.14)
+                 sound (self, CHAN_FOOT, "misc/foot1.wav", 0.5, ATTN_NORM); //Ry: Changed the sound channel that these use so they don't conflict with powerup pickup sounds
+              else if (r < 0.29)
+                 sound (self, CHAN_FOOT, "misc/foot2.wav", 0.5, ATTN_NORM);
+              else if (r < 0.43)
+                 sound (self, CHAN_FOOT, "misc/foot3.wav", 0.5, ATTN_NORM);
+              else if (r < 0.58)
+                 sound (self, CHAN_FOOT, "misc/foot4.wav", 0.5, ATTN_NORM);
+              else if (r < 0.72)
+                 sound (self, CHAN_FOOT, "misc/foot5.wav", 0.5, ATTN_NORM);
+              else if (r < 0.86)
+                 sound (self, CHAN_FOOT, "misc/foot6.wav", 0.5, ATTN_NORM);
+              else
+                 sound (self, CHAN_FOOT, "misc/foot7.wav", 0.5, ATTN_NORM);
+            }
             }
          }
       }
@@ -422,7 +425,7 @@ void()   player_hampain4 =  [  21,   player_hampain5 ] {};
 void()   player_hampain5 =  [  22,   player_hampain6 ] {};
 void()   player_hampain6 =  [  23,   player_run  ] {};
 
-void() player_pain =
+void(entity attacker, float damage) player_pain =
 {
 	if (self.weaponframe)
 		return;
@@ -591,23 +594,38 @@ void() HeadThink =
 
 void(string gibname, float dm) ThrowHead =
 {
-	setmodel (self, gibname);
-	self.frame = 0;
-//   self.nextthink = -1;
-//MED
-   self.nextthink = time + 1.5;
-	self.movetype = MOVETYPE_BOUNCE;
-	self.takedamage = DAMAGE_NO;
-	self.solid = SOLID_NOT;
-	self.view_ofs = '0 0 8';
-	setsize (self, '-16 -16 0', '16 16 56');
-	self.velocity = VelocityForDamage (dm);
-	self.origin_z = self.origin_z - 24;
-	self.flags = self.flags - (self.flags & FL_ONGROUND);
-	self.avelocity = crandom() * '0 600 0';
-//MED
-   self.gorging = TRUE;
-   self.think = HeadThink;
+  setmodel (self, gibname);
+  self.frame = 0;
+  self.movetype = MOVETYPE_BOUNCE;
+  self.takedamage = DAMAGE_NO;
+  self.solid = SOLID_NOT;
+  self.view_ofs = '0 0 8';
+  setsize (self, '-16 -16 0', '16 16 56');
+  self.velocity = VelocityForDamage (dm);
+  self.origin_z = self.origin_z - 24;
+  self.flags = self.flags - (self.flags & FL_ONGROUND);
+  self.avelocity = crandom() * '0 600 0';
+  //MED
+  self.gremstate = GREM_GORGING;
+  
+  //Ry: Use Horde behaviour if Horde manager is found, otherwise do Hipnotic behaviour
+  
+  // Yoder Sept24 2021, Horde Merge
+  if (horde_ent)
+  {
+    // only monsters gibs should fade away 
+    if ( (self.classname != "player") && (self.classname != "bodyque") ) //Ry: Don't remove bodyque heads either
+    {
+      self.think = MonsterFade;
+      self.nextthink = time + 1;
+    }
+  }
+  else
+  {
+    //MED
+    self.nextthink = time + 1.5;
+    self.think = HeadThink;
+  }
 };
 
 

@@ -42,7 +42,7 @@ void() earthquake_postthink =
          }
 //      lastearthquake = 1;
 //      self.savedz = self.view_ofs_z;
-		if ( self.flags & FL_ONGROUND )
+		if ( !deathmatch && self.flags & FL_ONGROUND ) //Ry: Disable shaking in DM, since they're map-wide and automatically triggered by my systems
 			{
 //         self.view_ofs_z = self.view_ofs_z - 5 + random() * 10;
          self.velocity = self.velocity + (random() * '0 0 150');

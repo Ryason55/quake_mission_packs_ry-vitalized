@@ -10,7 +10,6 @@
 //		<code>
 // };
 
-
 /*
 ================
 monster_use
@@ -48,13 +47,16 @@ enemy as activator.
 */
 void() monster_death_use =
 {
-	local entity 	ent, otemp, stemp;
-
 // fall to ground
 	if (self.flags & FL_FLY)
 		self.flags = self.flags - FL_FLY;
 	if (self.flags & FL_SWIM)
 		self.flags = self.flags - FL_SWIM;
+
+	if (cvar("horde") && self.classname != "monster_zombie") //Ry: Horde mode's wave check on monster kill
+	{
+		remote_wavecheck();
+	}
 
 	if (!self.target)
 		return;
@@ -68,10 +70,7 @@ void() monster_death_use =
 
 void() walkmonster_start_go =
 {
-local string	stemp;
-local entity	etemp;
-
-   self.origin_z = self.origin_z + 1;  // raise off floor a bit
+  self.origin_z = self.origin_z + 1;  // raise off floor a bit
 	droptofloor(0,0); // Cataboligne 9.17.3 - fixed this compiler warning
 
 	if (!walkmove(0,0))
@@ -114,8 +113,17 @@ local entity	etemp;
 		self.th_stand ();
 	}
 
-// spread think times so they don't all happen at same time
-	self.nextthink = self.nextthink + random()*0.5;
+  if (self.enemy) //Ry: For when spawned hostile
+  {
+    activator = self.enemy;
+    self.enemy = world;
+    monster_use();
+  }
+  else
+  {
+    // spread think times so they don't all happen at same time
+    self.nextthink = self.nextthink + 0.05 + random()*0.45; //Ry: Minimum amount of time before monster is started, to fix the frozen monster bug
+  }
 };
 
 
@@ -123,10 +131,11 @@ void() walkmonster_start =
 {
 // delay drop to floor to make sure all doors have been spawned
 // spread think times so they don't all happen at same time
-	self.nextthink = self.nextthink + random()*0.5;
-   self.flags = self.flags | FL_MONSTER;
-   self.think = walkmonster_start_go;
-	total_monsters = total_monsters + 1;
+	self.nextthink = self.nextthink + 0.05 + random()*0.45; //Ry: Minimum amount of time before monster is started, to fix the frozen monster bug
+  self.flags = self.flags | FL_MONSTER;
+  self.think = walkmonster_start_go;
+  total_monsters = total_monsters + 1;
+  self.navcooldowntime = 0;
 };
 
 
@@ -172,15 +181,23 @@ void() flymonster_start_go =
 		self.pausetime = 99999999;
 		self.th_stand ();
 	}
+
+  if (self.enemy) //Ry: For when spawned hostile
+  {
+    activator = self.enemy;
+    self.enemy = world;
+    monster_use();
+  }
 };
 
 void() flymonster_start =
 {
 // spread think times so they don't all happen at same time
-	self.nextthink = self.nextthink + random()*0.5;
-   self.flags = self.flags | FL_MONSTER;
-   self.think = flymonster_start_go;
-	total_monsters = total_monsters + 1;
+	self.nextthink = self.nextthink + 0.05 + random()*0.45; //Ry: Minimum amount of time before monster is started, to fix the frozen monster bug
+  self.flags = self.flags | FL_MONSTER;
+  self.think = flymonster_start_go;
+  total_monsters = total_monsters + 1;
+  self.navcooldowntime = 0;
 };
 
 
@@ -224,15 +241,25 @@ void() swimmonster_start_go =
 		self.th_stand ();
 	}
 
-// spread think times so they don't all happen at same time
-	self.nextthink = self.nextthink + random()*0.5;
+  if (self.enemy) //Ry: For when spawned hostile
+  {
+    activator = self.enemy;
+    self.enemy = world;
+    monster_use();
+  }
+  else
+  {
+    // spread think times so they don't all happen at same time
+    self.nextthink = self.nextthink + 0.05 + random()*0.45; //Ry: Minimum amount of time before monster is started, to fix the frozen monster bug
+  }
 };
 
 void() swimmonster_start =
 {
 // spread think times so they don't all happen at same time
-   self.flags = self.flags | FL_MONSTER;
-   self.nextthink = self.nextthink + random()*0.5;
+  self.flags = self.flags | FL_MONSTER;
+  self.nextthink = self.nextthink + 0.05 + random()*0.45; //Ry: Minimum amount of time before monster is started, to fix the frozen monster bug
 	self.think = swimmonster_start_go;
-	total_monsters = total_monsters + 1;
+  total_monsters = total_monsters + 1;
+  self.navcooldowntime = 0;
 };

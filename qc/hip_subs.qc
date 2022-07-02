@@ -161,8 +161,8 @@ void (entity srcent, entity destent) SUB_CopyEntity =
    destent.waitmax=srcent.waitmax;
    destent.distance=srcent.distance;
    destent.volume=srcent.volume;
-   destent.gorging=srcent.gorging;
-   destent.stoleweapon=srcent.stoleweapon;
+   //destent.gorging=srcent.gorging;
+   //destent.stoleweapon=srcent.stoleweapon;
    destent.spawnfunction=srcent.spawnfunction;
    destent.spawnthink=srcent.spawnthink;
    destent.spawnmodel=srcent.spawnmodel;
@@ -171,7 +171,11 @@ void (entity srcent, entity destent) SUB_CopyEntity =
    destent.spawnmaxs=srcent.spawnmaxs;
    destent.spawnclassname=srcent.spawnclassname;
    
+   destent.allowPathFind=srcent.allowPathFind; //Ry: Remaster pathfinding stuff
+   destent.combat_style=srcent.combat_style;
+   
    destent.justrespawned=srcent.justrespawned; //Ry: For Armagon
+   destent.gremstate=srcent.gremstate; //Ry: New Gremlin state
    
    };
 

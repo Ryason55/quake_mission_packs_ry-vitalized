@@ -241,6 +241,8 @@ float	FL_PARTIALGROUND		= 1024;	// not all corners are valid
 float	FL_WATERJUMP			= 2048;	// player jumping out of water
 float	FL_JUMPRELEASED			= 4096;	// for jump debouncing
 float	FL_ISBOT    = 8192; //Ry: Is bot in Remaster
+float	FL_FUTUREMONSTER		= 16384;// for marking unspawned monsters
+float	FL_INSHELTER			= 32768;// for marking entities as sheltered from trigger_push
 
 // edict.movetype values
 float	MOVETYPE_NONE			= 0;	// never moves
@@ -312,13 +314,6 @@ float	IT_INVULNERABILITY		= 1048576;
 float	IT_SUIT					= 2097152;
 float	IT_QUAD					= 4194304;
 
-//Ry: Values for custom centerprint stuff
-float	CPRINT_NONE  = 0;
-float	CPRINT_NAME  = 1;
-float	CPRINT_WORLD = 2;
-float	CPRINT_MOTD  = 3;
-float	CPRINT_FRAG  = 4;
-
 // point content values
 
 float	CONTENT_EMPTY			= -1;
@@ -332,6 +327,7 @@ float	STATE_TOP		= 0;
 float	STATE_BOTTOM	= 1;
 float	STATE_UP		= 2;
 float	STATE_DOWN		= 3;
+float	STATE_HOLD	= 4; //Ry: For Plats in Co-op, when delaying the upwards movement
 
 vector	VEC_ORIGIN = '0 0 0';
 vector	VEC_HULL_MIN = '-16 -16 -24';
@@ -371,7 +367,7 @@ float	CHAN_WEAPON		= 1;
 float	CHAN_VOICE		= 2;
 float	CHAN_ITEM		= 3;
 float	CHAN_BODY		= 4;
-float	CHAN_FOOT		= 5;
+float	CHAN_FOOT		= 5; //Ry: New for footsteps exclusively
 
 float	ATTN_NONE		= 0;
 float	ATTN_NORM		= 1;
@@ -411,8 +407,6 @@ float	movedist;
 float	gameover;		// set when a rule exits
 
 string	string_null;	// null string, nothing should be held here
-float	empty_float;
-entity entity_null; //Ry: New
 
 entity	newmis;			// launch_spike sets this after spawning it
 
@@ -422,19 +416,6 @@ entity	damage_attacker;	// set by T_Damage
 float	framecount;
 
 float		skill;
-
-float campaign_valid; //Ry: Remaster stuff
-float campaign;
-float cheats_allowed;
-
-float playerindexinuse; //Ry: To track player indexes in use
-float highestplayerindex; //Ry: Highest player index
-
-float mapstartweapons; //Ry: For giving the weapons everyone else has in Co-op
-float hipnoticmap; //Ry: Whether or not map has hipnotic entities on it
-float hip_itemconverttime; 
-
-float ach_weaponfired, ach_damagetaken; //Ry: Global versions of ID1 Remaster achievements
 
 //================================================
 
@@ -469,10 +450,6 @@ float ach_weaponfired, ach_damagetaken; //Ry: Global versions of ID1 Remaster ac
 
 .entity		oldenemy;		// mad at this player before taking damage
 
-.float    lastfoetime; //Ry: Records last time foe was assigned
-.float    busy; //Ry: Enemy will not change targets while this is set
-.entity   nextenemy; //Ry: Enemy to target after attack is finished
-
 .float		speed;
 
 .float	lefty;
@@ -504,41 +481,6 @@ float	AS_MISSILE		= 4;
 .float		rad_time;
 .float		fly_sound;
 
-.entity		invincible_item; //Ry: For dropping powerups
-.entity		invisible_item;
-.entity		super_item;
-.entity		radsuit_item;
-.float		invincible_validdroptime; //Ry: In case *somehow* the players manage to make a powerup last longer than the respawn time
-.float		invisible_validdroptime;
-.float		super_validdroptime;
-.float		radsuit_validdroptime;
-
-.entity		empathy_item, wetsuit_item; //Ry: Hipnotic-specific powerups
-.float		empathy_validdroptime, wetsuit_validdroptime;
-
-.float    spawn_deferred; //Ry: Remaster spawn stuff
-
-.float    lastfragtime; //Ry: Last time player got a frag
-.float    fragcombo; //Ry: Frags in quick succession
-.float    lastspawntime; //Ry: Time that the player last spawned
-.float    justrespawned; //Ry: When a client just respawned
-
-.float    lastsafecheck; //Ry: Last time safe vect was checked
-.vector   lastsafevect; //Ry: Safe place for backpack to warp to
-
-.float    bossdamage; //Ry: Amount of damage player has dealt to the current boss
-
-.float    firstspawn; //Ry: First time player has spawned in the map, for giving additional weapons in Co-op
-
-.float    lastfiredweapon; //Ry: To better track what bots are firing, since they switch weapons faster than their recoil
-
-.float    lastcenterprinttype; //Ry: For custom centerprint handler
-.float    lastcenterprinttime;
-.entity   lastprobedplayer;
-.float    lastprobetime;
-
-.float    mapsfinished; //Ry: How many maps the player has been around for the completion of
-
 .float		axhitme;
 
 .float		show_hostile;	// set to time+0.2 whenever a client fires a
@@ -549,25 +491,6 @@ float	AS_MISSILE		= 4;
 .float		air_finished;	// when time > air_finished, start drowning
 .float		bubble_count;	// keeps track of the number of bubbles
 .string		deathtype;		// keeps track of how the player died
-
-.float    lastdamagetime; //Ry: Time when player was last damaged
-.entity   lastdamager; //Ry: Player entity that last damaged this player
-
-//Ry: Defs for new item stuff
-.vector		pickorigin;	// Spot to return to when respawning after having been dropped
-.float		remaintime;	// Amount of time left on the powerup if it was dropped
-.float    nextspawntime; //Next time the powerup should spawn
-.float    itemeffect; //Light effect on item
-.float    delayspawn; //Delay before spawning in Deathmatch
-.float    nograv; //Item does not drop to the ground
-.float    pickers; //Track which player indexes have already collected the item
-.float    playerindex; //Identifier for items
-.string   enttype; //Used for easily searching items
-.float    displaced; //Item was displaced by a Gremlin
-.float    alpha; //Transparency
-.float    respawntimesp, respawntimecoop, respawntimedm, respawntime; //So respawn time can be overwritten
-
-float modelindex_eyes, modelindex_player, modelindex_hammer; //Ry: Moved from player.qc, so it's global now
 
 //
 // object stuff
@@ -673,8 +596,13 @@ string(string s) precache_sound		= #19;
 string(string s) precache_model		= #20;
 void(entity client, string s)stuffcmd = #21;
 entity(vector org, float rad) findradius = #22;
-void(string s) bprint				= #23;
-void(entity client, string s) sprint = #24;
+#ifdef ENGINE_KEX
+  void(string s, ...) bprint				        = #0:ex_bprint; //Ry: Remaster versions of these two
+  void(entity client, string s, ...) sprint = #0:ex_sprint;
+#else
+  void(string s) bprint				         = #23;
+  void(entity client, string s) sprint = #24;
+#endif
 void(string s) dprint				= #25;
 string(float f) ftos				= #26;
 string(vector v) vtos				= #27;
@@ -740,6 +668,11 @@ void(string s) changelevel = #70;
 void(string var, string val) cvar_set = #72;	// sets cvar.value
 
 void(entity client, string s, ...) centerprint = #73;	// sprint, but in middle
+#ifdef ENGINE_KEX
+  void(entity client, string s, ...) centerprint_new = #0:ex_centerprint;	//Ry: Remaster's version of centerprint
+#else
+  void(entity client, string s, ...) centerprint_new = #73;	//Ry: Just copy the regular function otherwise
+#endif
 
 void(vector pos, string samp, float vol, float atten) ambientsound = #74;
 
@@ -750,12 +683,38 @@ string(string s) precache_file2		= #77;		// registered version only
 void(entity e) setspawnparms		= #78;		// set parm1... to the
 												// values at level start
 												// for coop respawn
-                        
-float() finaleFinished = #79; 
+
+#ifdef ENGINE_KEX
+  float() finaleFinished = #0:ex_finaleFinished;
+
+  // Plays a sound that only "client" can hear. Useful for announcers...
+  void localsound( entity client, string sample ) = #0:ex_localsound;
+
+  // Debug rendering functions.
+  void draw_point( vector point, float colormap, float lifetime, float depthtest ) = #0:ex_draw_point;
+  void draw_line( vector start, vector end, float colormap, float lifetime, float depthtest ) = #0:ex_draw_line;
+  void draw_arrow( vector start, vector end, float colormap, float size, float lifetime, float depthtest ) = #0:ex_draw_arrow;
+  void draw_ray( vector start, vector direction, float length, float colormap, float size, float lifetime, float depthtest ) = #0:ex_draw_ray;
+  void draw_circle( vector origin, float radius, float colormap, float lifetime, float depthtest ) = #0:ex_draw_circle;
+  void draw_bounds( vector min, vector max, float colormap, float lifetime, float depthtest ) = #0:ex_draw_bounds;
+  void draw_worldtext( string s, vector origin, float size, float lifetime, float depthtest ) = #0:ex_draw_worldtext;
+  void draw_sphere( vector origin, float radius, float colormap, float lifetime, float depthtest ) = #0:ex_draw_sphere;
+  void draw_cylinder( vector origin, float halfHeight, float radius, float colormap, float lifetime, float depthtest ) = #0:ex_draw_cylinder;
+
+  // Bot functions that return a value based on "BOT_GOAL_<X>", depending on the status of the goal.
+  float bot_movetopoint( entity bot, vector point ) = #0:ex_bot_movetopoint;
+  float bot_followentity( entity bot, entity goal ) = #0:ex_bot_followentity;
+
+  // Function for checking new player configured flags, such as weapon swap behaviour
+  float CheckPlayerEXFlags( entity playerEnt ) = #0:ex_CheckPlayerEXFlags;
+
+  // Path monsters to the goal using any available nav nodes on the map
+  float walkpathtogoal( float movedist, vector goal ) = #0:ex_walkpathtogoal;
+#endif
+
+float checkextension( string s ) = #99;
 
 //============================================================================
-
-void localsound( entity client, string sample ) = #80; //New function in Remaster
 
 //
 // subs.qc

@@ -26,11 +26,6 @@ void(vector dest) ChooseTurn;
 
 void() ai_face;
 
-
-float	enemy_vis, enemy_infront, enemy_range;
-float	enemy_yaw;
-
-
 void() knight_attack =
 {
 	local float		len;
@@ -296,7 +291,6 @@ float() ShamCheckAttack =
 {
 	local vector	spot1, spot2;
 	local entity	targ;
-	local float		chance;
 //	local float		enemy_yaw;  // Cataboligne 9.17.3 - fixed this compiler warning
 
 	if (enemy_range == RANGE_MELEE)

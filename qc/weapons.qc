@@ -8,6 +8,74 @@ void(entity bomb, entity attacker, float rad, entity ignore) T_RadiusDamage;
 void(vector org, vector vel, float damage) SpawnBlood;
 void() SuperDamageSound;
 
+
+
+//======================
+//  New Subs by Ryason
+//======================
+
+//Ry: These "Missile Fields" allow projectiles (currently Nails and Lasers) to effectively have a larger hitbox when used against other players
+void() MissileFieldTouch =
+{
+  if ( !self.owner )
+    remove(self);
+  else if ( (!(other == self.owner)) && (other.flags & FL_CLIENT) && ( (other.team == 0) || !(other.team == self.owner.owner.team) ) )
+  {
+    traceline(self.origin,other.origin,FALSE,self.owner);
+    if (trace_ent == other)
+    {
+      self = self.owner;
+      self.touch();
+    }
+  }
+}
+
+void() UpdateMissileField = //Ry: Call this whenever the base projectile gets redirected or changes velocity
+{
+  if (self.trigger_field)
+  {
+    self.trigger_field.origin = self.origin;
+    self.trigger_field.velocity = self.velocity;
+  }
+}
+
+void() RemoveMissile = //Ry: Removes Missile Field along with the projectile
+{
+  if (self.trigger_field)
+    remove(self.trigger_field);
+  remove(self);
+}
+
+void(entity missile, float radius) CreateMissileField =
+{
+  if (wide_spikes && deathmatch && (missile.movetype == MOVETYPE_FLYMISSILE))
+  {
+    local entity field = spawn();
+    field.classname = "missile_field";
+    field.owner = missile;
+    field.mins = '0 0 0';
+    field.mins_x = -radius;
+    field.mins_y = -radius;
+    field.mins_z = -radius;
+    field.maxs = '0 0 0';
+    field.maxs_x = radius;
+    field.maxs_y = radius;
+    field.maxs_z = radius;
+    field.movetype = MOVETYPE_NOCLIP;
+    field.solid = SOLID_TRIGGER;
+    field.origin = missile.origin;
+    field.velocity = missile.velocity;
+    field.touch = MissileFieldTouch;
+    missile.trigger_field = field;
+  }
+}
+
+//===================
+//  End of new subs
+//===================
+
+
+
 //MED 10/18/96
 void(float damage) spawn_touchblood;
 /*
@@ -20,14 +88,13 @@ void() HIP_LaserTouch =
 	local vector org;
    local vector spot1,spot2;
    local vector oldvel;
-   local float mag;
    local float r;
 
    self.owner = world;
    self.cnt = self.cnt + 1;
    if (pointcontents(self.origin) == CONTENT_SKY)
 	{
-		remove(self);
+    RemoveMissile();
 		return;
 	}
    oldvel = normalize(self.old_velocity);
@@ -68,6 +135,7 @@ void() HIP_LaserTouch =
          self.flags = self.flags - FL_ONGROUND;
       r = random();
       sound (self, CHAN_WEAPON, "hipweap/laserric.wav", 1, ATTN_STATIC);
+      UpdateMissileField();
 /*
       if (r<0.33)
          sound (self, CHAN_WEAPON, "weapons/ric1.wav", 1, ATTN_STATIC);
@@ -79,25 +147,23 @@ void() HIP_LaserTouch =
       return;
       }
    sound (self, CHAN_WEAPON, "enforcer/enfstop.wav", 1, ATTN_STATIC);
-   remove(self);
+   RemoveMissile();
 
 };
 void() HIP_LaserThink =
-   {
-   local float delta;
-
-
-   if (time>self.attack_finished)
-      {
-      remove(self);
-      return;
-      }
-   if (self.flags & FL_ONGROUND)
-      self.flags = self.flags - FL_ONGROUND;
-   self.velocity = self.old_velocity;
-   self.angles = vectoangles(self.velocity);
-   self.nextthink = time+0.1;
-   };
+{
+  if (time>self.attack_finished)
+  {
+    RemoveMissile();
+    return;
+  }
+  if (self.flags & FL_ONGROUND)
+    self.flags = self.flags - FL_ONGROUND;
+  self.velocity = self.old_velocity;
+  self.angles = vectoangles(self.velocity);
+  self.nextthink = time+0.1;
+  UpdateMissileField();
+};
 
 void(vector org, vector vec, float light) HIP_LaunchLaser =
 {
@@ -132,6 +198,8 @@ void(vector org, vector vec, float light) HIP_LaunchLaser =
    newmis.think = HIP_LaserThink;
    newmis.touch = HIP_LaserTouch;
    newmis.count = 0;
+   
+   CreateMissileField(newmis,4); //Ry: Give bigger hitbox against players in Deathmatch
 
 };
 
@@ -197,20 +265,20 @@ void(float stat) HIP_FireLaser =
 
 /*
 =================
-HIP_HammerDamage
+LightningDamage
 =================
 */
-void(vector p1, vector p2, entity from, float damage) HIP_HammerDamage =
+void(vector p1, vector p2, entity from, entity inflictor, float damage, float extratraces) LightningDamage = //Ry: Added inflictor (for use with trap_gods_wrath) and extratraces
 {
 	local entity		e1, e2;
-	local vector		f;
+	local vector		f, f2;
 
-	f = p2 - p1;
-	normalize (f);
-	f_x = 0 - f_y;
-	f_y = f_x;
-	f_z = 0;
-	f = f*16;
+	f = p2 - p1; //Ry: Fixed up these calculations so the 3 beams work correctly, based on information here: https://quake.speeddemosarchive.com/quake/misc/lbug/
+	f = normalize (f);
+	f2_x = 0 - f_y;
+	f2_y = f_x;
+	f2_z = 0;
+	f = f2*16;
 
 	e1 = e2 = world;
 
@@ -219,67 +287,49 @@ void(vector p1, vector p2, entity from, float damage) HIP_HammerDamage =
 	if (trace_ent.takedamage && !trace_ent.wetsuit_finished )
 	{
 		particle (trace_endpos, '0 0 100', 225, damage*4);
-		T_Damage (trace_ent, from, from, damage);
-		if (self.classname == "player")
+    T_Damage (trace_ent, inflictor, from, damage); //Ry: Added inflictor to these
+    //Ry: I fixed up the following bit to actually come up (and added it to the other traces), but the behavour was undesirable
+		/*if (self.classname == "player" || self.classname == "monster_gremlin")
 		{
-			if (other.classname == "player")
+			if (trace_ent.classname == "player")
 				trace_ent.velocity_z = trace_ent.velocity_z + 400;
-		}
+		}*/
 	}
-	e1 = trace_ent;
 
-	traceline (p1 + f, p2 + f, FALSE, self);
-//JIM
-	if (trace_ent != e1 && trace_ent.takedamage &&
-		!trace_ent.wetsuit_finished )
-	{
-		particle (trace_endpos, '0 0 100', 225, damage*4);
-		T_Damage (trace_ent, from, from, damage);
-	}
-	e2 = trace_ent;
+  if (wide_lightning && extratraces) //Ry: Only do this for the Thunderbolt and Shamblers
+  {
+    e1 = trace_ent;
 
-	traceline (p1 - f, p2 - f, FALSE, self);
-//JIM
-	if (trace_ent != e1 && trace_ent != e2 && trace_ent.takedamage &&
-		!trace_ent.wetsuit_finished )
-	{
-		particle (trace_endpos, '0 0 100', 225, damage*4);
-		T_Damage (trace_ent, from, from, damage);
-	}
-};
-
-/*
-void() HIP_DiversionLightningThink =
-   {
-   local vector   org,end;
-
-   if (time > self.delay)
+    traceline (p1 + f, p2 + f, FALSE, self);
+    //JIM
+    if (trace_ent != e1 && trace_ent.takedamage &&
+      !trace_ent.wetsuit_finished )
+    {
+      particle (trace_endpos, '0 0 100', 225, damage*4);
+      T_Damage (trace_ent, inflictor, from, damage);
+      /*if (self.classname == "player" || self.classname == "monster_gremlin")
       {
-      remove(self);
-      return;
-      }
+        if (trace_ent.classname == "player")
+          trace_ent.velocity_z = trace_ent.velocity_z + 400;
+      }*/
+    }
+    e2 = trace_ent;
 
-   makevectors(self.v_angle);
-   org = self.origin;
-   end = org + v_forward*200;
-//   end = end + (((200*random()) - 100) * v_up);
-   end = end + (((400*random()) - 200) * v_right);
-
-   traceline (org, end, TRUE, self);
-
-	WriteByte (MSG_BROADCAST, SVC_TEMPENTITY);
-	WriteByte (MSG_BROADCAST, TE_LIGHTNING2);
-	WriteEntity (MSG_BROADCAST, self);
-	WriteCoord (MSG_BROADCAST, org_x);
-	WriteCoord (MSG_BROADCAST, org_y);
-	WriteCoord (MSG_BROADCAST, org_z);
-   WriteCoord (MSG_BROADCAST, trace_endpos_x);
-   WriteCoord (MSG_BROADCAST, trace_endpos_y);
-   WriteCoord (MSG_BROADCAST, trace_endpos_z);
-
-   self.nextthink = time + 0.1;
-   };
-*/
+    traceline (p1 - f, p2 - f, FALSE, self);
+    //JIM
+    if (trace_ent != e1 && trace_ent != e2 && trace_ent.takedamage &&
+      !trace_ent.wetsuit_finished )
+    {
+      particle (trace_endpos, '0 0 100', 225, damage*4);
+      T_Damage (trace_ent, inflictor, from, damage);
+      /*if (self.classname == "player" || self.classname == "monster_gremlin")
+      {
+        if (trace_ent.classname == "player")
+          trace_ent.velocity_z = trace_ent.velocity_z + 400;
+      }*/
+    }
+  }
+};
 
 //void(entity prev, entity owner, float dst) HIP_SpawnMjolnirLightning;
 void() HIP_LightningThink =
@@ -294,7 +344,6 @@ void() HIP_LightningThink =
    local float dot;
    local float oldstate;
    local float dam;
-
 
    if (time > self.delay)
       {
@@ -394,154 +443,143 @@ void() HIP_LightningThink =
    else
       dam = 30;
     
-   if (self.enemy.flags & FL_MONSTER) //Ry: Double damage against monsters
+   if (hip_rebalance && (self.enemy.flags & FL_MONSTER)) //Ry: Double damage against monsters
      dam = dam * 2;
    if (dot<=0.3) //Not in front of player
      dam = dam * 0.5;
 
    head = self;
    self = self.owner.owner;
-   HIP_HammerDamage (org, trace_endpos, self, dam);
+   LightningDamage (org, trace_endpos, self, head, dam, FALSE); //Ry: The function used before was basically a 1:1 duplicate
    self = head;
 
    self.nextthink = time + 0.2;
    };
 
 void(entity prev, entity own, float dst) HIP_SpawnMjolnirLightning =
-   {
-   local entity light;
-   // spawn actual lightning
-   light = spawn();
-   light.delay = time + 0.8;
-   light.state = 0;
-   light.lastvictim = prev;
-   light.distance = dst;
-   light.owner = own;
-   light.v_angle = self.angles;
-   light.v_angle_x = 0;
-   light.v_angle_z = 0;
-   light.origin = own.origin;
-   light.think = HIP_LightningThink;
-   light.nextthink = time;
-   };
+{
+  local entity light;
+  // spawn actual lightning
+  light = spawn();
+  light.delay = time + 0.8;
+  light.state = 0;
+  light.lastvictim = prev;
+  light.distance = dst;
+  light.owner = own;
+  light.v_angle = self.angles;
+  light.v_angle_x = 0;
+  light.v_angle_z = 0;
+  light.origin = own.origin;
+  light.think = HIP_LightningThink;
+  light.nextthink = time;
+};
 
 void() HIP_SpawnMjolnirBase =
-   {
-   local entity light;
-   // spawn lightning base
-   light = spawn();
-//   light.origin = self.origin - '0 0 24' + (32*v_forward);
-   light.origin = trace_endpos;
-   light.flags = 0;
-   light.owner = self;
-   light.struck_by_mjolnir = 1;
-   light.think = SUB_Remove;
-   light.nextthink = time + 1;
-   light.classname = "mjolnir_lightning_base"; //Ry: Added class name to be picked up by obituaries
-   sound (light, CHAN_AUTO, "hipweap/mjolslap.wav", 1, ATTN_NORM);
-   sound (light, CHAN_WEAPON, "hipweap/mjolhit.wav", 1, ATTN_NORM);
-   makevectors(self.v_angle);
-   light.movedir = v_forward;
-   HIP_SpawnMjolnirLightning( light, light, 350 );
-   HIP_SpawnMjolnirLightning( light, light, 350 );
-   HIP_SpawnMjolnirLightning( light, light, 350 );
-   HIP_SpawnMjolnirLightning( light, light, 350 );
-   };
+{
+  local entity light;
+  // spawn lightning base
+  light = spawn();
+//  light.origin = self.origin - '0 0 24' + (32*v_forward);
+  light.origin = trace_endpos;
+  light.flags = 0;
+  light.owner = self;
+  light.struck_by_mjolnir = 1;
+  light.think = SUB_Remove;
+  light.nextthink = time + 1;
+  light.classname = "mjolnir_lightning_base"; //Ry: Added class name to be picked up by obituaries
+  sound (light, CHAN_AUTO, "hipweap/mjolslap.wav", 1, ATTN_NORM);
+  sound (light, CHAN_WEAPON, "hipweap/mjolhit.wav", 1, ATTN_NORM);
+  makevectors(self.v_angle);
+  light.movedir = v_forward;
+  HIP_SpawnMjolnirLightning( light, light, 350 );
+  HIP_SpawnMjolnirLightning( light, light, 350 );
+  HIP_SpawnMjolnirLightning( light, light, 350 );
+  HIP_SpawnMjolnirLightning( light, light, 350 );
+};
 
 void() HIP_FireMjolnirLightning =
-   {
-   local vector   org;
-	local	float		cells;
+{
+	local	float		cells, content;
 
-// explode if under water
-	if (self.waterlevel > 0) //Ry: The attack originates at your feet, hence should discharge in shallow water (The lightning was blocked by the water surface anyways)
+  //Ry: Discharge if the attack would originate from within a liquid, instead of checking if the player is in water
+  content = pointcontents(trace_endpos);
+	if ( (content == CONTENT_WATER) || (content == CONTENT_SLIME) || (content == CONTENT_LAVA) )
 	{
     self.deathtype = "discharge"; //Ry: Track this better
+    self.watertype = content; //Ry: Set content directly for the death message
 		cells = self.ammo_cells;
 		self.ammo_cells = 0;
       discharged = 1;
 		T_RadiusDamage (self, self, 35*cells, world);
       discharged = 0;
-    if (self.health > 0) //Ry: Don't run this function if the player survives, since it'll soft-lock the player if they don't gib
+    if (self.health > 0) //Ry: Only run this function if the player survives, since it'll soft-lock the player if they die but don't gib
       W_SetCurrentAmmo ();
     else
       W_UpdateAmmo();
 		return;
 	}
 
-//   if (self.t_width < time)
-//   {
-//      sound (self, CHAN_WEAPON, "weapons/lhit.wav", 1, ATTN_NORM);
-//      self.t_width = time + 0.6;
-//   }
-//   self.punchangle_x = 12;
+  self.currentammo = self.ammo_cells = self.ammo_cells - 15;
+  self.show_hostile = time + 1; //Ry: Alert monsters when the attack goes off
 
-   self.currentammo = self.ammo_cells = self.ammo_cells - 15;
-
-   HIP_SpawnMjolnirBase();
-   };
+  HIP_SpawnMjolnirBase();
+};
 
 void() HIP_FireMjolnir =
-   {
-   local vector   org;
-	local	float		cells;
-   local float    damage;
-   local vector   source;
-   local vector   ang;
+{
+  local vector   org;
+  local float    damage;
+  local vector   source;
 
+  self.attack_finished = time + 0.4;
+  source = self.origin + '0 0 16';
+  makevectors(self.v_angle);
 
-   self.attack_finished = time + 0.4;
-   source = self.origin + '0 0 16';
-//   ang = self.angles;
-//   ang_x = 0;
-//   ang_y = 0;
-   makevectors(self.v_angle);
-   traceline (source, source + v_forward*32, FALSE, self);
-   if (trace_fraction == 1.0 && (self.ammo_cells >= 15))
-      {
+  traceline (source, source + v_forward*32, FALSE, self);
+  if (!self.mjolnirdisable)
+  {
+    if (trace_fraction == 1.0 && (self.ammo_cells >= 15))
+    {
       source = source + v_forward*32;
       traceline (source , source - v_up*50, FALSE, self);
-//      dprint("fraction = ");
-//      dprint(ftos(trace_fraction));
-//      dprint("\n");
       if (trace_fraction > 0.3 && trace_fraction< 1.0)
-         {
-         HIP_FireMjolnirLightning();
-         self.attack_finished = time + 1.5;
-         return;
-         }
-      }
-   org = trace_endpos - v_forward*4;
-
-   if (trace_ent.takedamage)
       {
-      damage = 50;
-      if (trace_ent.classname == "monster_zombie")
-         damage = 70;
-      trace_ent.axhitme = 1;
-      SpawnBlood (org, v_forward, damage);
-      T_Damage (trace_ent, self, self, damage);
+        HIP_FireMjolnirLightning();
+        self.attack_finished = time + 1.5;
+        return;
       }
-   else
-      {  // hit wall
-      if (trace_fraction != 1.0)
-         {
-//         sound (self, CHAN_WEAPON, "player/axhit2.wav", 1, ATTN_NORM);
-         sound (self, CHAN_WEAPON, "hipweap/mjoltink.wav", 1, ATTN_NORM);
-         WriteByte (MSG_BROADCAST, SVC_TEMPENTITY);
-         WriteByte (MSG_BROADCAST, TE_GUNSHOT);
-         WriteCoord (MSG_BROADCAST, org_x);
-         WriteCoord (MSG_BROADCAST, org_y);
-         WriteCoord (MSG_BROADCAST, org_z);
-         }
-      else
-         {
-         sound (self, CHAN_WEAPON, "knight/sword1.wav", 1, ATTN_NORM);
-         }
-      }
-   self.attack_finished = time + 0.4;
+    }
+  }
+  org = trace_endpos - v_forward*4;
 
-   };
+  if (trace_ent.takedamage)
+  {
+    damage = 50;
+    if (trace_ent.classname == "monster_zombie")
+      damage = 70;
+    trace_ent.axhitme = 1;
+    SpawnBlood (org, v_forward, damage);
+    T_Damage (trace_ent, self, self, damage);
+  }
+  else
+  {  // hit wall
+    if (trace_fraction != 1.0)
+    {
+      sound (self, CHAN_WEAPON, "hipweap/mjoltink.wav", 1, ATTN_NORM);
+      WriteByte (MSG_BROADCAST, SVC_TEMPENTITY);
+      WriteByte (MSG_BROADCAST, TE_GUNSHOT);
+      WriteCoord (MSG_BROADCAST, org_x);
+      WriteCoord (MSG_BROADCAST, org_y);
+      WriteCoord (MSG_BROADCAST, org_z);
+    }
+    else
+    {
+      sound (self, CHAN_WEAPON, "knight/sword1.wav", 1, ATTN_NORM);
+    }
+  }
+  self.attack_finished = time + 0.4;
+
+};
 
 // called by worldspawn
 void() W_Precache =
@@ -559,18 +597,18 @@ void() W_Precache =
 	precache_sound ("weapons/bounce.wav");		// grenade bounce
 	precache_sound ("weapons/shotgn2.wav");	// super shotgun
 //MED
-   precache_sound ("enforcer/enfstop.wav");   // laser cannon
+  precache_sound ("enforcer/enfstop.wav");   // laser cannon
 //MED 11/06/96
-   precache_sound ("knight/sword1.wav");   // laser cannon
-   precache_sound ("hipweap/laserg.wav");   // laser cannon
-   precache_sound ("hipweap/laserric.wav");   // laser cannon ricochet
-   precache_sound ("hipweap/proxwarn.wav");   // proximity bomb
-   precache_sound ("hipweap/proxbomb.wav");   // proximity bomb
+  precache_sound ("knight/sword1.wav");   // laser cannon
+  precache_sound ("hipweap/laserg.wav");   // laser cannon
+  precache_sound ("hipweap/laserric.wav");   // laser cannon ricochet
+  precache_sound ("hipweap/proxwarn.wav");   // proximity bomb
+  precache_sound ("hipweap/proxbomb.wav");   // proximity bomb
 //MED 11/19/96
-   precache_sound ("hipweap/mjolhit.wav");   // mjolnir
-   precache_sound ("hipweap/mjolslap.wav");   // mjolnir
-   precache_sound ("hipweap/mjoltink.wav");   // mjolnir
-   
+  precache_sound ("hipweap/mjolhit.wav");   // mjolnir
+  precache_sound ("hipweap/mjolslap.wav");   // mjolnir
+  precache_sound ("hipweap/mjoltink.wav");   // mjolnir
+
   precache_sound ("items/damage2.wav"); //Ry: Precache these for the powerup dev cheats
   precache_sound ("items/damage3.wav");
   precache_sound ("misc/wetsuit.wav");
@@ -643,7 +681,7 @@ SpawnMeatSpray
 */
 void(vector org, vector vel) SpawnMeatSpray =
 {
-	local	entity missile, mpuff;
+	local	entity missile;
 
 	missile = spawn ();
 	missile.owner = self;
@@ -938,7 +976,7 @@ W_FireRocket
 */
 void() W_FireRocket =
 {
-	local	entity missile, mpuff;
+	local	entity missile;
 
 	self.currentammo = self.ammo_rockets = self.ammo_rockets - 1;
 
@@ -980,59 +1018,7 @@ LIGHTNING
 ===============================================================================
 */
 
-/*
-=================
-LightningDamage
-=================
-*/
-void(vector p1, vector p2, entity from, entity inflictor, float damage) LightningDamage = //Ry: Added inflictor, for use with trap_gods_wrath
-{
-	local entity		e1, e2;
-	local vector		f;
-
-	f = p2 - p1;
-	normalize (f);
-	f_x = 0 - f_y;
-	f_y = f_x;
-	f_z = 0;
-	f = f*16;
-
-	e1 = e2 = world;
-
-	traceline (p1, p2, FALSE, self);
-//JIM
-	if (trace_ent.takedamage && !trace_ent.wetsuit_finished )
-	{
-		particle (trace_endpos, '0 0 100', 225, damage*4);
-    T_Damage (trace_ent, inflictor, from, damage); //Ry: Added inflictor here
-		if (self.classname == "player")
-		{
-			if (other.classname == "player")
-				trace_ent.velocity_z = trace_ent.velocity_z + 400;
-		}
-	}
-	e1 = trace_ent;
-
-	traceline (p1 + f, p2 + f, FALSE, self);
-//JIM
-	if (trace_ent != e1 && trace_ent.takedamage &&
-		!trace_ent.wetsuit_finished )
-	{
-		particle (trace_endpos, '0 0 100', 225, damage*4);
-    T_Damage (trace_ent, inflictor, from, damage); //Ry: Here
-	}
-	e2 = trace_ent;
-
-	traceline (p1 - f, p2 - f, FALSE, self);
-//JIM
-	if (trace_ent != e1 && trace_ent != e2 && trace_ent.takedamage &&
-		!trace_ent.wetsuit_finished )
-	{
-		particle (trace_endpos, '0 0 100', 225, damage*4);
-    T_Damage (trace_ent, inflictor, from, damage); //Ry: And here
-	}
-};
-
+//Ry: Moved LightningDamage up above the Hammer stuff
 
 void() W_FireLightning =
 {
@@ -1056,7 +1042,7 @@ void() W_FireLightning =
       discharged = 1;
 		T_RadiusDamage (self, self, 35*cells, world);
       discharged = 0;
-    if (self.health > 0) //Ry: Don't run this function if the player survives, since it'll soft-lock the player if they don't gib
+    if (self.health > 0) //Ry: Only run this function if the player survives, since it'll soft-lock the player if they die but don't gib
       W_SetCurrentAmmo ();
     else
       W_UpdateAmmo();
@@ -1086,7 +1072,7 @@ void() W_FireLightning =
 	WriteCoord (MSG_BROADCAST, trace_endpos_y);
 	WriteCoord (MSG_BROADCAST, trace_endpos_z);
 
-	LightningDamage (self.origin, trace_endpos + v_forward*4, self, self, 30); //Ry: Added inflictor, which is just the self again
+	LightningDamage (self.origin, trace_endpos + v_forward*4, self, self, 30, TRUE); //Ry: Added inflictor, and use the extra traces
 };
 
 
@@ -1105,6 +1091,39 @@ void() GrenadeExplode =
 
 	BecomeExplosion ();
 };
+
+void GrenadeThink()
+{
+	self.cnt += 1;
+	// Count to 50 at 20 ticks per second = 2.5 seconds until explosion
+	if(self.cnt == 50)
+	{
+		GrenadeExplode();
+		return;
+	}
+	float oldVel = vlen(self.oldorigin);
+	float vel = vlen(self.velocity);
+	if(vel == 0) //Stuck on downward slope?
+	{
+		if(oldVel > 120 && self.oldorigin_z < 0) //Were we moving downwards at a decent speed last tick?
+		{
+			// Trace straight down and find the normal of the surface it bounced off
+			traceline(self.origin + '0 0 4', self.origin - '0 0 8', TRUE, self);
+			if(trace_fraction < 1.0) // Hit something...
+			{
+				// dprint("reflected grenade bounce\n");
+				// Reflect the previous velocity off that normal
+				vector reflected = self.oldorigin - 2 * (self.oldorigin * trace_plane_normal) * trace_plane_normal;
+	
+				self.flags &~= FL_ONGROUND; //Remove FL_ONGROUND
+				self.velocity = reflected * 0.6; // Scale it down a bit so it feels better
+				self.avelocity = '400 400 400'; // Roll that sucker around
+			}
+		}
+	}
+	self.oldorigin = self.velocity;
+	self.nextthink = time + 0.05;
+}
 
 void() GrenadeTouch =
 {
@@ -1127,7 +1146,7 @@ W_FireGrenade
 */
 void() W_FireGrenade =
 {
-	local	entity missile, mpuff;
+	local	entity missile;
 
 	self.currentammo = self.ammo_rockets = self.ammo_rockets - 1;
 
@@ -1160,9 +1179,8 @@ void() W_FireGrenade =
 
 	missile.touch = GrenadeTouch;
 
-// set missile duration
-	missile.nextthink = time + 2.5;
-	missile.think = GrenadeExplode;
+	missile.nextthink = time + 0.05; //Ry: Implemented Remaster's downwards slope bounce fix
+	missile.think = GrenadeThink;
 
 	setmodel (missile, "progs/grenade.mdl");
 	setsize (missile, '0 0 0', '0 0 0');
@@ -1171,7 +1189,10 @@ void() W_FireGrenade =
 
 void() ProximityExplode =
 {
-   T_RadiusDamage (self, self.owner, 95, world);
+  if (hip_rebalance && !deathmatch) //Ry: Increased damage in SP/Co-op
+    T_RadiusDamage (self, self.owner, 120, world);
+  else
+    T_RadiusDamage (self, self.owner, 95, world);
 
 	WriteByte (MSG_BROADCAST, SVC_TEMPENTITY);
 	WriteByte (MSG_BROADCAST, TE_EXPLOSION);
@@ -1190,14 +1211,14 @@ ProximityGrenadeExplode
 ================
 */
 void() ProximityGrenadeExplode =
-   {
-   self.takedamage = DAMAGE_NO;
-   NumProximityGrenades = NumProximityGrenades - 1;
-   self.deathtype = "exploding";
-   self.nextthink = time + 0.1;
-   self.owner = self.lastvictim;
-   self.think = ProximityExplode;
-   };
+{
+  self.takedamage = DAMAGE_NO;
+  NumProximityGrenades = NumProximityGrenades - 1;
+  self.deathtype = "exploding";
+  self.nextthink = time + 0.1;
+  self.owner = self.lastvictim;
+  self.think = ProximityExplode;
+};
 
 /*
 ================
@@ -1205,39 +1226,76 @@ ProximityGrenadeTouch
 ================
 */
 void() ProximityGrenadeTouch =
-   {
-   if (other == self)
-      return;
-   if (other.classname == self.classname)// || other.classname == "grenade") //Ry: Ignore basic grenades too
-      return;
-   self.movetype = MOVETYPE_TOSS;
-   self.waterlevel = 0; //Ry: Make sure splash sound doesn't play when dropping to the floor
-   self.watertype = CONTENT_EMPTY;
-   if (self.state == 1) //Ry: Dislodge properly, instead of falling into the void
-   {
-     setsize (self, '-1 -1 -1', '1 1 1');
-     self.spawnmaster = world;
-     self.state = 0;
-     return;
-   }
-   if (vlen(other.velocity) > 0)
+{
+  if (other == self)
+    return;
+  if (other.classname == self.classname)
+    return;
+  //Ry: In SP/Co-op, ignore the owner and (if teamplay is enabled) their allies
+  if ( hip_rebalance && !deathmatch && ((other == self.lastvictim) || (teamplay && (other.team == self.lastvictim.team))) )
+  {
+    if (BBoxIntersection(self,other,0))
+    {
+      self.solid = SOLID_TRIGGER;
+      setmodel(self, self.model);
+      self.wait = time + 0.1;
+      if (self.nextthink > time + 0.2)
       {
-      ProximityGrenadeExplode();
-      self.think();
-      return;
+        self.nextthink = time + 0.2;
       }
-   if (other.takedamage == DAMAGE_AIM)
+    }
+    return;
+  }
+  if ( vlen(other.velocity) > 0 )
+  {
+    ProximityGrenadeExplode();
+    self.think();
+    return;
+  }
+  if (other.takedamage == DAMAGE_AIM)
+  {
+    ProximityGrenadeExplode();
+    self.think();
+    return;
+  }
+  self.waterlevel = 0; //Ry: Make sure splash sound doesn't play when dropping to the floor
+  self.watertype = CONTENT_EMPTY;
+  if (self.state > 0) //Ry: Dislodge properly, instead of falling into the void
+  {
+    self.movetype = MOVETYPE_TOSS;
+    setsize (self, '-1 -1 -1', '1 1 1');
+    self.spawnmaster = world;
+    self.state = 0;
+    return;
+  }
+  sound (self, CHAN_WEAPON, "weapons/bounce.wav", 1, ATTN_NORM); // bounce sound
+  self.movetype = MOVETYPE_NONE;
+  setsize (self, '-8 -8 -8', '8 8 8');
+  self.state = 1;
+  self.spawnmaster = other;
+  //Ry: If owner or ally would get stuck in the bomb, set it to trigger collision so they can get out
+  if ( hip_rebalance && !deathmatch )
+  {
+    self.owner = self;
+    if (self.solid == SOLID_BBOX)
+    {
+      other = findradius(self.origin,92);
+      while (other)
       {
-      ProximityGrenadeExplode();
-      self.think();
-      return;
+        if ( (other.flags & (FL_CLIENT|FL_MONSTER)) && (other.team == self.lastvictim.team ) )
+        {
+          if (BBoxIntersection(self,other,9))
+          {
+            self.solid = SOLID_TRIGGER;
+            setmodel(self, self.model);
+            return;
+          }
+        }
+        other = other.chain;
       }
-   sound (self, CHAN_WEAPON, "weapons/bounce.wav", 1, ATTN_NORM); // bounce sound
-   self.movetype = MOVETYPE_NONE;
-   setsize (self, '-8 -8 -8', '8 8 8');
-   self.state = 1;
-   self.spawnmaster = other;
-   };
+    }
+  }
+};
 
 /*
 ================
@@ -1245,49 +1303,75 @@ ProximityBomb
 ================
 */
 void() ProximityBomb =
-   {
-   local entity   head;
-   local float    blowup;
+{
+  local entity   head;
+  local float    blowup;
 
-   if ((time > self.delay) || (NumProximityGrenades > 15) || (vlen(self.spawnmaster.velocity)>0) )
+  if ((time > self.delay) || (NumProximityGrenades > 15) || (vlen(self.spawnmaster.velocity)>0) )
+  {
+    ProximityGrenadeExplode();
+    self.think();
+    return;
+  }
+  self.takedamage = DAMAGE_YES;
+  head = findradius(self.origin, 140);
+  blowup = 0;
+
+  //Ry: Set back to solid when the allied entity is out of the collision
+  if ( (self.solid == SOLID_TRIGGER) && (time >= self.wait) )
+  {
+    self.solid = SOLID_BBOX;
+    setmodel(self, self.model);
+  }
+  if (!hip_rebalance || deathmatch)
+  {
+    self.owner = self;
+    if (self.lastvictim.super_damage_finished) //Ry: Glow when owner has Quad Damage
+      self.effects = EF_CANDLELIGHT;
+    else
+      self.effects = 0;
+  }
+
+  while (head)
+  {
+    if (head != self) //Ry: Don't blow up when detecting self
+    {
+      //Ry: No longer react to invisible players. Also, players that are spawning or teleporting are ignored for a second.
+      if ((head.health > 0) && (head.flags & (FL_CLIENT|FL_MONSTER)) && (!head.invisible_finished) && (time >= head.proxyimmunetime) && (head.classname!=self.classname))
+        blowup = 1;
+      if ((head.classname == self.classname) && (head.state==0))
+        blowup = 1;
+      //Ry: In SP/Co-op, ignore owner and (if Friendly Fire disabled) allies
+      if ( hip_rebalance && !deathmatch && ((head == self.lastvictim) || (teamplay && (head.team == self.lastvictim.team))) )
+        blowup = 0;
+      //Ry: Detonate when too close to a spawn point (Set up to only be detectable in the relevant modes)
+      if ( (head.classname == "info_player_deathmatch") || (head.classname == "info_player_coop") || (head.classname == "info_player_start") )
       {
-      ProximityGrenadeExplode();
-      self.think();
-      return;
+        if ( BBoxIntersection(self,head,4) )
+        {
+          blowup = 1;
+        }
       }
-   self.owner = world;
-   self.takedamage = DAMAGE_YES;
-   head = findradius(self.origin, 140);
-   blowup = 0;
-
-   if (self.lastvictim.super_damage_finished) //Ry: Glow when owner has Quad Damage
-     self.effects = EF_CANDLELIGHT;
-   else
-     self.effects = 0;
-
-   while (head)
+      else if (blowup == 1) //Ry: Don't do unnecesary traces against things that don't trigger it
       {
-      if (head != self) //Ry: Don't blow up when detecting self
-      {
-        if ((head.health > 0) && (head.flags & (FL_CLIENT|FL_MONSTER)) && (!head.invisible_finished) && (head.classname!=self.classname)) //Ry: No longer react to invisible players
-           blowup = 1;
-        if ((head.classname == self.classname) && (head.state==0))
-           blowup = 1;
         traceline(self.origin,head.origin,TRUE,self);
         if (trace_fraction != 1.0)
-           blowup = 0;
-        if (blowup==1)
-           {
-           sound (self, CHAN_WEAPON, "hipweap/proxwarn.wav", 1, ATTN_NORM);
-           ProximityGrenadeExplode();
-           self.nextthink = time + 0.5;
-           return;
-           }
+          blowup = 0;
       }
-      head = head.chain;
+      if (blowup==1)
+      {
+        sound (self, CHAN_WEAPON, "hipweap/proxwarn.wav", 1, ATTN_NORM);
+        ProximityGrenadeExplode();
+        self.nextthink = time + 0.5;
+        return;
       }
-   self.nextthink = time + 0.25;
-   };
+    }
+    head = head.chain;
+  }
+  self.nextthink = time + 0.25;
+  if (self.state == 1) //Ry: So spawn points know when the bomb has started thinking
+    self.state = 2;
+};
 
 /*
 ================
@@ -1295,25 +1379,28 @@ W_FireProximityGrenade
 ================
 */
 void() W_FireProximityGrenade =
-   {
-   local entity missile, mpuff;
+{
+  local entity missile;
 
-   NumProximityGrenades = NumProximityGrenades + 1;
-   self.currentammo = self.ammo_rockets = self.ammo_rockets - 1;
+  NumProximityGrenades = NumProximityGrenades + 1;
+  self.currentammo = self.ammo_rockets = self.ammo_rockets - 1;
 
-   sound (self, CHAN_WEAPON, "hipweap/proxbomb.wav", 1, ATTN_NORM);
+  sound (self, CHAN_WEAPON, "hipweap/proxbomb.wav", 1, ATTN_NORM);
 
 	self.punchangle_x = -2;
 
 	missile = spawn ();
-   missile.owner = self;
-   missile.lastvictim = self;
-   missile.movetype = MOVETYPE_TOSS;
+  missile.owner = self;
+  missile.lastvictim = self;
+  missile.movetype = MOVETYPE_TOSS;
 	missile.solid = SOLID_BBOX;
-   missile.classname = "proximity_grenade";
-   missile.takedamage = DAMAGE_NO;
-   missile.health = 5;
-   missile.state = 0;
+  missile.classname = "proximity_grenade";
+  missile.takedamage = DAMAGE_NO;
+  missile.health = 5;
+  missile.state = 0;
+  
+  if ( hip_rebalance && !deathmatch && (self.team == 0) ) //Ry: Gremlin Proxy Bombs glow in campaign
+    missile.effects = EF_CANDLELIGHT;
 
 // set missile speed
 
@@ -1328,25 +1415,28 @@ void() W_FireProximityGrenade =
 		missile.velocity_z = 200;
 	}
 
-   missile.avelocity = '100 600 100';
+  missile.avelocity = '100 600 100';
 
 	missile.angles = vectoangles(missile.velocity);
 
-   missile.touch = ProximityGrenadeTouch;
+  missile.touch = ProximityGrenadeTouch;
 
 // set missile duration
-   missile.nextthink = time + 2;
-   missile.delay = time + 15 + (10*random());
-   missile.think = ProximityBomb;
-   missile.th_die = ProximityGrenadeExplode;
+  missile.nextthink = time + 2;
+  if (hip_rebalance && !deathmatch) //Ry: Detonate at a predictable time in SP/Co-op
+    missile.delay = time + 20;
+  else
+    missile.delay = time + 15 + (10*random());
+  missile.think = ProximityBomb;
+  missile.th_die = ProximityGrenadeExplode;
 
-   setmodel (missile, "progs/proxbomb.mdl");
-   setorigin (missile, self.origin);
-   setsize (missile, '-1 -1 -1', '1 1 1');
+  setmodel (missile, "progs/proxbomb.mdl");
+  setorigin (missile, self.origin);
+  setsize (missile, '-1 -1 -1', '1 1 1');
 
-   if (self.super_damage_finished) //Ry: Glow when owner has Quad Damage
-     missile.effects = EF_CANDLELIGHT;
-   };
+  if (self.super_damage_finished) //Ry: Glow when owner has Quad Damage
+    missile.effects = EF_CANDLELIGHT;
+};
 
 //=============================================================================
 
@@ -1372,7 +1462,7 @@ void(vector org, vector dir) launch_spike =
 
 	newmis.touch = spike_touch;
 	newmis.classname = "spike";
-	newmis.think = SUB_Remove;
+	newmis.think = RemoveMissile;
 	newmis.nextthink = time + 6;
 	setmodel (newmis, "progs/spike.mdl");
 	setsize (newmis, VEC_ORIGIN, VEC_ORIGIN);
@@ -1384,13 +1474,13 @@ void(vector org, vector dir) launch_spike =
 void() W_FireSuperSpikes =
 {
 	local vector	dir;
-	local entity	old;
 
 	sound (self, CHAN_WEAPON, "weapons/spike2.wav", 1, ATTN_NORM);
 	self.attack_finished = time + 0.2;
 	self.currentammo = self.ammo_nails = self.ammo_nails - 2;
 	dir = aim (self, 1000);
 	launch_spike (self.origin + '0 0 16', dir);
+  CreateMissileField(newmis,4); //Ry: Give bigger hitbox against players in Deathmatch
 	newmis.touch = superspike_touch;
   newmis.classname = "super_spike"; //Ry: Super Nail given a different class name for obituary purposes
 	setmodel (newmis, "progs/s_spike.mdl");
@@ -1401,7 +1491,6 @@ void() W_FireSuperSpikes =
 void(float ox) W_FireSpikes =
 {
 	local vector	dir;
-	local entity	old;
 
 	makevectors (self.v_angle);
 
@@ -1423,6 +1512,7 @@ void(float ox) W_FireSpikes =
 	self.currentammo = self.ammo_nails = self.ammo_nails - 1;
 	dir = aim (self, 1000);
 	launch_spike (self.origin + '0 0 16' + v_right*ox, dir);
+  CreateMissileField(newmis,6); //Ry: Give bigger hitbox against players in Deathmatch
 
 	self.punchangle_x = -2;
 };
@@ -1432,7 +1522,6 @@ void(float ox) W_FireSpikes =
 .float hit_z;
 void() spike_touch =
 {
-local float rand;
 	if (other == self.owner)
 		return;
 
@@ -1441,7 +1530,7 @@ local float rand;
 
 	if (pointcontents(self.origin) == CONTENT_SKY)
 	{
-		remove(self);
+    RemoveMissile();
 		return;
 	}
 
@@ -1466,13 +1555,12 @@ local float rand;
 		WriteCoord (MSG_BROADCAST, self.origin_z);
 	}
 
-	remove(self);
+  RemoveMissile();
 
 };
 
 void() superspike_touch =
 {
-local float rand;
 	if (other == self.owner)
 		return;
 
@@ -1481,7 +1569,7 @@ local float rand;
 
 	if (pointcontents(self.origin) == CONTENT_SKY)
 	{
-		remove(self);
+    RemoveMissile();
 		return;
 	}
 
@@ -1500,7 +1588,7 @@ local float rand;
 		WriteCoord (MSG_BROADCAST, self.origin_z);
 	}
 
-	remove(self);
+  RemoveMissile();
 
 };
 
@@ -1573,7 +1661,7 @@ void() W_SetCurrentAmmo =
    else if (self.weapon == IT_LASER_CANNON)
 	{
 		self.currentammo = self.ammo_cells;
-      self.weaponmodel = "progs/v_laserg.mdl";
+    self.weaponmodel = "progs/v_laserg.mdl";
 		self.weaponframe = 0;
 		self.items = self.items | IT_CELLS;
 	}
@@ -1601,18 +1689,23 @@ void() W_SetCurrentAmmo =
 //MED
    else if (self.weapon == IT_MJOLNIR)
 	{
+    if (self.mjolnirdisable) //Ry: Disable Cells display while lightning attack is disabled
+      self.currentammo = 0;
+    else
+    {
       self.currentammo = self.ammo_cells;
-      self.weaponmodel = "progs/v_hammer.mdl";
+      self.items = self.items | IT_CELLS;
+    }
+    self.weaponmodel = "progs/v_hammer.mdl";
 		self.weaponframe = 0;
-		self.items = self.items | IT_CELLS;
 	}
 //MED
    else if (self.weapon == IT_PROXIMITY_GUN)
 	{
-      self.currentammo = self.ammo_rockets;
-      self.weaponmodel = "progs/v_prox.mdl";
+    self.currentammo = self.ammo_rockets;
+    self.weaponmodel = "progs/v_prox.mdl";
 		self.weaponframe = 0;
-      self.items = self.items | IT_ROCKETS;
+    self.items = self.items | IT_ROCKETS;
 	}
    else
 	{
@@ -1660,28 +1753,6 @@ float() W_BestWeapon =
 	return IT_AXE;
 };
 
-float() W_CheckNoAmmo =
-{
-	if (self.currentammo > 0)
-		return TRUE;
-
-	if (self.weapon == IT_AXE)
-		return TRUE;
-
-//MED
-   if (self.weapon == IT_MJOLNIR)
-      {
-      return TRUE;
-      }
-
-   self.weapon = W_BestWeapon ();
-
-	W_SetCurrentAmmo ();
-
-// drop the weapon down
-	return FALSE;
-};
-
 /*
 ============
 W_Attack
@@ -1711,11 +1782,11 @@ void() W_Attack =
 		return;
 
 	makevectors	(self.v_angle);			// calculate forward angle for velocity
-	self.show_hostile = time + 1;	// wake monsters up
-  
+
   if ( (self.weapon != IT_AXE) && (self.weapon != IT_MJOLNIR) ) //Ry: For the Pacifist achievement
 	{
 		ach_weaponfired = TRUE;
+    self.show_hostile = time + 1;	// wake monsters up //Ry: But exclude the melee weapons
 	}
 
 	if (self.weapon == IT_AXE)
@@ -1814,7 +1885,9 @@ W_ChangeWeapon
 void() W_ChangeWeapon =
 {
 	local	float	it, am, fl;
-   local float oldimpulse;
+  
+  local string ammoreason = "Not enough ammo\n"; //Set these to explain why a weapon can't be switched to
+  local string weapreason = "No weapon\n";
 
 	it = self.items;
 	am = 0;
@@ -1822,22 +1895,37 @@ void() W_ChangeWeapon =
 //MED
 	if (self.impulse == 1)
 	{
-      fl = IT_AXE;
-   }
+    weapreason = "No Axe\n";
+    fl = IT_AXE;
+    if (coop || deathmatch)
+    {
+      if ((self.lastimpulse == self.impulse) && (time < self.lastimpulsetime + 0.2)) //Ry: Double tap Axe to toggle player probe
+      {
+        self.impulse = 0;
+        TogglePlayerProbe();
+      }
+    }
+  }
 	else if (self.impulse == 2)
 	{
+    weapreason = "No Shotgun\n";
+    ammoreason = "Not enough Shells\n";
 		fl = IT_SHOTGUN;
 		if (self.ammo_shells < 1)
 			am = 1;
 	}
 	else if (self.impulse == 3)
 	{
+    weapreason = "No Double-Barreled Shotgun\n";
+    ammoreason = "Not enough Shells\n";
 		fl = IT_SUPER_SHOTGUN;
 		if (self.ammo_shells < 2)
 			am = 1;
 	}
 	else if (self.impulse == 4)
 	{
+    weapreason = "No Nailgun\n";
+    ammoreason = "Not enough Nails\n";
 		fl = IT_NAILGUN;
 		if (self.ammo_nails < 1)
 			am = 1;
@@ -1845,27 +1933,34 @@ void() W_ChangeWeapon =
 //MED
 	else if (self.impulse == 5)
 	{
-      fl = IT_SUPER_NAILGUN;
-      if (self.ammo_nails < 2)
-         am = 1;
+    weapreason = "No Super Nailgun\n";
+    ammoreason = "Not enough Nails\n";
+    fl = IT_SUPER_NAILGUN;
+    if (self.ammo_nails < 2)
+      am = 1;
 
 	}
 //MED
 	else if (self.impulse == 6)
 	{
-      if (self.weapon == IT_GRENADE_LAUNCHER)
-         {
-         fl = IT_PROXIMITY_GUN;
-         }
-      else
-         {
-         fl = IT_GRENADE_LAUNCHER;
-         }
+    ammoreason = "Not enough Rockets\n";
+    if (self.weapon == IT_GRENADE_LAUNCHER)
+    {
+      weapreason = "No Proximity Gun\n";
+      fl = IT_PROXIMITY_GUN;
+    }
+    else
+    {
+      weapreason = "No Grenade Launcher\n";
+      fl = IT_GRENADE_LAUNCHER;
+    }
 		if (self.ammo_rockets < 1)
 			am = 1;
 	}
 	else if (self.impulse == 7)
 	{
+    weapreason = "No Rocket Launcher\n";
+    ammoreason = "Not enough Rockets\n";
 		fl = IT_ROCKET_LAUNCHER;
 		if (self.ammo_rockets < 1)
 			am = 1;
@@ -1873,72 +1968,105 @@ void() W_ChangeWeapon =
 //MED
 	else if (self.impulse == 8)
 	{
-      fl = IT_LIGHTNING;
-      if (self.ammo_cells < 1)
-         am = 1;
+    weapreason = "No Thunderbolt\n";
+    ammoreason = "Not enough Cells\n";
+    fl = IT_LIGHTNING;
+    if (self.ammo_cells < 1)
+      am = 1;
    }
    else if (self.impulse == 225)
 	{
-      fl = IT_LASER_CANNON;
-      if (self.ammo_cells < 1)
-         am = 1;
-   }
-   else if (self.impulse == 226)
+    weapreason = "No Laser Cannon\n";
+    ammoreason = "Not enough Cells\n";
+    fl = IT_LASER_CANNON;
+    if (self.ammo_cells < 1)
+      am = 1;
+  }
+  else if (self.impulse == 226)
 	{
-      fl = IT_MJOLNIR;
-   }
+    weapreason = "No Mjolnir\n";
+    fl = IT_MJOLNIR;
+  }
 	else if (self.impulse == 227) //Ry: Re-implemented Remaster impulses for individual Proxy/Grenade
 	{
-      fl = IT_PROXIMITY_GUN;
-      if (self.ammo_rockets < 1)
-         am = 1;
+    weapreason = "No Proximity Gun\n";
+    ammoreason = "Not enough Rockets\n";
+    fl = IT_PROXIMITY_GUN;
+    if (self.ammo_rockets < 1)
+      am = 1;
    }
 	else if (self.impulse == 228)
 	{
-      fl = IT_GRENADE_LAUNCHER;
-      if (self.ammo_rockets < 1)
-         am = 1;
+    weapreason = "No Grenade Launcher\n";
+    ammoreason = "Not enough Rockets\n";
+    fl = IT_GRENADE_LAUNCHER;
+    if (self.ammo_rockets < 1)
+      am = 1;
    }
   else if (self.impulse == 224) //Ry: Added impulse command that directly calls Best Weapon
-      fl = W_BestWeapon();
-
-//MED
-   oldimpulse = self.impulse;
-	self.impulse = 0;
+    fl = W_BestWeapon();
 
 	if (!(self.items & fl))
-      {
+  {
 //MED
-      if (fl == IT_GRENADE_LAUNCHER)
-         {
-         fl = IT_PROXIMITY_GUN;
-         if (!(self.items & fl))
-            {
-            sprint (self, "no weapon.\n");
-            return;
-            }
-         if (self.ammo_rockets < 1)
-            am = 1;
-         else
-            am = 0;
-         }
-      else
-         {
-         sprint (self, "no weapon.\n");
-         return;
-         }
+    if ( (fl == IT_GRENADE_LAUNCHER) && (!(self.weapon == IT_PROXIMITY_GUN)) ) //Ry: Check if not already on the Proxy gun
+    {
+      fl = IT_PROXIMITY_GUN;
+      if (!(self.items & fl))
+      {
+        sprint (self, weapreason);
+        return;
       }
+      if (self.ammo_rockets < 1)
+        am = 1;
+      else
+        am = 0;
+    }
+    else
+    {
+      sprint (self, weapreason);
+      return;
+    }
+  }
 
 	if (am)
 	{	// don't have the ammo
-		sprint (self, "not enough ammo.\n");
+		sprint (self, ammoreason);
 		return;
 	}
+  
+  if (fl == IT_MJOLNIR)
+  {
+    if ( !(self.weapon == IT_MJOLNIR) )
+    {
+      self.impulse = 0;
+      self.mjolnirdisable = FALSE;
+      if (self.ammo_cells < 15) //Ry: Give warning if you don't have enough Cells to do the Mjolnir attack
+        sprint (self, "Low Cells\n");
+    }
+    else if (!deathmatch) //Ry: Toggle Mjolnir's electrical attack if the impulse is used again
+    {
+      if ((self.lastimpulse == self.impulse) && (time < self.lastimpulsetime + 0.2)) //Ry: Double tap the appropriate key
+      {
+        self.impulse = 0;
+        if (self.mjolnirdisable)
+        {
+          sprint(self,"Mjolnir Strike enabled\n");
+          self.mjolnirdisable = FALSE;
+        }
+        else
+        {
+          sprint(self,"Mjolnir Strike disabled\n");
+          self.mjolnirdisable = TRUE;
+        }
+      }
+    }
+  }
 
 //
 // set weapon, set ammo
 //
-   self.weapon = fl;
+  self.weapon = fl;
 	W_SetCurrentAmmo ();
 };
 
@@ -2067,6 +2195,7 @@ void() CycleWeaponCommand =
       else if (self.weapon == IT_LASER_CANNON)
 		{
          self.weapon = IT_MJOLNIR;
+         self.mjolnirdisable = FALSE;
 		}
 
 		if ( (self.items & self.weapon) && am == 0)
@@ -2159,6 +2288,7 @@ void() CycleWeaponReverseCommand =
 		else if (self.weapon == IT_AXE)
 		{
          self.weapon = IT_MJOLNIR;
+         self.mjolnirdisable = FALSE;
 		}
 
 		if ( (it & self.weapon) && am == 0)
@@ -2323,203 +2453,6 @@ void () DumpCoordinates =
       }
    };
 
-void () DeleteWall = //Ry: Just a fun thing (impulse 207)
-{
-  if (cheats_allowed == FALSE) //Ry: Enabled with sv_cheats 1 only
-  {
-    sprint(self,"sv_cheats must be enabled!\n");
-		return;
-  }
-  local vector org = self.origin+self.view_ofs;
-  traceline (org, org + v_forward*600, TRUE, self);
-  if (trace_fraction < 1)
-  {
-    if ( trace_ent.classname == "func_wall" )
-    {
-      sprint(self,"Removed wall\n");
-      remove(trace_ent);
-    }
-    else if ( trace_ent.classname == "door" )
-    {
-      if (!(trace_ent.target)) //Only remove if it's not important for level scripting
-      {
-        sprint(self,"Removed door\n");
-        remove(trace_ent);
-      }
-    }
-  }
-}
-
-void () ProbeEntityData = //Ry: Debugging (impulse 208)
-{
-  local vector org = self.origin+self.view_ofs;
-  traceline (org, org + v_forward*2048, FALSE, self);
-  if ((trace_fraction < 1) && (trace_ent != world))
-  {
-    dprint("==== ");
-    dprint(trace_ent.classname);
-    dprint(" ====");
-    if (trace_ent.flags & FL_CLIENT|FL_MONSTER)
-    {
-      dprint("\nName: ");
-      dprint(trace_ent.netname);
-      dprint("\nHealth: ");
-      dprint(ftos(trace_ent.health));
-      dprint("\nTeam: ");
-      dprint(ftos(trace_ent.team));
-    }
-    else
-    {
-      dprint("\nOrigin: ");
-      dprint(vtos(trace_ent.origin));
-      dprint("\nMins: ");
-      dprint(vtos(trace_ent.mins));
-      dprint("\nMaxs: ");
-      dprint(vtos(trace_ent.maxs));
-      dprint("\nTarget: ");
-      dprint(trace_ent.target);
-      dprint("\nTargetName: ");
-      dprint(trace_ent.targetname);
-    }
-    dprint("\n");
-  }
-}
-
-//Ry: Following lifted from Dissolution, just with Armagon weapons:
-/* Toss out a backpack containing some ammo from your current weapon,
-and any weapons you don't have.
-*/
-void() TossBackpack =
-{
-	local entity 	item;
-
-	// If we don't have any ammo, return
-	if(self.currentammo <= 0)
-		return;
-
-	// only valid in teamplay modes
-	if (!coop && teamplay < 1) //Ry: Also allow in Friendly Fire-enabled Co-op
-		return;
-
-	item = spawn();
-
-	// See if you have the Shotgun or Super Shotgun on
-	if ((self.weapon == IT_SHOTGUN) || (self.weapon == IT_SUPER_SHOTGUN)) {
-		if( self.ammo_shells >= 20 ) {
-			item.ammo_shells = 20;
-			self.ammo_shells = self.ammo_shells - 20;
-		}
-		else
-		{
-			item.ammo_shells = self.ammo_shells;
-			self.ammo_shells = 0;
-		}
-	}		
-	
-	// See if you have neither the Shotgun or Super Shotgun
-	if ( !(self.items & (IT_SHOTGUN|IT_SUPER_SHOTGUN)) ) {
-		if( self.ammo_shells >= 20 ) {
-			item.ammo_shells = 20;
-			self.ammo_shells = self.ammo_shells - 20;
-		} else {
-			item.ammo_shells = self.ammo_shells;
-			self.ammo_shells = 0;
-		}
-	}		
-	
-	// See if we are using a nailgun
-	if ((self.weapon == IT_NAILGUN) || (self.weapon == IT_SUPER_NAILGUN) ) {
-		if( self.ammo_nails >= 20 ) {
-			item.ammo_nails = 20;
-			self.ammo_nails = self.ammo_nails - 20;
-		} else {
-			item.ammo_nails = self.ammo_nails;
-			self.ammo_nails = 0;
-		}
-	}	
-
-	// Check to see if we have neither nailgun
-	if ( !( self.items & (IT_NAILGUN|IT_SUPER_NAILGUN)) ) {
-		if (self.ammo_nails >= 20) {
-			item.ammo_nails = 20;
-			self.ammo_nails = self.ammo_nails - 20;
-		} else {
-			item.ammo_nails = self.ammo_nails;
-			self.ammo_nails = 0;
-		}
-	}	
-	
-	// See if we are using a grenade or rocket launcher
-	if ((self.weapon == IT_GRENADE_LAUNCHER) || (self.weapon == IT_ROCKET_LAUNCHER) || (self.weapon == IT_PROXIMITY_GUN)) {
-		if( self.ammo_rockets >= 10 ) {
-			item.ammo_rockets = 10;
-			self.ammo_rockets = self.ammo_rockets - 10;
-		} else {
-			item.ammo_rockets = self.ammo_rockets;
-			self.ammo_rockets = 0;
-		}
-	}
-
-	// See if we have neither the Grenade or rocket launcher
-	if ( !(self.items & (IT_GRENADE_LAUNCHER|IT_ROCKET_LAUNCHER|IT_PROXIMITY_GUN)) ) {
-		if( self.ammo_rockets >= 10 ) {
-			item.ammo_rockets = 10;
-			self.ammo_rockets = self.ammo_rockets - 10;
-		} else {
-			item.ammo_rockets = self.ammo_rockets;
-			self.ammo_rockets = 0;
-		}
-	}
-
-	// See if we're using the lightning gun
-	if ( (self.weapon == IT_LIGHTNING) || (self.weapon == IT_LASER_CANNON) || (self.weapon == IT_MJOLNIR) ) {	
-		if( self.ammo_cells >= 20 ) {
-			item.ammo_cells = 20;
-			self.ammo_cells = self.ammo_cells - 20;
-		} else {
-			item.ammo_cells = self.ammo_cells;
-			self.ammo_cells = 0;
-		}
-	}
-
-	// see if we don't have the lightning gun
-	if ( !(self.items & (IT_LIGHTNING|IT_LASER_CANNON|IT_MJOLNIR)) ) {	
-		if( self.ammo_cells >= 20 ) {
-			item.ammo_cells = 20;
-			self.ammo_cells = self.ammo_cells - 20;
-		} else {
-			item.ammo_cells = self.ammo_cells;
-			self.ammo_cells = 0;
-		}
-	}
-	 
-	if (item.ammo_shells + item.ammo_nails + item.ammo_rockets + item.ammo_cells == 0) {
-		sprint(self, "No ammo available!\n");
-		remove(item);
-		return;
-	}
-	 
-	//item.owner = self;
-  item.lastfragtime = time + 0.2; //Ry: Use delay instead of setting owner
-	makevectors(self.v_angle);
-
-	setorigin(item, self.origin + '0 0 16');
-	item.velocity = aim(self, 1000);
-	item.velocity = item.velocity * 500;
-	item.flags = FL_ITEM;
-	item.solid = SOLID_TRIGGER;
-	item.movetype = MOVETYPE_BOUNCE;
-
-	setmodel (item, "progs/backpack.mdl");
-	setsize(item, '-16 -16 0', '16 16 56');
-	item.touch = BackpackTouch;
-	item.nextthink = time + 120;	// remove after 2 minutes
-	item.think = SUB_Remove;
-
-	W_SetCurrentAmmo();
-};
-
-
 /*
 ============
 ImpulseCommands
@@ -2528,46 +2461,65 @@ ImpulseCommands
 */
 void() ImpulseCommands =
 {
-	if (self.impulse >= 1 && self.impulse <= 8)
-		W_ChangeWeapon ();
+  if (self.impulse)
+  {
+    if (self.impulse >= 1 && self.impulse <= 8)
+      W_ChangeWeapon ();
 
-   if (self.impulse >= 224 && self.impulse <= 228) //Ry: Updated for Remaster commands
-		W_ChangeWeapon ();
+    if (self.impulse >= 224 && self.impulse <= 228) //Ry: Updated for Remaster commands
+      W_ChangeWeapon ();
 
-	if (self.impulse == 9)
-		CheatCommand ();
-   if (self.impulse == 10)
-		CycleWeaponCommand ();
-	if (self.impulse == 11)
-		ServerflagsCommand ();
-	if (self.impulse == 12)
-		CycleWeaponReverseCommand ();
-  
-  if (self.impulse == 20) //Ry: Dissolution impulse to throw out a backpack with ammo in teamplay modes
-    TossBackpack();
-    
-//JIM
-	if ( self.impulse == 200 )
-		WetsuitCheat();
-//MED
-   if ( self.impulse == 201 )
+    if (self.impulse == 9)
+      CheatCommand ();
+    if (self.impulse == 10)
+      CycleWeaponCommand ();
+    if (self.impulse == 11)
+      ServerflagsCommand ();
+    if (self.impulse == 12)
+      CycleWeaponReverseCommand ();
+
+    if (self.impulse == 20) //Ry: Dissolution impulse to throw out a backpack with ammo in teamplay modes
+      TossBackpack();
+
+    if (self.impulse == 55) //Ry: Display what temp5 options are enabled and relevant
+      QueryEnabledOptions();
+    if (self.impulse == 56) //Ry: Toggle the player probe
+      TogglePlayerProbe();
+    if (self.impulse == 57) //Ry: Enable the player probe
+      EnablePlayerProbe();
+    if (self.impulse == 58) //Ry: Disable the player probe
+      DisablePlayerProbe();
+      
+  //JIM
+    if ( self.impulse == 200 )
+      WetsuitCheat();
+  //MED
+    if ( self.impulse == 201 )
       EmpathyShieldsCheat();
-   if ( self.impulse == 205 )
+    if ( self.impulse == 205 )
       Genocide();
-   if ( self.impulse == 206 )
+    if ( self.impulse == 206 )
       ToggleDump();
-   if ( self.impulse == 202 )
+    if ( self.impulse == 202 )
       DumpEntities();
-   if ( self.impulse == 203 )
+    if ( self.impulse == 203 )
       DumpLiveEntities();
-   if ( self.impulse == 207 )
+
+    if ( self.impulse == 207 ) //Ry: My own debug impulses
       DeleteWall();
-   if ( self.impulse == 208 )
+    if ( self.impulse == 208 )
       ProbeEntityData();
-   if (self.impulse == 255)
-		QuadCheat ();
-   if (dump_coord == 1)
-      DumpCoordinates();
+    if (self.impulse == 209)
+     TestSpawnPoints();
+
+    if (self.impulse == 255)
+      QuadCheat ();
+
+    self.lastimpulse = self.impulse;
+    self.lastimpulsetime = time;
+  }
+  if (dump_coord == 1)
+    DumpCoordinates();
 
 	self.impulse = 0;
 };

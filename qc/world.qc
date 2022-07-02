@@ -199,7 +199,8 @@ World Types:
 
 void() worldspawn =
 {
-   lastspawn = world;
+  startingserverflags = serverflags;
+  lastspawn = world;
 	InitBodyQue ();
 
 //JIM
@@ -394,163 +395,48 @@ void() worldspawn =
 
 //JIM
 	StopEarthQuake();
-//MED
-   //if (cvar("crosshair") == 2) //Ry: Enable footsteps by default (This cvar doesn't even exist in Remaster anymore)
-      footsteps = 1;
-   //else
-   //   footsteps = 0;
- 
+//MED 
+  if ( !(cvar("temp5") & RY_FL_DISABLE_FOOTSTEPS) ) //Ry: Footsteps enabled by default, but can be turned off with a flag
+    footsteps = TRUE;
+
+  if ( !(cvar("temp5") & RY_FL_DISABLE_GREMITEMSTEAL) ) //Ry: Flag toggle for Gremlin's ability to pick up items
+    grem_itemstealallowed = TRUE;
+
+  if ( !(cvar("temp5") & RY_FL_DISABLE_HIPREBALANCE) ) //Ry: Flag toggle for disabling balance adjustments for Hipnotic weapons and powerups
+    hip_rebalance = TRUE;
+
+  if ( !(cvar("temp5") & RY_FL_DISABLE_WIDELIGHTNING) ) //Ry: Flag toggle for disabling the wide Thunderbolt beam fix
+    wide_lightning = TRUE;
+
+  if ( !(cvar("temp5") & RY_FL_DISABLE_WIDESPIKES) ) //Ry: Flag toggle for disabling Nails/Lasers having a bigger hitbox against players
+    wide_spikes = TRUE;
+
   ach_weaponfired = FALSE; //Ry: Remaster ID1 achievements, now handled globally for proper Co-op handling
   ach_damagetaken = FALSE;
   
   mapstartweapons = 0;
   hipnoticmap = FALSE;
   if (deathmatch)
-    hip_itemconverttime = time + 0.3;
+    hip_weaponconverttime = time + 0.3;
   else
-    hip_itemconverttime = time + 5;
+    hip_weaponconverttime = time + 5;
+  hip_entconverttime = time + 0.3;
+  
+  debugspawns = FALSE;
+  /*if ( (cvar("temp5") & RY_FL_DEBUGSPAWNS) )
+  {
+    debugspawns = TRUE;
+    dprint("Spawn point debugging enabled\n");
+  }*/
   
   };
-  
-void() hip_powerup_touch; //Ry: Reference this
-
-void() ReplaceBiosuits = //Ry: Convert any Biosuits that are near water, but aren't near slime, to Wetsuits
-{
-  local vector checkoffset;
-  local float nearwater, nearslime, contentval;
-  local float count = 0;
-  local entity ent;
-  
-  for (ent = find(world, classname, "item_artifact_envirosuit") ; ent ; ent = find(ent, classname, "item_artifact_envirosuit") )
-  {
-    nearwater = FALSE;
-    nearslime = FALSE;
-    checkoffset = '-256 -256 -256';
-    if (world.model == "maps/e3m5.bsp") //Ry: Override for this map
-      nearwater = TRUE;
-    else
-    {
-      while (TRUE)
-      {
-        contentval = pointcontents(ent.origin+checkoffset);
-        if (contentval == CONTENT_SLIME)
-        {
-          nearslime = TRUE;
-          break;
-        }
-        else if (contentval == CONTENT_WATER)
-          nearwater = TRUE;
-        
-        checkoffset_x = checkoffset_x + 128;
-        if (checkoffset_x > 256)
-        {
-          checkoffset_x = -256;
-          checkoffset_y = checkoffset_y + 128;
-          if (checkoffset_y > 256)
-          {
-            checkoffset_y = -256;
-            checkoffset_z = checkoffset_z + 128;
-            if (checkoffset_z > 256)
-            {
-              break;
-            }
-          }
-        }
-      }
-    }
-    if (nearwater && !nearslime)
-    {
-      ent.classname = "item_artifact_wetsuit";
-      ent.touch = hip_powerup_touch;
-      ent.noise = "misc/weton.wav";
-      ent.mdl = "progs/wetsuit.mdl";
-      if (ent.model)
-      {
-        setmodel (ent, "progs/wetsuit.mdl");
-        setsize (ent, '-16 -16 -24', '16 16 32');
-      }
-      ent.netname = "Wetsuit";
-      ent.items = 0;
-      ent.items2 = HIP_IT_WETSUIT;
-      count = count + 1;
-    }
-  }
-  if (count > 0)
-  {
-    dprint("Converted ");
-    dprint(ftos(count));
-    dprint(" Biosuits to Wetsuits\n");
-  }
-};
-
-void() InjectHipnoticWeapons = //Ry: Changes relevant weapons on map start if the player already has the base weapon
-{
-  local entity ent;
-  if ( (mapstartweapons & IT_GRENADE_LAUNCHER) && (!(mapstartweapons & IT_PROXIMITY_GUN)) ) // Grenade Launcher > Proximity Gun
-  {
-    ent = find(world, classname, "weapon_grenadelauncher");
-    if (ent != world)
-    {
-      ent.classname = "weapon_proximity_gun";
-      ent.mdl = "progs/g_prox.mdl";
-      if (ent.model)
-      {
-        setmodel (ent, "progs/g_prox.mdl");
-        setsize (ent, '-16 -16 0', '16 16 56');
-      }
-      ent.weapon = IT_PROXIMITY_GUN;
-      ent.netname = "Proximity Gun";
-      ent.items = IT_PROXIMITY_GUN;
-      dprint("Converted a Grenade Launcher to the Proximity Gun\n");
-    }
-  }
-  
-  if ( mapstartweapons & IT_LIGHTNING ) // Thunderbolt > Laser Cannon > Mjolnir
-  {
-    if ( !(mapstartweapons & IT_LASER_CANNON) )
-    {
-      ent = find(world, classname, "weapon_lightning");
-      if (ent != world)
-      {
-        ent.classname = "weapon_laser_gun";
-        ent.mdl = "progs/g_laserg.mdl";
-        if (ent.model)
-        {
-          setmodel (ent, "progs/g_laserg.mdl");
-          setsize (ent, '-16 -16 0', '16 16 56');
-        }
-        ent.weapon = IT_LASER_CANNON;
-        ent.netname = "Laser Cannon";
-        ent.items = IT_LASER_CANNON;
-        dprint("Converted a Thunderbolt to the Laser Cannon\n");
-      }
-    }
-    else if ( !(mapstartweapons & IT_MJOLNIR) )
-    {
-      ent = find(world, classname, "weapon_lightning");
-      if (ent != world)
-      {
-        ent.classname = "weapon_mjolnir";
-        ent.mdl = "progs/g_hammer.mdl";
-        if (ent.model)
-        {
-          setmodel (ent, "progs/g_hammer.mdl");
-          setsize (ent, '-16 -16 0', '16 16 56');
-        }
-        ent.weapon = IT_MJOLNIR;
-        ent.netname = "Mjolnir";
-        ent.items = IT_MJOLNIR;
-        dprint("Converted a Thunderbolt to the Mjolnir\n");
-      }
-    }
-  }
-};
 
 void() StartFrame =
 {
 	teamplay = cvar("teamplay");
 	skill = cvar("skill");
 	cheats_allowed = cvar("sv_cheats");
+  horde = cvar("horde");
 	if (!campaign_valid)
 	{
 		campaign_valid = TRUE;
@@ -562,13 +448,21 @@ void() StartFrame =
 	}
 	framecount = framecount + 1;
   
-  if ( (!hipnoticmap) && (time >= hip_itemconverttime) ) //Ry: Automatic replacements on ID1 maps
-  {
-    hipnoticmap = 2;
-    ReplaceBiosuits();
-    if (!deathmatch)
+  #ifdef GAME_HIPNOTIC
+    //Ry: Automatic replacements on ID1 maps
+    if (!hipnoticmap && (time >= hip_entconverttime)) //Ry: Monster and Biosuit replacements
+    {
+      hipnoticmap = 2;
+      ReplaceBiosuits();
+      if (!deathmatch)
+        InjectHipnoticMonsters();
+    }
+    if ( !deathmatch && (hipnoticmap == 2) && (time >= hip_weaponconverttime) ) //Ry: Weapon item replacements
+    {
+      hipnoticmap = 3;
       InjectHipnoticWeapons();
-  }
+    }
+  #endif
   
 };
 
@@ -589,8 +483,6 @@ void() bodyque =
 
 void() InitBodyQue =
 {
-	local entity	e;
-
 	bodyque_head = spawn();
 	bodyque_head.classname = "bodyque";
 	bodyque_head.owner = spawn();
@@ -620,29 +512,34 @@ void() InitBodyQue =
 // respawned elsewhere
 void(entity ent) CopyToBodyQue =
 {
-  local entity head;
-  if (ent.model == "progs/h_player.mdl") //Ry: Set this appropriately based on whether it's a head or not (For Gremlins)
-    bodyque_head.gorging = TRUE;
-  else
-    bodyque_head.gorging = FALSE;
-  bodyque_head.health = ent.health; //Ry: Copy health for Gremlins
-  if (bodyque_head.health > 0)
-    bodyque_head.health = 0;
-  
-  //Ry: Gremlins wanting to gorge on this player's corpse will update target to the bodyque
-  for (head = find(world, classname, "monster_gremlin") ; head ; head = find(head, classname, "monster_gremlin") )
-    if ( (head.health > 0) && (head.enemy == ent) )
-      head.enemy = bodyque_head;
-  
-	bodyque_head.angles = ent.angles;
-	bodyque_head.model = ent.model;
-	bodyque_head.modelindex = ent.modelindex;
-	bodyque_head.frame = ent.frame;
-	bodyque_head.colormap = ent.colormap;
-	bodyque_head.movetype = ent.movetype;
-	bodyque_head.velocity = ent.velocity;
-	bodyque_head.flags = 0;
-	setorigin (bodyque_head, ent.origin);
-	setsize (bodyque_head, ent.mins, ent.maxs);
-	bodyque_head = bodyque_head.owner;
+  if (ent.model != "") //Ry: Make sure player has a model, in case this is called during deferred spawning
+  {
+    local entity head;
+    #ifdef GAME_HIPNOTIC
+      if (ent.model == "progs/h_player.mdl") //Ry: Set this appropriately based on whether it's a head or not (For Gremlins)
+        bodyque_head.gremstate = GREM_GORGING;
+      else
+        bodyque_head.gremstate = GREM_DEFAULT;
+      bodyque_head.health = ent.health; //Ry: Copy health for Gremlins
+      if (bodyque_head.health > 0)
+        bodyque_head.health = 0;
+      
+      //Ry: Gremlins wanting to gorge on this player's corpse will update target to the bodyque
+      for (head = find(world, classname, "monster_gremlin") ; head ; head = find(head, classname, "monster_gremlin") )
+        if ( (head.health > 0) && (head.enemy == ent) )
+          head.enemy = bodyque_head;
+    #endif
+    
+    bodyque_head.angles = ent.angles;
+    bodyque_head.model = ent.model;
+    bodyque_head.modelindex = ent.modelindex;
+    bodyque_head.frame = ent.frame;
+    bodyque_head.colormap = ent.colormap;
+    bodyque_head.movetype = ent.movetype;
+    bodyque_head.velocity = ent.velocity;
+    bodyque_head.flags = 0;
+    setorigin (bodyque_head, ent.origin);
+    setsize (bodyque_head, ent.mins, ent.maxs);
+    bodyque_head = bodyque_head.owner;
+  }
 };

@@ -4,10 +4,10 @@
    Distributed (unsupported) on 3.12.97
 */
 
-entity nullentity;
+//entity nullentity;
 entity bulletholes;
-entity lastbullet;
-float numbulletholes;
+//entity lastbullet;
+//float numbulletholes;
 float IT_MJOLNIR = 128;
 float IT_LASER_CANNON = 8388608;
 float IT_PROXIMITY_GUN = 65536;
@@ -54,11 +54,9 @@ float MIN_ANGLE_DELTA = 10;
 // have to use a new items flag because we ran out of bits in the original
 .float      items2;
 // gremlin stuff
-.float      gorging;
-.float      stoleweapon;
+//.float      gorging;
+//.float      stoleweapon;
 .entity     lastvictim;
-.float      stealitem; //Ry: New
-.float      retreating; //Ry: New
 // spawn variables
 .void()     spawnfunction;
 .string     spawnclassname;
@@ -68,7 +66,6 @@ float MIN_ANGLE_DELTA = 10;
 .entity     spawnmaster;
 .vector     spawnmins;
 .vector     spawnmaxs;
-.float      spawnmovetype; //Ry: Added this
 .float      spawnsilent;
 .float      spawnmulti;
 // horn of conjuring
@@ -88,15 +85,6 @@ entity horn_charmer;
 // teleport invulnerability
 .float      last_teleport_time;
 
-.entity     conjoinedentity; //Ry: For Armagon, so we have something that doesn't conflict with the Horn of Conjuring
-
-.float      isspawnee; //Ry: To keep track of extra spawned Gremlins
-
-.float      autospawndelay;  //Ry: New auto spawn time for func_spawn
-.string     prespawnmessage; //Ry: Message when entity is close to auto-spawning
-.string     spawnmessage;    //Ry: Message when entity is auto-spawned
-.entity     lastspawnee;     //Ry: Last spawned entity
-
 // Rotation
 .vector neworigin;
 .vector rotate;
@@ -108,11 +96,6 @@ entity horn_charmer;
 
 // Miscellaneous
 .float gravity;
-
-entity horn_item; //Ry: Which horn is being used
-
-float NumGremlins; //Ry: Moved these to globals
-float NumSpawnGremlins;
 
 //MED 01/05/97 added discharge variable
 float discharged;

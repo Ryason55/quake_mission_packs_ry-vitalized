@@ -8,6 +8,26 @@
 //float START_OFF = 1;
 float USE_COUNT = 1;
 
+
+//========================
+//  Subs added by Ryason
+//========================
+
+//Ry: If a player is detected via checkclient, set a timer during which particles will be shown
+void() particlefield_think =
+{
+  if (checkclient())
+  {
+    self.search_time = time + 2;
+  }
+  self.nextthink = time + 0.1;
+}
+
+//===================
+//  End of new subs
+//===================
+
+
 void () particlefield_XZ =
 	{
 	local vector pos;
@@ -29,7 +49,7 @@ void () particlefield_XZ =
 
    // Only show particles if client is visible.
    // This helps to keep network traffic down to a minimum.
-   if (!checkclient() )
+   if (time > self.search_time)
       return;
 
    start = self.dest1 + self.origin;
@@ -73,7 +93,7 @@ void () particlefield_YZ =
 
    // Only show particles if client is visible.
    // This helps to keep network traffic down to a minimum.
-   if (!checkclient() )
+   if (time > self.search_time)
       return;
 
    start = self.dest1 + self.origin;
@@ -113,7 +133,7 @@ void () particlefield_XY =
 
    // Only show particles if client is visible.
    // This helps to keep network traffic down to a minimum.
-   if (!checkclient() )
+   if (time > self.search_time)
       return;
 
 
@@ -163,75 +183,81 @@ USE_COUNT when the activator is a func_counter, the field will only
 */
 
 void() func_particlefield =
+{
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
+  if ( !self.color )
+  {
+    self.color = 192;
+  }
+  if ( self.count == 0 )
+  {
+    self.count = 2;
+  }
+  self.classname = "particlefield";
+  self.solid = SOLID_NOT;
+  self.movetype = MOVETYPE_NONE;
+  setmodel (self, self.model);
+  self.model = string_null;
+
+  self.origin = ( self.mins + self.maxs ) * 0.5;
+  setorigin (self, self.origin);
+  self.dest = self.maxs - self.mins - '16 16 16';
+  self.dest1 = self.mins + '8 8 8' - self.origin;
+  self.dest2 = self.maxs + '7.9 7.9 7.9' - self.origin;
+  setsize (self, self.mins, self.maxs);
+  self.touch = particlefield_touch;
+//  dprint( vtos( self.dest ) );
+//  dprint( "  " );
+  if ( self.dest_x > self.dest_z )
 	{
-   if ( !self.color )
-	   {
-      self.color = 192;
-	   }
-   if ( self.count == 0 )
-	   {
-      self.count = 2;
-	   }
-   self.classname = "particlefield";
-   self.solid = SOLID_NOT;
-   self.movetype = MOVETYPE_NONE;
-   setmodel (self, self.model);
-   self.model = string_null;
-
-   self.origin = ( self.mins + self.maxs ) * 0.5;
-   setorigin (self, self.origin);
-   self.dest = self.maxs - self.mins - '16 16 16';
-   self.dest1 = self.mins + '8 8 8' - self.origin;
-   self.dest2 = self.maxs + '7.9 7.9 7.9' - self.origin;
-   setsize (self, self.mins, self.maxs);
-   self.touch = particlefield_touch;
-//   dprint( vtos( self.dest ) );
-//   dprint( "  " );
-   if ( self.dest_x > self.dest_z )
-		{
-      if ( self.dest_y > self.dest_z )
-			{
-//         dprint( "XY1 - " );
-//         dprint( ftos( self.cnt ) );
-//         dprint( "\n" );
-         self.use = particlefield_XY;
-         self.dest1_z = ( self.dest1_z + self.dest2_z ) / 2;
-			}
-		else
-			{
-//         dprint( "XZ1 - " );
-//         dprint( ftos( self.cnt ) );
-//         dprint( "\n" );
-         self.use = particlefield_XZ;
-         self.dest1_y = ( self.dest1_y + self.dest2_y ) / 2;
-			}
+    if ( self.dest_y > self.dest_z )
+    {
+//      dprint( "XY1 - " );
+//      dprint( ftos( self.cnt ) );
+//      dprint( "\n" );
+      self.use = particlefield_XY;
+      self.dest1_z = ( self.dest1_z + self.dest2_z ) / 2;
 		}
+		else
+		{
+//      dprint( "XZ1 - " );
+//      dprint( ftos( self.cnt ) );
+//      dprint( "\n" );
+      self.use = particlefield_XZ;
+      self.dest1_y = ( self.dest1_y + self.dest2_y ) / 2;
+		}
+	}
 	else
-		{
-      if ( self.dest_y > self.dest_x )
-         {
-//         dprint( "YZ2 - " );
-//         dprint( ftos( self.cnt ) );
-//         dprint( "\n" );
-         self.use = particlefield_YZ;
-         self.dest1_x = ( self.dest1_x + self.dest2_x ) / 2;
-			}
-		else
-			{
-//         dprint( "XZ2 - " );
-//         dprint( ftos( self.cnt ) );
-//         dprint( "\n" );
-         self.use = particlefield_XZ;
-         self.dest1_y = ( self.dest1_y + self.dest2_y ) / 2;
-			}
+	{
+    if ( self.dest_y > self.dest_x )
+    {
+//      dprint( "YZ2 - " );
+//      dprint( ftos( self.cnt ) );
+//      dprint( "\n" );
+      self.use = particlefield_YZ;
+      self.dest1_x = ( self.dest1_x + self.dest2_x ) / 2;
 		}
+		else
+		{
+//      dprint( "XZ2 - " );
+//      dprint( ftos( self.cnt ) );
+//      dprint( "\n" );
+      self.use = particlefield_XZ;
+      self.dest1_y = ( self.dest1_y + self.dest2_y ) / 2;
+		}
+	}
 
-   if ( self.noise )
-      {
-      precache_sound( self.noise );
-      }
-   self.ltime = time;
-   };
+  if ( self.noise )
+  {
+    precache_sound( self.noise );
+  }
+  self.ltime = time;
+
+  self.think = particlefield_think;
+  self.nextthink = time + 0.1;
+};
 
 void () blocker_touch =
 	{
@@ -271,37 +297,40 @@ START_OFF wall doesn't block until triggered.
 */
 
 void() func_togglewall =
-	{
-   self.classname = "togglewall";
-   self.movetype = MOVETYPE_PUSH;
-   self.mdl = self.model;
-   setmodel (self, self.model);
-   setsize (self, self.mins, self.maxs);
-   setorigin (self, self.origin);
-   self.touch = blocker_touch;
-   self.use = blocker_use;
-   if ( !self.noise )
-      {
-      self.noise = ("misc/null.wav");
-      }
-   if ( !self.noise1 )
-      {
-      self.noise1 = ("misc/null.wav");
-      }
+{
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
 
-   precache_sound( self.noise );
-   precache_sound( self.noise1 );
+  self.classname = "togglewall";
+  self.movetype = MOVETYPE_PUSH;
+  self.mdl = self.model;
+  setmodel (self, self.model);
+  setsize (self, self.mins, self.maxs);
+  setorigin (self, self.origin);
+  self.touch = blocker_touch;
+  self.use = blocker_use;
+  if ( !self.noise )
+  {
+    self.noise = ("misc/null.wav");
+  }
+  if ( !self.noise1 )
+  {
+    self.noise1 = ("misc/null.wav");
+  }
 
-   self.solid = SOLID_BSP;
-   self.model = string_null;
-   if ( self.spawnflags & START_OFF )
-      {
-      self.state = 0;
-      setorigin( self, self.origin + '8000 8000 8000' );
-      }
-   else
-      {
-      self.state = 1;
-      sound(self, CHAN_VOICE, self.noise1, 1, ATTN_NORM);
-      }
-   };
+  precache_sound( self.noise );
+  precache_sound( self.noise1 );
+
+  self.solid = SOLID_BSP;
+  self.model = string_null;
+  if ( self.spawnflags & START_OFF )
+  {
+    self.state = 0;
+    setorigin( self, self.origin + '8000 8000 8000' );
+  }
+  else
+  {
+    self.state = 1;
+    sound(self, CHAN_VOICE, self.noise1, 1, ATTN_NORM);
+  }
+};

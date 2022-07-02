@@ -3,20 +3,382 @@ void() W_UpdateAmmo; //Ry: Added function name reference here
 /* ALL LIGHTS SHOULD BE 0 1 0 IN COLOR ALL OTHER ITEMS SHOULD
 BE .8 .3 .4 IN COLOR */
 
-
-//Ry: New func, located in client.qc
-void(entity player, float type, string message1, string message2 = "", string message3 = "", string message4 = "", string message5 = "", string message6 = "") FilteredCenterPrint;
-
-
 void() SUB_regen =
 {
 	self.model = self.mdl;		// restore original model
 	self.solid = SOLID_TRIGGER;	// allow it to be touched again
   self.effects = self.itemeffect; //Ry: Add item effect if defined
-  self.alpha = 0; //Ry: Remove alpha effects
+  #ifndef ENGINE_WINQUAKE
+    self.alpha = 0; //Ry: Remove alpha effects
+  #endif
 	sound (self, CHAN_VOICE, "items/itembk2.wav", 1, ATTN_NORM);	// play respawn sound
 	setorigin (self, self.origin);
 };
+
+
+
+//======================
+//  New Subs by Ryason
+//======================
+
+void(vector org) spawn_tfog;
+
+void() GremlinItemSafety = //Ry: Ensure that a weapon item dropped by a Gremlin warps back if it ends up unreachable
+{
+  local float content;
+  if (self.solid == SOLID_TRIGGER)
+  {
+    content = pointcontents(self.origin);
+    if ( (content == CONTENT_SOLID) || (content == CONTENT_SKY) || (self.watertype == CONTENT_SLIME) || (self.watertype == CONTENT_LAVA) || ((world.model == "maps/hipdm1.bsp") && ( self.origin_z < -1300 )) )
+    {
+      self.waterlevel = 0;
+      if (self.static)
+        self.movetype = MOVETYPE_FLY;
+      setorigin(self,self.pickorigin);
+      spawn_tfog(self.origin);
+      self.displaced = FALSE;
+    }
+    else
+      self.nextthink = time + 1;
+  }
+};
+
+void(entity item, float newalpha) UpdateItemVisibility = //Ry: In Co-op, set item to be transparent if all active players have picked the item
+{
+  if (coop)
+  {
+    local float currindex = 1;
+    while (currindex <= highestplayerindex) //Ry: Check if any active players don't have the item
+    {
+      if ( (playerindexinuse & currindex) && !(item.pickers & currindex) )
+      {
+        #ifndef ENGINE_WINQUAKE
+          item.alpha = newalpha;
+        #endif
+        if (item.solid != SOLID_TRIGGER) //Ry: Show the item again if it was hidden
+        {
+          item.solid = SOLID_TRIGGER;
+          setmodel(item,item.mdl);
+        }
+        return;
+      }
+      currindex = currindex * 2;
+    }
+    #ifndef ENGINE_WINQUAKE
+      item.alpha = 0;
+    #endif
+    if (item.solid != SOLID_NOT) //Ry: If everyone has the item, hide it
+    {
+      item.model = string_null;
+      item.solid = SOLID_NOT;
+      if (item.displaced) //Ry: Put back where it belongs if it was displaced by a Gremlin
+      {
+        item.waterlevel = 0;
+        if (item.static)
+          item.movetype = MOVETYPE_FLY;
+        setorigin(item,item.pickorigin);
+        item.displaced = FALSE;
+      }
+    }
+  }
+}
+
+void() TransparentThink = //Ry: Thinker version of the above
+{
+  UpdateItemVisibility(self,0);
+  if (self.displaced) //Ry: Reinstate safety thinker if it was running
+  {
+    self.think = GremlinItemSafety;
+    self.nextthink = time + 1;
+  }
+}
+
+void() CreateExtraItemThinker = //Ry: External thinker for items, written to "trigger_field"
+{
+  if (!self.trigger_field)
+  {
+    self.trigger_field = spawn();
+    self.trigger_field.classname = "itemthinker";
+    self.trigger_field.origin = self.origin;
+    self.trigger_field.origin_z = (self.trigger_field.origin_z + self.mins_z + 1000);
+    self.trigger_field.enemy = self;
+    self.trigger_field.respawntime = self.respawntime;
+  }
+}
+
+#ifndef ENGINE_WINQUAKE
+  void() ItemPreSpawnGhost = //Ry: Show a ghost of the item shortly before spawning
+  {
+    if (self.enemy.model == string_null)
+    {
+      self.enemy.model = self.enemy.mdl;
+      self.enemy.alpha = 0.2;
+    }
+  }
+#endif
+
+void(float spawntime) PrepareItemRespawn =
+{
+  self.nextthink = spawntime;
+  self.think = SUB_regen;
+  #ifndef ENGINE_WINQUAKE
+    if (deathmatch)
+    {
+      if (time >= (spawntime-5))
+      {
+        self.model = self.mdl;
+        self.alpha = 0.2;
+        if (self.trigger_field)
+          self.trigger_field.nextthink = -1;
+      }
+      else
+      {
+        CreateExtraItemThinker();
+        self.trigger_field.think = ItemPreSpawnGhost;
+        self.trigger_field.nextthink = spawntime-5;
+      }
+    
+    }
+  #endif
+}
+
+void() SUB_revertpowerup = //Ry: Put the powerup back into position for spawning normally
+{
+	self.solid = SOLID_NOT;
+	self.model = string_null;
+	setorigin (self, self.pickorigin);
+  self.remaintime = 0;
+  self.effects = 0;
+  if (self.static) //Ry: Ensure no gravity is restored if the item is supposed to float
+    self.movetype = MOVETYPE_FLY;
+  if (deathmatch)
+    PrepareItemRespawn(self.nextspawntime); //Ry: Now also sets up a ghost for the item when close to spawning
+}
+
+void(entity item, entity player) droppowerup = //Ry: Make the dropped powerup functional again, and place it where the player died
+{
+  item.model = item.mdl;
+  item.effects = item.itemeffect; //Ry: Add item effect if defined
+  item.origin = player.origin;
+  item.flags = FL_ITEM;
+  item.solid = SOLID_TRIGGER;
+  item.movetype = MOVETYPE_TOSS;
+  item.velocity_z = 300;
+  item.velocity_x = -100 + (random() * 200);
+  item.velocity_y = -100 + (random() * 200);
+  if (deathmatch)
+  {
+    if (self.trigger_field) //Ry: Disable item ghost thinker
+      self.trigger_field.nextthink = -1;
+    if (item.nextspawntime-time < 35)
+      item.nextthink = item.nextspawntime - 5;
+    else
+      item.nextthink = time + 30;
+    item.think = SUB_revertpowerup;
+  }
+}
+
+void() DropPowerups = //Ry: New function for dropping each powerup on death
+{
+  if ((self.super_damage_finished - time > 3) && ( coop || (time < self.super_validdroptime) ) && (self.super_item) )
+  {
+    self.super_item.remaintime = self.super_damage_finished - time;
+    self.super_damage_finished = 0;
+    self.super_time = 0;
+    self.items = self.items - IT_QUAD;
+    droppowerup(self.super_item,self);
+  }
+  if ((self.invincible_finished - time > 3) && ( coop || (time < self.invincible_validdroptime) ) && (self.invincible_item) )
+  {
+    self.invincible_item.remaintime = self.invincible_finished - time;
+    self.invincible_finished = 0;
+    self.invincible_time = 0;
+    self.items = self.items - IT_INVULNERABILITY;
+    droppowerup(self.invincible_item,self);
+  }
+  if ((self.invisible_finished - time > 3) && ( coop || (time < self.invisible_validdroptime) ) && (self.invisible_item))
+  {
+    self.invisible_item.remaintime = self.invisible_finished - time;
+    self.invisible_finished = 0;
+    self.invisible_time = 0;
+    self.items = self.items - IT_INVISIBILITY;
+    droppowerup(self.invisible_item,self);
+  }
+  if (!coop && (self.radsuit_finished - time > 3) && (time < self.radsuit_validdroptime) && (self.radsuit_item) ) //Ry: Don't drop in Co-op, since it's already shared
+  {
+    self.radsuit_item.remaintime = self.radsuit_finished - time;
+    self.radsuit_finished = 0;
+    self.rad_time = 0;
+    self.items = self.items - IT_SUIT;
+    droppowerup(self.radsuit_item,self);
+  }
+  if ((self.empathy_finished - time > 3) && ( coop || (time < self.empathy_validdroptime) ) && (self.empathy_item) ) //Ry: SoA Powerups
+  {
+    self.empathy_item.remaintime = self.empathy_finished - time;
+    self.empathy_finished = 0;
+    self.empathy_time = 0;
+    self.items2 = self.items2 - HIP_IT_EMPATHY_SHIELDS;
+    droppowerup(self.empathy_item,self);
+  }
+  if (!coop && (self.wetsuit_finished - time > 3) && (time < self.wetsuit_validdroptime) && (self.wetsuit_item) ) //Ry: Don't drop in Co-op, since it's already shared
+  {
+    self.wetsuit_item.remaintime = self.wetsuit_finished - time;
+    self.wetsuit_finished = 0;
+    self.wetsuit_time = 0;
+    self.items2 = self.items2 - HIP_IT_WETSUIT;
+    droppowerup(self.wetsuit_item,self);
+  }
+  self.effects = 0;
+}
+
+void(entity item) RecoverItem =
+{
+  item.lastfragtime = time + 2;
+  item.origin = item.lastsafevect;
+  item.flags = FL_ITEM;
+  item.waterlevel = 0;
+  item.solid = SOLID_TRIGGER;
+  item.movetype = MOVETYPE_TOSS;
+  item.velocity_z = 200;
+  item.velocity_x = -1 + (random() * 2);
+  item.velocity_y = -1 + (random() * 2);
+  makevectors(item.angles);
+  spawn_tfog(item.origin);
+}
+
+void() PlayerBackpackSafety = //Ry: Make sure a backpack dropped by a player stays collectable
+{
+  if (self.owner && self.owner.view_ofs == '0 0 0') //Ry: Return backpack contents immediately if players are exiting the level
+  {
+    local float acount = 0;
+    self.owner.ammo_shells = self.owner.ammo_shells + self.ammo_shells;
+    self.owner.ammo_nails = self.owner.ammo_nails + self.ammo_nails;
+    self.owner.ammo_rockets = self.owner.ammo_rockets + self.ammo_rockets;
+    self.owner.ammo_cells = self.owner.ammo_cells + self.ammo_cells;
+    
+    if (self.owner.ammo_shells > 100)
+      self.owner.ammo_shells = 100;
+    if (self.owner.ammo_nails > 200)
+      self.owner.ammo_nails = 200;
+    if (self.owner.ammo_rockets > 100)
+      self.owner.ammo_rockets = 100;
+    if (self.owner.ammo_cells > 100)
+      self.owner.ammo_cells = 100;
+    
+    sprint(self.owner,"Reclaimed "); //Ry: Let player know they got their stuff back
+    if (self.ammo_shells > 0)
+    {
+      acount = 1;
+      sprint (self.owner, ftos(self.ammo_shells) );
+      sprint (self.owner, " shells");
+    }
+    if (self.ammo_nails > 0)
+    {
+      if (acount)
+        sprint(self.owner, ", ");
+      acount = 1;
+      sprint (self.owner, ftos(self.ammo_nails) );
+      sprint (self.owner, " nails");
+    }
+    if (self.ammo_rockets > 0)
+    {
+      if (acount)
+        sprint(self.owner, ", ");
+      acount = 1;
+      sprint (self.owner, ftos(self.ammo_rockets) );
+      sprint (self.owner, " rockets");
+    }
+    if (self.ammo_cells > 0)
+    {
+      if (acount)
+        sprint(self.owner, ", ");
+      acount = 1;
+      sprint (self.owner, ftos(self.ammo_cells) );
+      sprint (self.owner, " cells");
+    }
+    sprint (self.owner, "\n");
+    
+    remove(self);
+    return;
+  }
+  else if ( (self.watertype == CONTENT_SLIME) || (self.watertype == CONTENT_LAVA) || ((world.model == "maps/hipdm1.bsp") && ( self.origin_z < -1300 )) )
+    RecoverItem(self);
+  
+  else if (self.owner && !(self.owner.flags & FL_CLIENT)) //Ry: Owner disconnected
+  {
+    self.owner = entity_null;
+    self.effects = 0;
+    self.nextthink = time + 120;
+    self.think = SUB_Remove;
+    return;
+  }
+    
+  self.nextthink = time + 1;
+}
+
+void() GremlinBackpackSafety = //Ry: Trimmed version of above for Gremlin backpacks
+{
+  if ( (self.watertype == CONTENT_SLIME) || (self.watertype == CONTENT_LAVA) || ((world.model == "maps/hipdm1.bsp") && ( self.origin_z < -1300 )) )
+    RecoverItem(self);
+
+  self.nextthink = time + 1;
+}
+
+void() RecordSafeVect =
+{
+  if ( (self.flags & FL_ONGROUND) && ((self.movetype == MOVETYPE_WALK) || (self.movetype == MOVETYPE_STEP))
+       && self.waterlevel <= 1 && !((self.watertype == CONTENT_SLIME) || (self.watertype == CONTENT_LAVA)) && (time >= (self.lastsafecheck + 0.25)) )
+  {
+    self.lastsafecheck = time;
+    traceline(self.origin, self.origin + '0 0 -36', 1, self); //Ry: Ensure over solid level geometry (no moving platforms)
+    if ( (trace_fraction < 1) && (trace_ent == world) )
+      self.lastsafevect = self.origin;
+  }
+}
+
+void(float weapon, string name, float gremallowed) BackpackWeaponTake =
+{
+  if (self.items & weapon) //Ry: self is the item, other is the picker
+  {
+    if (other.classname == "monster_gremlin")
+    {
+      if ( gremallowed && !(other.items & weapon) )
+      {
+        self.items = self.items - weapon;
+        other.items |= weapon;
+        if ( self.stolenitems & weapon )
+          other.stolenitems |= weapon;
+        self.aflag = self.aflag + 1;
+      }
+    }
+    //Ry: Player can collect if it isn't Co-op, it's not a stolen weapon and they 
+    else if ( (other.flags & FL_CLIENT) && ( !coop || ( ((other.items & weapon) && !(self.stolenitems & weapon)) || (other.stolenitems & weapon)) ) )
+    {
+      if (other.stolenitems & weapon)
+      {
+        if (self.count == 0)
+          sprint(other, "Retrieved your ");
+        else
+          sprint(other, ", ");
+        sprint(other, name);
+        self.count = self.count + 1;
+      }
+      else
+      {
+        self.netname = name;
+      }
+      self.aflag = self.aflag + 1;
+      
+      self.items = self.items - weapon;
+      other.items |= weapon;
+      other.stolenitems -= (other.stolenitems & weapon);
+    }
+  }
+}
+
+//===================
+//  End of new subs
+//===================
 
 
 
@@ -31,81 +393,6 @@ void() noclass =
 	remove (self);
 };
 
-void() GremlinItemSafety;
-
-void(entity item) UpdateItemTransparency = //Ry: In Co-op, set item to be transparent if all active players have picked the item
-{
-  if (coop)
-  {
-    local float currindex = 1;
-    while (currindex <= highestplayerindex) //Ry: Check if any active players don't have the weapon
-    {
-      if ( (playerindexinuse & currindex) && !(item.pickers & currindex) )
-      {
-        item.alpha = 1;
-        return;
-      }
-      currindex = currindex * 2;
-    }
-    item.alpha = 0.25;
-  }
-}
-
-void() TransparentThink = //Ry: Thinker version of the above
-{
-  UpdateItemTransparency(self);
-  if (self.displaced) //Ry: Reinstate safety thinker if it was running
-  {
-    self.think = GremlinItemSafety;
-    self.nextthink = time + 1;
-  }
-}
-
-
-void() CreateExtraItemThinker = //Ry: External thinker for items, written to "trigger_field"
-{
-  if (!self.trigger_field)
-  {
-    self.trigger_field = spawn();
-    self.trigger_field.classname = "itemthinker";
-    self.trigger_field.origin = self.origin;
-    self.trigger_field.origin_z = (self.trigger_field.origin_z + self.mins_z + 1000);
-    self.trigger_field.enemy = self;
-  }
-}
-
-void() ItemPreSpawnGhost = //Ry: Show a ghost of the item shortly before spawning
-{
-  if (self.enemy.model == string_null)
-  {
-    self.enemy.model = self.enemy.mdl;
-    self.enemy.alpha = 0.2;
-  }
-}
-
-void(float spawntime) PrepareItemRespawn =
-{
-  self.nextthink = spawntime;
-  self.think = SUB_regen;
-  if (deathmatch)
-  {
-    if (time >= (spawntime-5))
-    {
-      self.model = self.mdl;
-      self.alpha = 0.2;
-      if (self.trigger_field)
-        self.trigger_field.nextthink = -1;
-    }
-    else
-    {
-      CreateExtraItemThinker();
-      self.trigger_field.think = ItemPreSpawnGhost;
-      self.trigger_field.nextthink = spawntime-5;
-    }
-  }
-}
-
-
 /*
 ============
 PlaceItem
@@ -116,6 +403,12 @@ plants the object on the floor
 void() PlaceItem =
 {
 	local float	oldz;
+  
+  if (!EntityValidForMode(FALSE,TRUE)) //Ry: Don't place items unless flagged in hybrid maps
+  {
+    remove(self);
+    return;
+  }
 
 	self.mdl = self.model;		// so it can be restored on respawn
 	self.flags = FL_ITEM;		// make extra wide
@@ -128,24 +421,29 @@ void() PlaceItem =
   self.remaintime = 0;
   self.nextspawntime = 0;
   
+  /*if (self.weapon)
+  {
+    dprint("Weapon ");
+    dprint(self.classname);
+    dprint(" placed with value ");
+    dprint(ftos(self.weapon));
+    dprint("\n");
+  }*/
   
   if ( ((!deathmatch) && (!coop)) && (self.respawntimesp > 0) ) //Ry: Set respawn time if an override is set
   {
     self.respawntime = self.respawntimesp;
-    dprint("set respawn for SP item\n");
   }
   else if ( (coop) && (self.respawntimecoop > 0) )
   {
     self.respawntime = self.respawntimecoop;
-    dprint("set respawn for Co-op item\n");
   }
   else if ( (deathmatch) && (self.respawntimedm > 0) )
   {
     self.respawntime = self.respawntimedm;
-    dprint("set respawn for DM item\n");
   }
   
-  if (self.nograv) //Ry: Added capability for items to be placed in the air
+  if (self.static) //Ry: Added capability for items to be placed in the air
   {
     self.movetype = MOVETYPE_FLY;
   }
@@ -159,6 +457,17 @@ void() PlaceItem =
       dprint ("\n");
       remove(self);
       return;
+    }
+    //Ry: If the item is on an elevator, attach to the elevator [06-26-2022]
+    traceline(self.origin + '0 0 4', self.origin + '0 0 -32', TRUE, self);
+    if ( trace_fraction < 1 && ( ((trace_ent.classname == "door") && (trace_ent.movedir_z != 0)) || (trace_ent.classname == "plat") ) )
+    {
+      self.owner = trace_ent;
+      self.effectiveorigin = self.origin - trace_ent.origin;
+      self.movetype = MOVETYPE_NOCLIP;
+      while (trace_ent.super_item) //Ry: Make an entity chain, starting from the elevator
+        trace_ent = trace_ent.super_item;
+      trace_ent.super_item = self;
     }
   }
   
@@ -281,7 +590,6 @@ void() item_health =
 
 void() health_touch =
 {
-	local	float amount;
 	local	string	s;
 
 	if (other.classname != "player")
@@ -289,10 +597,12 @@ void() health_touch =
   
   if ( coop && (!self.respawntime) && (other.flags & FL_CLIENT) && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the item
   {
-    if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
-      self.alpha = 0.25;
-    self.nextthink = time + 0.1;
-    self.think = TransparentThink;
+    #ifndef ENGINE_WINQUAKE
+      if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
+        self.alpha = 0.25;
+      self.nextthink = time + 0.1;
+      self.think = TransparentThink;
+    #endif
     return;
   }
 
@@ -330,65 +640,56 @@ void() health_touch =
 	{
 // 11/02/96 removed SUPERHEALTH from defs.qc
 //      other.items = other.items | IT_SUPERHEALTH;
-    if (coop || self.respawntime)
+    if (self.respawntime)
     {
       CreateExtraItemThinker(); //Ry: Separate entity to do the thinking; Co-op has a thinker for the transparency, and the 1 second nextthinks from rotting screw with bots in DM
       self.trigger_field.nextthink = time + 5;
       self.trigger_field.think = item_megahealth_rot;
       self.trigger_field.owner = other;
       
-      //local entity rot_ent = spawn(); //Ry: Separate entity to do the thinking; Co-op has a thinker for the transparency, and the 1 second nextthinks from rotting screw with bots in DM
-      //rot_ent.classname = "megarot";
-      //rot_ent.origin = self.origin + '16 16 0';
-      //rot_ent.nextthink = time + 5;
-      //rot_ent.think = item_megahealth_rot;
-      //rot_ent.owner = other;
-      //rot_ent.enemy = self;
       if (self.respawntime && (deathmatch != 2)) //Ry: Max time; Rot thinker will lower it to respawntime when the rotting has finished
       {
         self.nextthink = time + 300;
         self.think = SUB_regen;
       }
     }
-    else
-    {
-      self.nextthink = time + 5;
-      self.think = item_megahealth_rot;
-      self.owner = other;
-    }
+    other.megarot_time = time + 5; //Ry: Set rotting on the player [06-30-2022]
+    other.megarot_count += 1;
+    if (!deathmatch && other.megarot_count > 1)
+      other.megarot_count = 1;
 	}
 	else if (self.respawntime && (deathmatch != 2))
 	{
     PrepareItemRespawn(time + self.respawntime); //Ry: Now also sets up a ghost for the item when close to spawning
-    //self.nextthink = time + 20;
-    //self.think = SUB_regen;
-    //PrepareSpawnGhost();
 	}
   
   if (coop && (!self.respawntime))
   {
-    self.pickers = self.pickers + other.playerindex; //Ry: Mark off that this player has picked the item
-    if (!(self.alpha == 0.25))
-      self.alpha = 0.25;
-    self.nextthink = time + 0.1;
-    self.think = TransparentThink;
     if (self.healtype > 0) //Ry: Demote the item each pick
     {
       if (self.healtype == 2) //Ry: Demote to 25
       {
-        setmodel(self, "maps/b_bh25.bsp");
+        self.mdl = "maps/b_bh25.bsp";
         self.noise = "items/health1.wav";
         self.healamount = 25;
         self.healtype = 1;
       }
       else //Ry: Demote to 15
       {
-        setmodel(self, "maps/b_bh10.bsp");
+        self.mdl = "maps/b_bh10.bsp";
         self.noise = "items/r_item1.wav";
         self.healamount = 15;
         self.healtype = 0;
       }
+      setmodel(self,self.mdl);
       setsize (self, '0 0 0', '32 32 56');
+    }
+    self.pickers = self.pickers + other.playerindex; //Ry: Mark off that this player has picked the item
+    UpdateItemVisibility(self,0.25); //Ry: If everyone has the item, hide it
+    if (self.solid == SOLID_TRIGGER) //Ry: Otherwise, set the transparency thinker so the item becomes solid when the player steps off it
+    {
+      self.nextthink = time + 0.1;
+      self.think = TransparentThink;
     }
   }
 
@@ -402,7 +703,7 @@ void() item_megahealth_rot =
 
 	if (other.health > other.max_health)
 	{
-		other.health = other.health - 1;
+		//other.health = other.health - 1; //Ry: HP reduction is now handled on the player entity [06-30-2022]
 		self.nextthink = time + 1;
 		return;
 	}
@@ -412,13 +713,18 @@ void() item_megahealth_rot =
 // MED 11/02/96 removed SUPERHEALTH
 //   other.items = other.items - (other.items & IT_SUPERHEALTH);
 
-  if (coop && (!self.respawntime)) //Ry: Multiplayer modes now use a separate thinker for the rotting, which can be removed when the rot is done
-    remove(self);
-	else if ( self.respawntime && (deathmatch != 2) && (self.enemy.model == string_null) )
-	{
-    self = self.enemy;
-    PrepareItemRespawn(time + self.respawntime); //Ry: Now also sets up a ghost for the item when close to spawning
-	}
+  if (coop || deathmatch)
+  {
+    if (coop && (!self.enemy.respawntime)) //Ry: Multiplayer modes now use a separate thinker for the rotting, which can be removed when the rot is done
+    {
+      remove(self);
+    }
+    else if ( self.enemy.respawntime && (deathmatch != 2) && (self.enemy.model == string_null) )
+    {
+      self = self.enemy;
+      PrepareItemRespawn(time + self.respawntime); //Ry: Now also sets up a ghost for the item when close to spawning
+    }
+  }
 };
 
 /*
@@ -442,10 +748,12 @@ void() armor_touch =
   
   if ( coop && (!self.respawntime) && (other.flags & FL_CLIENT) && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the item
   {
-    if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
-      self.alpha = 0.25;
-    self.nextthink = time + 0.1;
-    self.think = TransparentThink;
+    #ifndef ENGINE_WINQUAKE
+      if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
+        self.alpha = 0.25;
+      self.nextthink = time + 0.1;
+      self.think = TransparentThink;
+    #endif
     return;
   }
 
@@ -477,11 +785,6 @@ void() armor_touch =
   
   if (coop && (!self.respawntime))
   {
-    self.pickers = self.pickers + other.playerindex; //Ry: Mark off that this player has picked the item
-    if (!(self.alpha == 0.25))
-      self.alpha = 0.25;
-    self.nextthink = time + 0.1;
-    self.think = TransparentThink;
     if (self.classname != "item_armor1") //Ry: Demote the item each pick
     {
       if (self.classname == "item_armorInv") //Ry: Demote to Yellow
@@ -499,6 +802,14 @@ void() armor_touch =
         self.armorvalue = 100;
       }
     }
+    self.pickers = self.pickers + other.playerindex; //Ry: Mark off that this player has picked the item
+    UpdateItemVisibility(self,0.25); //Ry: If everyone has the item, hide it
+    if (self.solid == SOLID_TRIGGER) //Ry: Otherwise, set the transparency thinker so the item becomes solid when the player steps off it
+    {
+      self.nextthink = time + 0.1;
+      self.think = TransparentThink;
+    }
+
   }
   else
   {
@@ -507,9 +818,6 @@ void() armor_touch =
     if ( self.respawntime && (deathmatch != 2) )
     {
       PrepareItemRespawn(time + self.respawntime); //Ry: Now also sets up a ghost for the item when close to spawning
-      //self.nextthink = time + 20;
-      //self.think = SUB_regen;
-      //PrepareSpawnGhost(); //Ry: Ghost of the item appears when close to respawning
     }
   }
 
@@ -637,14 +945,17 @@ void(float old, float new) Deathmatch_Weapon =
   if (!(self.weapon == IT_MJOLNIR) || self.ammo_cells < 15) //Ry: Don't switch off of Mjolnir (when usable) on picking an item pls
   {
     local float or, nr;
+    
+    if ( self.flags & FL_ISBOT )
+      return;
 
-  // change self.weapon if desired
+    // change self.weapon if desired
     or = RankForWeapon (self.weapon);
     nr = RankForWeapon (new);
     if ( nr < or )
       self.weapon = new;
   }
-};
+}
 
 /*
 =============
@@ -653,26 +964,30 @@ weapon_touch
 */
 
 float() W_BestWeapon;
+float(entity playerEnt, float old, float new) W_WantsToChangeWeapon;
 
 void() weapon_touch =
 {
-	local	float	hadammo, best, new, old;
+	local	float	hadammo, best, new, olditems, oldweapon;
 	local	entity	stemp;
 	local	float	leave;
   local string itemname;
   //local float respawntime;
 
-	if (!(other.flags & FL_CLIENT || ((other.classname == "monster_gremlin") && !(other.gorging) && !(self.stoleweapon) && !(other.super_item) && !(self.classname == "weapon_mjolnir")) )) //Ry: Gremlins now able to pick a weapon
+  //Ry: Gremlins are now able to pick a weapon off the ground
+	if (!(other.flags & FL_CLIENT || (grem_itemstealallowed && (other.classname == "monster_gremlin") && (other.gremstate != GREM_GORGING) && (!other.super_item) && (self.classname != "weapon_mjolnir") && (self.gremstate < GREM_ARMED)) ))
 		return;
 	if (other.health <= 0) //Ry: Health wasn't being checked here
 		return;
     
   if ( coop && (!self.respawntime) && (other.flags & FL_CLIENT) && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the weapon
   {
-    if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
-      self.alpha = 0.25;
-    self.nextthink = time + 0.1;
-    self.think = TransparentThink;
+    #ifndef ENGINE_WINQUAKE
+      if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
+        self.alpha = 0.25;
+      self.nextthink = time + 0.1;
+      self.think = TransparentThink;
+    #endif
     return;
   }
 
@@ -688,8 +1003,6 @@ void() weapon_touch =
   if (deathmatch == 3) //Ry: Weapons respawn quickly (except Mjolnir), and if you already have a weapon, you just get a small amount of ammo from it
   {
     leave = 0;
-    //if (deathmatch > 1)
-    //  respawntime = 5;
     if (self.classname == "weapon_nailgun")
     {
       hadammo = other.ammo_nails;
@@ -865,7 +1178,10 @@ void() weapon_touch =
         return;
       hadammo = other.ammo_rockets;
       new = IT_SUPER_SHOTGUN;
-      other.ammo_shells = other.ammo_shells + 5;
+      if (other.classname == "monster_gremlin") //Ry: Give Gremlins a bit more shotgun ammo to work with, since they don't have starting shells like players
+        other.ammo_shells = other.ammo_shells + 20;
+      else
+        other.ammo_shells = other.ammo_shells + 5;
     }
     else if (self.classname == "weapon_rocketlauncher")
     {
@@ -944,10 +1260,12 @@ void() weapon_touch =
     if ( coop && (!self.respawntime) )
     {
       self.pickers = self.pickers + other.playerindex; //Ry: Mark off that this player has picked the item
-      if (!(self.alpha == 0.25))
-        self.alpha = 0.25;
-      self.nextthink = time + 0.1;
-      self.think = TransparentThink;
+      UpdateItemVisibility(self,0.25); //Ry: If everyone has the item, hide it
+      if (self.solid == SOLID_TRIGGER) //Ry: Otherwise, set the transparency thinker so the item becomes solid when the player steps off it
+      {
+        self.nextthink = time + 0.1;
+        self.think = TransparentThink;
+      }
     }
   }
   // weapon touch sound
@@ -956,37 +1274,50 @@ void() weapon_touch =
     bound_other_ammo ();
 
 // change to the weapon
-  old = other.weapon; //Ry: Making use of this now, since it wasn't even used before
+  oldweapon = other.weapon; //Ry: Store these separately
+  olditems = other.items;
   other.items = other.items | new;
 
   stemp = self;
   self = other;
 
-  if (!deathmatch)
-    self.weapon = new;
-  else
-    Deathmatch_Weapon (old, new);
+  if(W_WantsToChangeWeapon(other, olditems, other.items) == 1) //Ry: Remaster function for checking the user's weapon switch settings
+  {
+    if (!deathmatch)
+      self.weapon = new;
+    else
+      Deathmatch_Weapon (oldweapon, new);
+  }
 
   if (self.classname == "monster_gremlin") //Ry: Gremlin
   {
-    self.stoleweapon = TRUE;
     if (!self.pickorigin)
       self.pickorigin = self.origin; //Ry: Track where the item was picked from, so it can be put back if something happens to the item
-    W_UpdateAmmo();
     if (!deathmatch)
     {
-      stemp.stoleweapon = TRUE; //Ry: Ensure only one Gremlin can grab the item on a frame
+      stemp.gremstate = GREM_ARMED; //Ry: Ensure only one Gremlin can grab the item on a frame
       self.super_item = stemp; //Store the weapon item so Gremlin can drop it
       leave = FALSE;
     }
+    if (self.goalentity == stemp) //Ry: Be sure to reset goalentity correctly if item was desired
+      GremlinAbandonItem();
+    if (self.weapon && self.enemy) //Ry: Go into weapon state
+      Gremlin_UpdateState(GREM_ARMED);
+    W_UpdateAmmo();
   }
   else //Ry: Player
-    if (self.weapon == old) //Ry: Actually check if the weapon changed instead of always resetting weapon
+    if (self.weapon == oldweapon) //Ry: Actually check if the weapon changed instead of always resetting weapon
       W_UpdateAmmo();
     else
       W_SetCurrentAmmo();
 
 	self = stemp;
+  
+  /*dprint("Player picked weapon ");
+  dprint(self.classname);
+  dprint(" with value ");
+  dprint(ftos(self.weapon));
+  dprint("\n");*/
 
 	if (leave)
 		return;
@@ -998,9 +1329,6 @@ void() weapon_touch =
 	if (self.respawntime) //Ry Edit: Respawn in Deathmatch always if the item doesn't stay
   {
     PrepareItemRespawn(time + self.respawntime); //Ry: Now also sets up a ghost for the item when close to spawning
-		//self.nextthink = time + respawntime;
-    //self.think = SUB_regen;
-    //PrepareSpawnGhost(); //Ry: Ghost of the item appears when close to respawning
   }
 
 	activator = other;
@@ -1033,7 +1361,7 @@ void() weapon_nailgun =
 	precache_model ("progs/g_nail.mdl");
 	setmodel (self, "progs/g_nail.mdl");
 	self.weapon = IT_NAILGUN;
-	self.netname = "nailgun";
+	self.netname = "Nailgun";
 	self.touch = weapon_touch;
   self.enttype = "item"; //Ry: For easy searching
   if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
@@ -1131,17 +1459,19 @@ void() ammo_touch =
   local float		best;
   local	float	leave; //Ry: Now can leave ammo in Co-op
 
-	if (!(other.classname == "player" || ( (other.classname == "monster_gremlin") && !(other.gorging) && !self.stoleweapon ) )) //Ry: Gremlins now grab ammo if they have a gun that needs it
+	if (!(other.classname == "player" || ( grem_itemstealallowed && (other.classname == "monster_gremlin") && (other.gremstate != GREM_GORGING) && (self.gremstate < GREM_ARMED) ) )) //Ry: Gremlins now grab ammo if they have a gun that needs it
 		return;
 	if (other.health <= 0)
 		return;
   
   if ( coop && (other.flags & FL_CLIENT) && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the item
   {
-    if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
-      self.alpha = 0.25;
-    self.nextthink = time + 0.1;
-    self.think = TransparentThink;
+    #ifndef ENGINE_WINQUAKE
+      if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
+        self.alpha = 0.25;
+      self.nextthink = time + 0.1;
+      self.think = TransparentThink;
+    #endif
     return;
   }
 
@@ -1157,7 +1487,7 @@ void() ammo_touch =
 	{
 		if (other.ammo_shells >= 100)
 			return;
-    if ((other.classname == "monster_gremlin") && !(other.items & IT_SUPER_SHOTGUN) ) //Ry: Gremlin must have a relevant weapon
+    if ((other.classname == "monster_gremlin") && !(other.items & (IT_SHOTGUN|IT_SUPER_SHOTGUN)) ) //Ry: Gremlin must have a relevant weapon
       return;
 		other.ammo_shells = other.ammo_shells + self.aflag;
 	}
@@ -1167,7 +1497,7 @@ void() ammo_touch =
 	{
 		if (other.ammo_nails >= 200)
 			return;
-    if ((other.classname == "monster_gremlin") && !( (other.items & IT_NAILGUN) || (other.items & IT_SUPER_NAILGUN) ) )
+    if ((other.classname == "monster_gremlin") && !(other.items & (IT_NAILGUN|IT_SUPER_NAILGUN)) )
       return;
 		other.ammo_nails = other.ammo_nails + self.aflag;
 	}
@@ -1177,7 +1507,7 @@ void() ammo_touch =
 	{
 		if (other.ammo_rockets >= 100)
 			return;
-    if ((other.classname == "monster_gremlin") && !( (other.items & IT_ROCKET_LAUNCHER) || (other.items & IT_GRENADE_LAUNCHER) || (other.items & IT_PROXIMITY_GUN) ) )
+    if ((other.classname == "monster_gremlin") && !(other.items & (IT_ROCKET_LAUNCHER|IT_GRENADE_LAUNCHER|IT_PROXIMITY_GUN)) )
       return;
 		other.ammo_rockets = other.ammo_rockets + self.aflag;
 	}
@@ -1187,7 +1517,7 @@ void() ammo_touch =
 	{
 		if (other.ammo_cells >= 100)
 			return;
-    if ((other.classname == "monster_gremlin") && !( (other.items & IT_LIGHTNING) || (other.items & IT_LASER_CANNON) ) )
+    if ((other.classname == "monster_gremlin") && !(other.items & (IT_LIGHTNING|IT_LASER_CANNON)) )
       return;
 		other.ammo_cells = other.ammo_cells + self.aflag;
 	}
@@ -1200,17 +1530,9 @@ void() ammo_touch =
     sprint (other, self.netname);
     sprint (other, "\n");
     stuffcmd (other, "bf\n");
-    if (coop)
-    {
-      self.pickers = self.pickers + other.playerindex; //Ry: Mark off that this player has picked the item
-      if (!(self.alpha == 0.25))
-        self.alpha = 0.25;
-      self.nextthink = time + 0.1;
-      self.think = TransparentThink;
-    }
   }
   else if (!deathmatch) //Ry: Only one Gremlin can grab the ammo in campaign
-    self.stoleweapon = TRUE;
+    self.gremstate = GREM_ARMED;
   
   if (coop)
   {
@@ -1220,31 +1542,46 @@ void() ammo_touch =
       self.spawnflags = self.spawnflags - WEAPON_BIG2;
       if (self.weapon == 1 && self.aflag > 20) 
       {
-        setmodel (self, "maps/b_shell0.bsp");
+        self.mdl = "maps/b_shell0.bsp";
         self.aflag = 20;
         self.origin = self.origin + '4 4 0'; //Ry: Adjust origin so the item looks centered on where the big item was
         setsize (self, '-4 -4 0', '28 28 56'); //Ry: While hitbox remains in basically the same place
+        self.view_ofs = '12 12 0';
       }
       else if (self.weapon == 2 && self.aflag > 25)
       {
-        setmodel (self, "maps/b_nail0.bsp");
+        self.mdl = "maps/b_nail0.bsp";
         self.aflag = 25;
         self.origin = self.origin + '4 4 0';
         setsize (self, '-4 -4 0', '28 28 56');
+        self.view_ofs = '12 12 0';
       }
       else if (self.weapon == 3 && self.aflag > 5)
       {
-        setmodel (self, "maps/b_rock0.bsp");
+        self.mdl = "maps/b_rock0.bsp";
         self.aflag = 5;
         self.origin = self.origin + '8 0 0';
         setsize (self, '-8 0 0', '24 32 56');
+        self.view_ofs = '8 8 0';
       }
       else if (self.weapon == 4 && self.aflag > 6)
       {
-        setmodel (self, "maps/b_batt0.bsp");
+        self.mdl = "maps/b_batt0.bsp";
         self.aflag = 6;
         self.origin = self.origin + '4 4 0';
         setsize (self, '-4 -4 0', '28 28 56');
+        self.view_ofs = '12 12 0';
+      }
+      setmodel (self,self.mdl);
+    }
+    if (other.classname == "player")
+    {
+      self.pickers = self.pickers + other.playerindex; //Ry: Mark off that this player has picked the item
+      UpdateItemVisibility(self,0.25); //Ry: If everyone has the item, hide it
+      if (self.solid == SOLID_TRIGGER) //Ry: Otherwise, set the transparency thinker so the item becomes solid when the player steps off it
+      {
+        self.nextthink = time + 0.1;
+        self.think = TransparentThink;
       }
     }
   }
@@ -1257,15 +1594,24 @@ void() ammo_touch =
   stemp = self;
   self = other;
   
-  if (other.classname == "monster_gremlin") //Ry: Gremlin
+  if (self.classname == "monster_gremlin") //Ry: Gremlin
   {
-    if (other.weapon == best)
-      self.weapon = W_BestWeapon();
+    if ( (self.gremstate >= GREM_ARMED) && self.weapon )
+    {
+      best = W_BestWeapon();
+      if ( self.weapon != best ) //Ry: Always change to best weapon on Gremlin
+      {
+        self.weapon = best;
+      }
+    }
     W_UpdateAmmo();
+    if (self.goalentity == stemp) //Ry: Be sure to reset goalentity correctly if item was desired
+      GremlinAbandonItem();
   }
   else //Ry: Player
   {
-    if ( other.weapon == best && (!deathmatch || !(self.weapon == IT_MJOLNIR) || self.ammo_cells < 15 ) ) //Ry: Condensed this a bit, made a lighter ammo update, and don't switch off usable Mjolnir
+    //Ry: Condensed this a bit, made a lighter ammo update, and don't switch off usable Mjolnir. Also Remaster check for weapon switch setting.
+    if ( self.weapon == best && (W_WantsToChangeWeapon(self, 0, 1) == 1) && (!deathmatch || !(self.weapon == IT_MJOLNIR) || self.ammo_cells < 15 ) )
     {
       self.weapon = W_BestWeapon();
       W_SetCurrentAmmo ();
@@ -1285,9 +1631,6 @@ void() ammo_touch =
 	if (deathmatch && (deathmatch != 2)) //Ry edit: Respawn in Deathmatch 3/4 as well
   {
     PrepareItemRespawn(time + 30); //Ry: Now also sets up a ghost for the item when close to spawning
-		//self.nextthink = time + 30;
-    //self.think = SUB_regen;
-    //PrepareSpawnGhost(); //Ry: Ghost of the item appears when close to respawning
   }
 
 	activator = other;
@@ -1309,12 +1652,14 @@ void() item_shells =
 		precache_model ("maps/b_shell1.bsp");
 		setmodel (self, "maps/b_shell1.bsp");
 		self.aflag = 40;
+    self.view_ofs = '16 16 0';
 	}
 	else
 	{
 		precache_model ("maps/b_shell0.bsp");
 		setmodel (self, "maps/b_shell0.bsp");
 		self.aflag = 20;
+    self.view_ofs = '12 12 0';
 	}
 	self.weapon = 1;
 	self.netname = "shells";
@@ -1338,12 +1683,14 @@ void() item_spikes =
 		precache_model ("maps/b_nail1.bsp");
 		setmodel (self, "maps/b_nail1.bsp");
 		self.aflag = 50;
+    self.view_ofs = '16 16 0';
 	}
 	else
 	{
 		precache_model ("maps/b_nail0.bsp");
 		setmodel (self, "maps/b_nail0.bsp");
 		self.aflag = 25;
+    self.view_ofs = '12 12 0';
 	}
 	self.weapon = 2;
 	self.netname = "nails";
@@ -1367,12 +1714,14 @@ void() item_rockets =
 		precache_model ("maps/b_rock1.bsp");
 		setmodel (self, "maps/b_rock1.bsp");
 		self.aflag = 10;
+    self.view_ofs = '16 8 0';
 	}
 	else
 	{
 		precache_model ("maps/b_rock0.bsp");
 		setmodel (self, "maps/b_rock0.bsp");
 		self.aflag = 5;
+    self.view_ofs = '8 8 0';
 	}
 	self.weapon = 3;
 	self.netname = "rockets";
@@ -1397,12 +1746,14 @@ void() item_cells =
 		precache_model ("maps/b_batt1.bsp");
 		setmodel (self, "maps/b_batt1.bsp");
 		self.aflag = 12;
+    self.view_ofs = '16 16 0';
 	}
 	else
 	{
 		precache_model ("maps/b_batt0.bsp");
 		setmodel (self, "maps/b_batt0.bsp");
 		self.aflag = 6;
+    self.view_ofs = '12 12 0';
 	}
 	self.weapon = 4;
 	self.netname = "cells";
@@ -1425,6 +1776,7 @@ float WEAPON_BIG = 8;
 void() item_weapon =
 {
 	self.touch = ammo_touch;
+  self.view_ofs = '16 16 0'; //Ry: Offset for Gremlins moving towards the item
 
 	if (self.spawnflags & WEAPON_SHOTGUN)
 	{
@@ -1440,6 +1792,7 @@ void() item_weapon =
 			precache_model ("maps/b_shell0.bsp");
 			setmodel (self, "maps/b_shell0.bsp");
 			self.aflag = 20;
+      self.view_ofs = '12 12 0';
 		}
 		self.weapon = 1;
 		self.netname = "shells";
@@ -1459,9 +1812,10 @@ void() item_weapon =
 			precache_model ("maps/b_nail0.bsp");
 			setmodel (self, "maps/b_nail0.bsp");
 			self.aflag = 20;
+      self.view_ofs = '12 12 0';
 		}
 		self.weapon = 2;
-		self.netname = "spikes";
+		self.netname = "nails"; //Ry: More consistent naming
 	}
 
 	if (self.spawnflags & WEAPON_ROCKET)
@@ -1472,12 +1826,14 @@ void() item_weapon =
 			precache_model ("maps/b_rock1.bsp");
 			setmodel (self, "maps/b_rock1.bsp");
 			self.aflag = 10;
+      self.view_ofs = '16 8 0';
 		}
 		else
 		{
 			precache_model ("maps/b_rock0.bsp");
 			setmodel (self, "maps/b_rock0.bsp");
 			self.aflag = 5;
+      self.view_ofs = '8 8 0';
 		}
 		self.weapon = 3;
 		self.netname = "rockets";
@@ -1501,9 +1857,6 @@ KEYS
 
 void() key_touch =
 {
-local entity	stemp;
-local float		best;
-
 	if (other.classname != "player")
 		return;
 	if (other.health <= 0)
@@ -1637,9 +1990,6 @@ END OF LEVEL RUNES
 
 void() sigil_touch =
 {
-local entity	stemp;
-local float		best;
-
 	if (other.classname != "player")
 		return;
 	if (other.health <= 0)
@@ -1707,30 +2057,8 @@ POWERUPS
 
 void() powerup_touch;
 
-void() SUB_revertpowerup = //Ry: Put the powerup back into position for spawning normally
-{
-	self.solid = SOLID_NOT;
-	self.model = string_null;
-	setorigin (self, self.pickorigin);
-  self.remaintime = 0;
-  self.effects = 0;
-  if (self.nograv) //Ry: Ensure no gravity is restored if the item is supposed to float
-    self.movetype = MOVETYPE_FLY;
-  if (deathmatch)
-  {
-    PrepareItemRespawn(self.nextspawntime); //Ry: Now also sets up a ghost for the item when close to spawning
-    //self.nextthink = self.nextspawntime;
-    //self.think = SUB_regen;
-    //PrepareSpawnGhost(); //Ry: Ghost of the item appears when close to respawning
-  }
-  
-}
-
 void() powerup_touch =
 {
-local entity	stemp;
-local float		best;
-
 	if (other.classname != "player")
 		return;
 	if (other.health <= 0)
@@ -1742,6 +2070,17 @@ local float		best;
     poweruptime = time + self.remaintime;
     if ( deathmatch && (poweruptime > (self.nextspawntime - 2)) ) //Ry: Cap powerup time to 2 seconds before it should respawn in Deathmatch
       poweruptime = (self.nextspawntime - 2);
+  }
+  else if ( horde && ((self.classname == "item_artifact_super_damage") || (self.classname == "item_artifact_invulnerability")) )
+  {
+    if ( (self.classname == "item_artifact_super_damage") && other.super_damage_finished ) //Ry: Dropped powerups in Horde can now stack
+      poweruptime = other.super_damage_finished + 5;
+    else if ( (self.classname == "item_artifact_invulnerability") && other.invincible_finished )
+      poweruptime = other.invincible_finished + 5;
+    else
+      poweruptime = time + 5;
+    if ( poweruptime > (time + 30) ) //Ry: Make sure absurdities can't happen
+      poweruptime = time + 30;
   }
   else
     poweruptime = time + 30;
@@ -1760,9 +2099,6 @@ local float		best;
 
       self.pickorigin = self.origin;
       PrepareItemRespawn(self.nextspawntime); //Ry: Now also sets up a ghost for the item when close to spawning
-      //self.nextthink = self.nextspawntime;
-      //self.think = SUB_regen;
-      //PrepareSpawnGhost(); //Ry: Ghost of the item appears when close to respawning
 		}
     else //Ry: Dropped powerup. Put it back in it's original spot when it's picked up
     {
@@ -1831,82 +2167,6 @@ local float		best;
 	activator = other;
 	SUB_UseTargets();				// fire all targets / killtargets
 };
-
-void(entity item, entity player) droppowerup = //Ry: Make the dropped powerup functional again, and place it where the player died
-{
-  item.model = item.mdl;
-  item.effects = item.itemeffect; //Ry: Add item effect if defined
-  item.origin = player.origin;
-  item.flags = FL_ITEM;
-  item.solid = SOLID_TRIGGER;
-  item.movetype = MOVETYPE_TOSS;
-  item.velocity_z = 300;
-  item.velocity_x = -100 + (random() * 200);
-  item.velocity_y = -100 + (random() * 200);
-  if (deathmatch)
-  {
-    if (self.trigger_field) //Ry: Disable item ghost thinker
-      self.trigger_field.nextthink = -1;
-    if (item.nextspawntime-time < 35)
-      item.nextthink = item.nextspawntime - 5;
-    else
-      item.nextthink = time + 30;
-    item.think = SUB_revertpowerup;
-  }
-}
-
-void() DropPowerups = //Ry: New function for dropping each powerup on death
-{
-  if ((self.super_damage_finished - time > 3) && ( coop || (time < self.super_validdroptime) ) && (self.super_item) )
-  {
-    self.super_item.remaintime = self.super_damage_finished - time;
-    self.super_damage_finished = 0;
-    self.super_time = 0;
-    self.items = self.items - IT_QUAD;
-    droppowerup(self.super_item,self);
-  }
-  if ((self.invincible_finished - time > 3) && ( coop || (time < self.invincible_validdroptime) ) && (self.invincible_item) )
-  {
-    self.invincible_item.remaintime = self.invincible_finished - time;
-    self.invincible_finished = 0;
-    self.invincible_time = 0;
-    self.items = self.items - IT_INVULNERABILITY;
-    droppowerup(self.invincible_item,self);
-  }
-  if ((self.invisible_finished - time > 3) && ( coop || (time < self.invisible_validdroptime) ) && (self.invisible_item))
-  {
-    self.invisible_item.remaintime = self.invisible_finished - time;
-    self.invisible_finished = 0;
-    self.invisible_time = 0;
-    self.items = self.items - IT_INVISIBILITY;
-    droppowerup(self.invisible_item,self);
-  }
-  if (!coop && (self.radsuit_finished - time > 3) && (time < self.radsuit_validdroptime) && (self.radsuit_item) ) //Ry: Don't drop in Co-op, since it's already shared
-  {
-    self.radsuit_item.remaintime = self.radsuit_finished - time;
-    self.radsuit_finished = 0;
-    self.rad_time = 0;
-    self.items = self.items - IT_SUIT;
-    droppowerup(self.radsuit_item,self);
-  }
-  if ((self.empathy_finished - time > 3) && ( coop || (time < self.empathy_validdroptime) ) && (self.empathy_item) ) //Ry: SoA Powerups
-  {
-    self.empathy_item.remaintime = self.empathy_finished - time;
-    self.empathy_finished = 0;
-    self.empathy_time = 0;
-    self.items2 = self.items2 - HIP_IT_EMPATHY_SHIELDS;
-    droppowerup(self.empathy_item,self);
-  }
-  if (!coop && (self.wetsuit_finished - time > 3) && (time < self.wetsuit_validdroptime) && (self.wetsuit_item) ) //Ry: Don't drop in Co-op, since it's already shared
-  {
-    self.wetsuit_item.remaintime = self.wetsuit_finished - time;
-    self.wetsuit_finished = 0;
-    self.wetsuit_time = 0;
-    self.items2 = self.items2 - HIP_IT_WETSUIT;
-    droppowerup(self.wetsuit_item,self);
-  }
-  self.effects = 0;
-}
 
 
 /*QUAKED item_artifact_invulnerability (0 .5 .8) (-16 -16 -24) (16 16 32)
@@ -2012,150 +2272,29 @@ PLAYER BACKPACKS
 ===============================================================================
 */
 
-void(vector org) spawn_tfog
-
-void(entity item) RecoverItem =
-{
-  item.lastfragtime = time + 2;
-  item.origin = item.lastsafevect;
-  item.flags = FL_ITEM;
-  item.waterlevel = 0;
-  item.solid = SOLID_TRIGGER;
-  item.movetype = MOVETYPE_TOSS;
-  item.velocity_z = 200;
-  item.velocity_x = -1 + (random() * 2);
-  item.velocity_y = -1 + (random() * 2);
-  makevectors(item.angles);
-  spawn_tfog(item.origin);
-}
-
-void() PlayerBackpackSafety = //Ry: Make sure a backpack dropped by a player stays collectable
-{
-  //bprint("Owner is ");
-  //bprint(self.ownername);
-  //bprint("\n");
-  if (self.owner && self.owner.view_ofs == '0 0 0') //Ry: Return backpack contents immediately if players are exiting the level
-  {
-    local float acount = 0;
-    self.owner.ammo_shells = self.owner.ammo_shells + self.ammo_shells;
-    self.owner.ammo_nails = self.owner.ammo_nails + self.ammo_nails;
-    self.owner.ammo_rockets = self.owner.ammo_rockets + self.ammo_rockets;
-    self.owner.ammo_cells = self.owner.ammo_cells + self.ammo_cells;
-    
-    if (self.owner.ammo_shells > 100)
-      self.owner.ammo_shells = 100;
-    if (self.owner.ammo_nails > 200)
-      self.owner.ammo_nails = 200;
-    if (self.owner.ammo_rockets > 100)
-      self.owner.ammo_rockets = 100;
-    if (self.owner.ammo_cells > 100)
-      self.owner.ammo_cells = 100;
-    
-    sprint(self.owner,"Reclaimed "); //Ry: Let player know they got their stuff back
-    if (self.ammo_shells > 0)
-    {
-      acount = 1;
-      sprint (self.owner, ftos(self.ammo_shells) );
-      sprint (self.owner, " shells");
-    }
-    if (self.ammo_nails > 0)
-    {
-      if (acount)
-        sprint(self.owner, ", ");
-      acount = 1;
-      sprint (self.owner, ftos(self.ammo_nails) );
-      sprint (self.owner, " nails");
-    }
-    if (self.ammo_rockets > 0)
-    {
-      if (acount)
-        sprint(self.owner, ", ");
-      acount = 1;
-      sprint (self.owner, ftos(self.ammo_rockets) );
-      sprint (self.owner, " rockets");
-    }
-    if (self.ammo_cells > 0)
-    {
-      if (acount)
-        sprint(self.owner, ", ");
-      acount = 1;
-      sprint (self.owner, ftos(self.ammo_cells) );
-      sprint (self.owner, " cells");
-    }
-    sprint (self.owner, "\n");
-    
-    remove(self);
-  }
-  else if ( (self.watertype == CONTENT_SLIME) || (self.watertype == CONTENT_LAVA) || ((world.model == "maps/hipdm1.bsp") && ( self.origin_z < -1300 )) )
-    RecoverItem(self);
-  
-  else if (self.owner && !(self.owner.flags & FL_CLIENT)) //Ry: Owner disconnected
-  {
-    //self.lastspawntime = time + 12;
-    //bprint("Backpack owner gone, crab\n");
-    self.owner = entity_null;
-    self.effects = 0;
-    self.nextthink = time + 120;
-    self.think = SUB_Remove;
-    return;
-  }
-  
-  /*else if (!self.owner && self.ownername) //Ry: Apparently the player name is just instantly forgotten the moment the player leaves, even if stored on an external variable
-  {
-    local entity e; //Ry: Check if player comes back
-    for (e = find(world, netname, self.ownername) ; e ; e = find(e, netname, self.ownername) )
-    {
-      if (e.flags & FL_CLIENT)
-      {
-        self.owner = e;
-        bprint("Owner has returned\n");
-        break;
-      }
-    }
-    if (!self.owner && time >= self.lastspawntime) //Ry: Owner gone long enough; Anyone can claim it now
-    {
-      bprint("Backpack now unprotected\n");
-      //self.ownername = string_null;
-      self.effects = 0;
-      self.nextthink = time + 120;
-      self.think = SUB_Remove;
-      return;
-    }
-  }*/
-    
-  self.nextthink = time + 1;
-}
-
 void() BackpackTouch =
 {
-   local string   s;
-   local float old, new; //Ry: Removed 'best', cause it wasn't being used here
-   local    entity   stemp;
+  local entity stemp;
+  local string   s;
+  local float olditems, oldweapon, new;
 	local	float	acount;
   local float take_shells, take_nails, take_rockets, take_cells, leave, takenfrom, fullpick; //Ry: For Co-op
 
-	if (!(other.classname == "player" || ((other.classname == "monster_gremlin") && !(other.gorging)) )) //Ry: eheh
+	if (!(other.classname == "player" || (grem_itemstealallowed && (other.classname == "monster_gremlin") && (other.gremstate != GREM_GORGING)) )) //Ry: eheh
 		return;
 	if (other.health <= 0)
 		return;
-  
+
   if ( (other != self.owner) && (self.lastfragtime > time) ) //Ry: Players who aren't the owner have to wait between picks
     return;
   if ( (!self.owner) || (self.owner == other) )
     fullpick = TRUE;
 
-// if the player was using his best weapon, change up to the new one if better
-	//stemp = self;
-	//self = other;
-	//best = W_BestWeapon(); //Ry: This wasn't even being used
-	//self = stemp;
-  
   new = self.items; //Ry: Moved this bit up here
 	if (new > 0)
   {
     if (deathmatch) //Ry: Give a minimum amount of ammo on picking up a new gun via backpack in deathmatch
     {
-      
       self.items = 0;
       takenfrom = TRUE;
       if ( ((new == IT_SHOTGUN) || (new == IT_SUPER_SHOTGUN)) && (self.ammo_shells < 5) )
@@ -2173,183 +2312,51 @@ void() BackpackTouch =
         self.ammo_cells = 15;
       else if ( (new == IT_LASER_CANNON) && (self.ammo_cells < 30) )
         self.ammo_cells = 30;
-
     }
-    else if (coop) //Ry: Only collect the weapon in a backpack if you didn't already have it in Co-op (For Gremlin and disconnected player backpacks)
+    else //Ry: Only collect the weapon in a backpack if you didn't already have it in Co-op (For Gremlin backpacks)
     {
       self.netname = "";
       if (fullpick)
       {
-        local float weaponcount;
-        if (self.items & IT_AXE)
-        {
-          self.items = self.items - IT_AXE;
+        new = 0;
+        self.count = 0; //Ry: Stolen weapons collected
+        self.aflag = 0; //Ry: Total weapons collected
+        
+        //Ry: This function now handles each weapon from the backpack; The function also sets up a unique message for recovering stolen weapons.
+        BackpackWeaponTake(IT_AXE,"Axe",FALSE);
+        BackpackWeaponTake(IT_SHOTGUN,"Shotgun",FALSE);
+        BackpackWeaponTake(IT_SUPER_SHOTGUN,"Double-barrelled Shotgun",TRUE);
+        BackpackWeaponTake(IT_NAILGUN,"Nailgun",TRUE);
+        BackpackWeaponTake(IT_SUPER_NAILGUN,"Super Nailgun",TRUE);
+        BackpackWeaponTake(IT_GRENADE_LAUNCHER,"Grenade Launcher",TRUE);
+        BackpackWeaponTake(IT_PROXIMITY_GUN,"Proximity Gun",TRUE);
+        BackpackWeaponTake(IT_ROCKET_LAUNCHER,"Rocket Launcher",TRUE);
+        BackpackWeaponTake(IT_LIGHTNING,"Thunderbolt",TRUE);
+        BackpackWeaponTake(IT_LASER_CANNON,"Laser Cannon",TRUE);
+        BackpackWeaponTake(IT_MJOLNIR,"Mjolnir",FALSE);
+        
+        if ( (self.count > 0) && (other.flags & FL_CLIENT) )
+          sprint(other, "\n");
+        
+        if (self.aflag > 0)
           takenfrom = TRUE;
-          self.netname = "Axe";
-          weaponcount = weaponcount + 1;
-        }
         
-        if (self.items & IT_SHOTGUN)
-        {
-          self.items = self.items - IT_SHOTGUN;
-          takenfrom = TRUE;
-          self.netname = "Shotgun";
-          weaponcount = weaponcount + 1;
-        }
-        
-        if (self.items & IT_NAILGUN)
-        {
-          if (!(other.items & IT_NAILGUN))
-          {
-            self.items = self.items - IT_NAILGUN;
-            takenfrom = TRUE;
-            self.netname = "Nailgun";
-            weaponcount = weaponcount + 1;
-          }
-          else
-          {
-            new = new - IT_NAILGUN;
-            leave = TRUE;
-          }
-        }
-        
-        if (self.items & IT_SUPER_SHOTGUN)
-        {
-          if (!(other.items & IT_SUPER_SHOTGUN))
-          {
-            self.items = self.items - IT_SUPER_SHOTGUN;
-            takenfrom = TRUE;
-            self.netname = "Double-barrelled Shotgun";
-            weaponcount = weaponcount + 1;
-          }
-          else
-          {
-            new = new - IT_SUPER_SHOTGUN;
-            leave = TRUE;
-          }
-        }
-        
-        if (self.items & IT_SUPER_NAILGUN)
-        {
-          if (!(other.items & IT_SUPER_NAILGUN))
-          {
-            self.items = self.items - IT_SUPER_NAILGUN;
-            takenfrom = TRUE;
-            self.netname = "Super Nailgun";
-            weaponcount = weaponcount + 1;
-          }
-          else
-          {
-            new = new - IT_SUPER_NAILGUN;
-            leave = TRUE;
-          }
-        }
-        
-        if (self.items & IT_GRENADE_LAUNCHER)
-        {
-          if (!(other.items & IT_GRENADE_LAUNCHER))
-          {
-            self.items = self.items - IT_GRENADE_LAUNCHER;
-            takenfrom = TRUE;
-            self.netname = "Grenade Launcher";
-            weaponcount = weaponcount + 1;
-          }
-          else
-          {
-            new = new - IT_GRENADE_LAUNCHER;
-            leave = TRUE;
-          }
-        }
-        
-        if (self.items & IT_PROXIMITY_GUN)
-        {
-          if (!(other.items & IT_PROXIMITY_GUN))
-          {
-            self.items = self.items - IT_PROXIMITY_GUN;
-            takenfrom = TRUE;
-            self.netname = "Proximity Gun";
-            weaponcount = weaponcount + 1;
-          }
-          else
-          {
-            new = new - IT_PROXIMITY_GUN;
-            leave = TRUE;
-          }
-        }
-        
-        if (self.items & IT_ROCKET_LAUNCHER)
-        {
-          if (!(other.items & IT_ROCKET_LAUNCHER))
-          {
-            self.items = self.items - IT_ROCKET_LAUNCHER;
-            takenfrom = TRUE;
-            self.netname = "Rocket Launcher";
-            weaponcount = weaponcount + 1;
-          }
-          else
-          {
-            new = new - IT_ROCKET_LAUNCHER;
-            leave = TRUE;
-          }
-        }
-        
-        if (self.items & IT_LIGHTNING)
-        {
-          if (!(other.items & IT_LIGHTNING))
-          {
-            self.items = self.items - IT_LIGHTNING;
-            takenfrom = TRUE;
-            self.netname = "Thunderbolt";
-            weaponcount = weaponcount + 1;
-          }
-          else
-          {
-            new = new - IT_LIGHTNING;
-            leave = TRUE;
-          }
-        }
-        
-        if (self.items & IT_LASER_CANNON)
-        {
-          if (!(other.items & IT_LASER_CANNON))
-          {
-            self.items = self.items - IT_LASER_CANNON;
-            takenfrom = TRUE;
-            self.netname = "Laser Cannon";
-            weaponcount = weaponcount + 1;
-          }
-          else
-          {
-            new = new - IT_LASER_CANNON;
-            leave = TRUE;
-          }
-        }
-        
-        if (self.items & IT_MJOLNIR)
-        {
-          if (!(other.items & IT_MJOLNIR) && !(other.classname == "monster_gremlin"))
-          {
-            self.items = self.items - IT_MJOLNIR;
-            takenfrom = TRUE;
-            self.netname = "Mjolnir";
-            weaponcount = weaponcount + 1;
-          }
-          else
-          {
-            new = new - IT_MJOLNIR;
-            leave = TRUE;
-          }
-        }
-        
-        other.items = other.items | new; //Ry: Add weapons here so I can set the var for later
-        
-        if (weaponcount > 1)
-        {
-          self.netname = "weapons";
+        if (self.aflag == 0)
           new = other.weapon;
+        else if (self.aflag > 1)
+        { //Ry: Equip the best weapon obtained from the backpack
+          oldweapon = W_BestWeapon();
+          if (new & oldweapon)
+            new = oldweapon;
+          else
+            new = other.weapon;
         }
-        else if (weaponcount == 0)
-          new = other.weapon;
+        
+        self.count = 0;
+        self.aflag = 0;
+        
+        if (self.items)
+          leave = TRUE;
         
       }
       else
@@ -2358,7 +2365,8 @@ void() BackpackTouch =
   }
   else
 		new = other.weapon;
-	old = other.weapon; //Ry: Making use of this var now, since it wasn't even used before
+	oldweapon = other.weapon; //Ry: Store these separately
+  olditems = other.items;
   
   other.items = other.items | new;
   
@@ -2506,35 +2514,37 @@ void() BackpackTouch =
       take_cells = 0;
     
   }
-  
+
   if ( fullpick && (other == self.owner) ) //Ry: Unset owner once they run over the backpack (even if they don't collect anything)
   {
     self.owner = entity_null;
-    //self.ownername = string_null;
     self.effects = 0;
     self.nextthink = time + 120;
     self.think = SUB_Remove;
   }
-  
+
   if (!takenfrom) //Ry: Break if nothing was taken from the backpack
+  {
     return;
-    
+  }
+
   if (other.classname == "player") //Ry: Don't run on Gremlins, moved weapon message down here, and merged
   {
     acount = 0;
-    sprint (other, "You get ");
 
     if (!(self.netname == ""))
     {
       acount = 1;
-      sprint (other, "the ");
+      sprint (other, "You got the ");
       sprint (other, self.netname);
       self.netname = "";
     }
     
     if (take_shells) //Ry: Now using new values for these
     {
-      if (acount)
+      if (acount == 0)
+        sprint (other, "You got ");
+      else
         sprint(other, ", ");
       acount = 1;
       s = ftos(take_shells);
@@ -2543,7 +2553,9 @@ void() BackpackTouch =
     }
     if (take_nails)
     {
-      if (acount)
+      if (acount == 0)
+        sprint (other, "You got ");
+      else
         sprint(other, ", ");
       acount = 1;
       s = ftos(take_nails);
@@ -2552,7 +2564,9 @@ void() BackpackTouch =
     }
     if (take_rockets)
     {
-      if (acount)
+      if (acount == 0)
+        sprint (other, "You got ");
+      else
         sprint(other, ", ");
       acount = 1;
       s = ftos(take_rockets);
@@ -2561,25 +2575,22 @@ void() BackpackTouch =
     }
     if (take_cells)
     {
-      if (acount)
+      if (acount == 0)
+        sprint (other, "You got ");
+      else
         sprint(other, ", ");
       acount = 1;
       s = ftos(take_cells);
       sprint (other, s);
       sprint (other, " cells");
     }
-    
-    sprint (other, "\n");
+
+    if (acount > 0)
+    {
+      sprint (other, "\n");
+    }
     stuffcmd (other, "bf\n");
-    
-    //sprint (other, ftos(self.ammo_shells) );
-    //sprint (other, " " );
-    //sprint (other, ftos(self.ammo_nails) );
-    //sprint (other, " " );
-    //sprint (other, ftos(self.ammo_rockets) );
-    //sprint (other, " " );
-    //sprint (other, ftos(self.ammo_cells) );
-    //sprint (other, "\n" );
+
   }
 // backpack touch sound
 	sound (other, CHAN_ITEM, "weapons/lock4.wav", 1, ATTN_NORM);
@@ -2587,21 +2598,41 @@ void() BackpackTouch =
   bound_other_ammo ();
 
   if (leave == TRUE) //Ry: Leave the backpack if ammo remains
+  {
     self.lastfragtime = time + 2; //Ry: Next time backpack can be picked
+    if ( (self.think == GremlinBackpackSafety) && !self.stolenitems ) //Ry: If all stolen weapons are collected from the backpack, revert to regular backpack operation
+    {
+      self.nextthink = time + 120;	// remove after 2 minutes
+      self.think = SUB_Remove;
+    }
+    stemp = self;
+  }
   else
     remove(self);
 	self = other;
 
 // change to the weapon
-  if (!deathmatch)
-    self.weapon = new;
-  else
-    Deathmatch_Weapon (old, new);
+  if(W_WantsToChangeWeapon(other, olditems, other.items) == 1) //Ry: Remaster function for checking the user's weapon switch settings
+  {
+    if (!deathmatch)
+      self.weapon = new;
+    else
+      Deathmatch_Weapon (oldweapon, new);
+  }
   
-  if (self.weapon == old || self.classname == "monster_gremlin") //Ry: Actually check if the weapon changed instead of always resetting weapon
+  if (self.classname == "monster_gremlin") //Ry: Gremlin stuff
+  {
+    if (self.goalentity == stemp)
+      GremlinAbandonItem();
+    W_UpdateAmmo();
+  }
+  else if (self.weapon == oldweapon) //Ry: Actually check if the weapon changed instead of always resetting weapon
     W_UpdateAmmo();
   else
     W_SetCurrentAmmo();
+
+  if (stemp)
+    self = stemp;
 };
 
 /*
@@ -2614,8 +2645,10 @@ void(float dropall) DropBackpack =
 	local entity	item;
   local float backammo_shells, backammo_nails, backammo_rockets, backammo_cells;
   
-  //if (dropall && coop && (self.flags & FL_CLIENT)) //Ry: Only when disconnecting (Obsolete with players being given all weapons)
-  //  backweaps = self.items - (self.items & (IT_KEY1 | IT_KEY2 | IT_INVISIBILITY | IT_INVULNERABILITY | IT_SUIT | IT_QUAD | IT_SHELLS | IT_NAILS | IT_ROCKETS | IT_CELLS | IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3 | IT_AXE | IT_SHOTGUN) );
+	// Yoder Sept24 2021 Horde Merge
+	// don't drop backpacks in horde mode
+	if (horde_ent)
+		return; 
   
   if (!dropall && coop && (self.flags & FL_CLIENT)) //Ry: Players in Co-op will be given a minimum amount of ammo on respawn, which is also taken away from the backpack
   {
@@ -2624,7 +2657,6 @@ void(float dropall) DropBackpack =
       backammo_shells = self.ammo_shells - 25;
     else
       backammo_shells = 0;
-    //self.ammo_shells = 25;
     
     if ( self.items & (IT_NAILGUN|IT_SUPER_NAILGUN) )
     {
@@ -2632,12 +2664,10 @@ void(float dropall) DropBackpack =
         backammo_nails = self.ammo_nails - 30;
       else
         backammo_nails = 0;
-      //self.ammo_nails = 30;
     }
     else
     {
       backammo_nails = self.ammo_nails;
-      //self.ammo_nails = 0;
     }
     
     if ( self.items & (IT_ROCKET_LAUNCHER|IT_GRENADE_LAUNCHER|IT_PROXIMITY_GUN) )
@@ -2646,12 +2676,10 @@ void(float dropall) DropBackpack =
         backammo_rockets = self.ammo_rockets - 5;
       else
         backammo_rockets = 0;
-      //self.ammo_rockets = 5;
     }
     else
     {
       backammo_rockets = self.ammo_rockets;
-      //self.ammo_rockets = 0;
     }
     
     if ( self.items & (IT_LIGHTNING|IT_LASER_CANNON|IT_MJOLNIR) )
@@ -2660,12 +2688,10 @@ void(float dropall) DropBackpack =
         backammo_cells = self.ammo_cells - 15;
       else
         backammo_cells = 0;
-      //self.ammo_cells = 15;
     }
     else
     {
       backammo_cells = self.ammo_cells;
-      //self.ammo_cells = 0;
     }
     
   }
@@ -2677,7 +2703,8 @@ void(float dropall) DropBackpack =
     backammo_cells = self.ammo_cells;
   }
 
-	if (!(backammo_shells + backammo_nails + backammo_rockets + backammo_cells))
+  //Ry: Make sure non-starting weapons are dropped in DM, even with absolutely no ammo
+	if ( (!(backammo_shells + backammo_nails + backammo_rockets + backammo_cells)) && ( !deathmatch || (self.weapon == IT_AXE) || (self.weapon == IT_SHOTGUN) ) )
 		return;	// nothing in it
 
 	item = spawn();
@@ -2712,10 +2739,6 @@ void(float dropall) DropBackpack =
      else
       item.netname = "";
   }
-  //else if (coop && dropall) //Ry: Drop all weapons when disconnecting in Co-op
-  //{
-  //  item.items = backweaps;
-  //}
 
 	item.ammo_shells = backammo_shells;
 	item.ammo_nails = backammo_nails;
@@ -2738,9 +2761,6 @@ void(float dropall) DropBackpack =
   if (!dropall && coop && self.classname == "player") //Ry: Ensure player backpacks stay safe in Co-op
   {
     item.owner = self;
-    //item.ownername = self.netname;
-    //bprint(item.ownername);
-    //bprint(" backpack\n");
     item.effects = EF_DIMLIGHT;
     item.nextthink = time + 1;
     item.think = PlayerBackpackSafety;
@@ -2752,3 +2772,5 @@ void(float dropall) DropBackpack =
     item.think = SUB_Remove;
   }
 };
+
+

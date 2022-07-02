@@ -62,6 +62,9 @@ void() exploder_use =
 */
 void() func_exploder =
 	{
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
    precache_sound ("misc/shortexp.wav");
    precache_sound ("misc/longexpl.wav");
 	self.classname = "exploder";
@@ -176,6 +179,9 @@ void() multi_exploder_use =
 */
 void() func_multi_exploder =
 	{
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+
    precache_sound ("misc/shortexp.wav");
    precache_sound ("misc/longexpl.wav");
 	self.classname = "exploder";

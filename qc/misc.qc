@@ -173,7 +173,7 @@ void() misc_fireball =
 
 	precache_model ("progs/lavaball.mdl");
 	self.classname = "fireball";
-	self.nextthink = time + (random() * 5);
+	self.nextthink = time + 0.1 + (random() * 4.9);
 	self.think = fire_fly;
 	if (!self.speed)
 		self.speed = 1000;
@@ -299,14 +299,14 @@ void() spikeshooter_use =
    local entity lavaball;
 	if (self.spawnflags & SPAWNFLAG_LASER)
 	{
-      if (!self.spawnflags & SPAWNFLAG_SILENT)
+      if (!(self.spawnflags & SPAWNFLAG_SILENT))
          sound (self, CHAN_VOICE, "enforcer/enfire.wav", 1, ATTN_NORM);
 		LaunchLaser (self.origin, self.movedir);
       newmis.spawnflags = self.spawnflags;
 	}
    else if (self.spawnflags & SPAWNFLAG_LAVABALL)
    {
-      if (!self.spawnflags & SPAWNFLAG_SILENT)
+      if (!(self.spawnflags & SPAWNFLAG_SILENT))
          sound (self, CHAN_VOICE, "misc/spike.wav", 1, ATTN_NORM);
       lavaball = spawn();
       lavaball.movetype = MOVETYPE_FLYMISSILE;
@@ -326,7 +326,7 @@ void() spikeshooter_use =
    }
    else if (self.spawnflags & SPAWNFLAG_ROCKET)
    {
-      if (!self.spawnflags & SPAWNFLAG_SILENT)
+      if (!(self.spawnflags & SPAWNFLAG_SILENT))
          sound (self, CHAN_VOICE, "weapons/sgun1.wav", 1, ATTN_NORM);
       W_FireRocket();
       newmis.velocity = self.movedir*1000;
@@ -335,7 +335,7 @@ void() spikeshooter_use =
    }
    else
 	{
-      if (!self.spawnflags & SPAWNFLAG_SILENT)
+      if (!(self.spawnflags & SPAWNFLAG_SILENT))
          sound (self, CHAN_VOICE, "weapons/spike2.wav", 1, ATTN_NORM);
 		launch_spike (self.origin, self.movedir);
 		newmis.velocity = self.movedir * 500;
@@ -516,8 +516,7 @@ void() bubble_remove =
 
 void() bubble_bob =
 {
-local float		rnd1, rnd2, rnd3;
-local vector	vtmp1, modi;
+  local float		rnd1, rnd2, rnd3;
 
 	self.cnt = self.cnt + 1;
 	if (self.cnt == 4)
@@ -588,6 +587,11 @@ This is just a solid wall if not inhibitted
 */
 void() func_wall =
 {
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  {
+    remove(self);
+    return;
+  }
 	self.angles = '0 0 0';
 	self.movetype = MOVETYPE_PUSH;	// so it doesn't get pushed by anything
 	self.solid = SOLID_BSP;
@@ -602,6 +606,11 @@ A simple entity that looks solid but lets you walk through it.
 void() func_illusionary =
 
 {
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  {
+    remove(self);
+    return;
+  }
 	self.angles = '0 0 0';
 	self.movetype = MOVETYPE_NONE;
 	self.solid = SOLID_NOT;

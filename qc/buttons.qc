@@ -1,5 +1,12 @@
 // button and multiple button
 
+
+//Yoder Sept24 Horde Merge
+void(float key_item)horde_key_spend;
+
+float BUTTON_KEY_ALWAYS_REQUIRED = 32;
+
+
 void() button_wait;
 void() button_return;
 
@@ -38,6 +45,15 @@ void() button_fire =
 	if (self.state == STATE_UP || self.state == STATE_TOP)
 		return;
 
+	if(self.items) //Ry: Remaster key button mechanic
+	{
+		sound (self, CHAN_ITEM, self.noise4, 1, ATTN_NORM);
+		if(!(self.spawnflags & BUTTON_KEY_ALWAYS_REQUIRED))
+		{
+			self.items = 0;
+		}
+	}
+
 	sound (self, CHAN_VOICE, self.noise, 1, ATTN_NORM);
 
 	self.state = STATE_UP;
@@ -55,6 +71,28 @@ void() button_touch =
 {
 	if (other.classname != "player")
 		return;
+  
+	if(time < self.attack_finished) //Ry: Remaster key button mechanic
+		return;
+	self.attack_finished = time + 2;
+  
+  if (self.items)
+  {
+    if ( !AttemptUnlock() ) //Ry: Global function for this now
+      return;
+    else
+    {
+      // Yoder Sept24, 2021 Horde merge
+      if (horde_ent)
+      {
+        horde_key_spend(self.items);
+        self.touch = SUB_Null;
+      }
+      else // standard behavior
+        other.items = other.items - self.items;
+    }
+  }
+  
 	self.enemy = other;
 	button_fire ();
 };
@@ -85,7 +123,13 @@ When a button is touched, it moves some distance in the direction of it's angle,
 */
 void() func_button =
 {
-local float		gtemp, ftemp;
+
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+    return;
+  
+  self.netname = "func_button"; // for bot nav support.
+  
+  PrepareKeyMechanismSounds(); //Ry: Set up key sounds via new global function
 
 	if (self.sounds == 0)
 	{
@@ -116,6 +160,11 @@ local float		gtemp, ftemp;
 
 	self.blocked = button_blocked;
 	self.use = button_use;
+  
+	if (self.spawnflags & DOOR_SILVER_KEY) //Ry: Remaster key button mechanic
+		self.items = IT_KEY1;
+	if (self.spawnflags & DOOR_GOLD_KEY)
+		self.items = IT_KEY2;
 
 	if (self.health)
 	{

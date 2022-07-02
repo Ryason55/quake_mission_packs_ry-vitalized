@@ -78,6 +78,11 @@ Pushable walls.
 
 void() func_pushable =
 	{
+  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  {
+    remove(self);
+    return;
+  }
 	local entity new;
 	local vector newsize;
 
