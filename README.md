@@ -3,6 +3,16 @@ Armagon Ry-vitalized for Quake: Scourge of Armagon
 
 This mod implements a lot of quality of life, rebalancing, and bug fixes into the Quake Remaster version of Quake Mission Pack 1: Scourge of Armagon, with changes applied to both campaign play and Deathmatch. Also some fun things thrown in here and there.  
 
+Highlights:  
+-Improved Hipnotic weapons and powerups for campaign play.  
+-Bug fixes and adjustments for Hipnotic monsters, as well as for a lot of previously existing mechanics.  
+-Adjustments made to certain maps, to try and improve campaign and/or Deathmatch play.  
+-Ability to play ID1 maps with the new changes and some Hipnotic content.  
+-Quality-of-life improvements for Cooperative play, including joining with the weapons everyone else has, keeping new weapons after death, and all players being able to collect all weapon, ammo, health, and armor items.  
+-Some modern features for Deathmatch play, including centered kill notifications and Ring Outs.  
+-Navigation files for all Hipnotic maps that didn't have them before, allowing Deathmatch play with the bots in Remaster on all Hipnotic maps.  
+
+
 QuakeC Changes
 ---------------------------
 
@@ -444,6 +454,7 @@ HIP2M5 - Mortum's Keep
 HIP2M6 - The Gremlin's Domain  
 
 HIP3M1 - Tur Torment  
+-Bots won't innately go for the Red Armor (or Grenade Launcher) in the slime, as bots currently don't understand that they should have the Biosuit before diving in. They will go after it if they end up in the slime through external means, either from getting knocked into it, or slipping and falling when trying to traverse the top of the gondola track.  
 
 HIP3M2 - Pandemonium  
 
