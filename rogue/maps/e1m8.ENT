@@ -1,0 +1,2631 @@
+{
+ "classname" "worldspawn"
+ "message" "Ziggurat Vertigo"
+ "sounds" "10"
+ "wad" "id1/gfx/metal.wad"
+ "worldtype" "1"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "384 64 -752"
+}
+{
+ "classname" "info_player_start"
+ "angle" "225"
+ "origin" "1024 720 -104"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "128 384 -752"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "384 576 -752"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "960 64 -752"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "1216 384 -752"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "960 704 -704"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "960 576 -752"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "680 704 -704"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "680 40 -752"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "672 376 -752"
+}
+{
+ "classname" "light"
+ "origin" "136 136 -712"
+}
+{
+ "classname" "light"
+ "origin" "136 560 -712"
+}
+{
+ "classname" "light"
+ "origin" "1200 568 -712"
+}
+{
+ "classname" "func_plat"
+ "model" "*1"
+ "speed" "500"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1216 704 -568"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1216 704 -440"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1216 704 -312"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1216 704 -176"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1216 704 -48"
+}
+{
+ "classname" "func_plat"
+ "model" "*2"
+ "speed" "500"
+}
+{
+ "classname" "light"
+ "origin" "152 -632 -712"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "128 -704 -568"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "128 -704 -440"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "128 -704 -312"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "128 -704 -176"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "128 -704 -48"
+}
+{
+ "classname" "func_plat"
+ "model" "*3"
+ "speed" "500"
+}
+{
+ "classname" "light"
+ "origin" "1272 -632 -712"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1248 -704 -568"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1248 -704 -440"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1248 -704 -312"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1248 -704 -176"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1248 -704 -48"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "600 -392 64"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "1136 -232 -184"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "992 -96 -744"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "1280 -368 -696"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "416 -104 -704"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "296 -480 -744"
+}
+{
+ "classname" "light"
+ "light" "300"
+ "origin" "688 -240 -520"
+}
+{
+ "classname" "light"
+ "origin" "672 248 -544"
+}
+{
+ "classname" "light"
+ "origin" "712 520 96"
+}
+{
+ "classname" "light"
+ "origin" "424 -256 -32"
+}
+{
+ "classname" "light"
+ "origin" "592 -112 -48"
+}
+{
+ "classname" "light"
+ "origin" "144 512 -40"
+}
+{
+ "classname" "light"
+ "origin" "464 64 -64"
+}
+{
+ "classname" "light"
+ "origin" "888 64 -64"
+}
+{
+ "classname" "light"
+ "origin" "624 240 -160"
+}
+{
+ "classname" "light"
+ "origin" "472 360 -64"
+}
+{
+ "classname" "light"
+ "origin" "880 368 -64"
+}
+{
+ "classname" "light"
+ "origin" "64 360 -248"
+}
+{
+ "classname" "light"
+ "origin" "360 704 -248"
+}
+{
+ "classname" "weapon_grenadelauncher"
+ "origin" "416 696 -320"
+ "spawnflags" "1792"
+}
+{
+ "classname" "item_rockets"
+ "origin" "48 352 -320"
+}
+{
+ "classname" "light"
+ "origin" "672 80 -496"
+}
+{
+ "classname" "item_spikes"
+ "origin" "656 72 -576"
+ "spawnflags" "1"
+}
+{
+ "classname" "weapon_rocketlauncher"
+ "origin" "1264 -128 -576"
+ "spawnflags" "1792"
+}
+{
+ "classname" "item_rockets"
+ "origin" "976 -112 -736"
+}
+{
+ "classname" "weapon_supershotgun"
+ "origin" "704 -272 256"
+ "spawnflags" "1792"
+}
+{
+ "classname" "item_armor2"
+ "origin" "1248 -736 184"
+}
+{
+ "classname" "item_health"
+ "origin" "144 -744 192"
+}
+{
+ "classname" "item_health"
+ "origin" "80 -744 192"
+}
+{
+ "classname" "item_health"
+ "origin" "656 112 256"
+ "spawnflags" "2"
+}
+{
+ "classname" "item_health"
+ "origin" "24 -136 -624"
+}
+{
+ "classname" "item_health"
+ "origin" "80 -136 -624"
+}
+{
+ "classname" "item_health"
+ "origin" "24 40 -624"
+}
+{
+ "classname" "item_health"
+ "origin" "80 40 -624"
+}
+{
+ "classname" "info_null"
+}
+{
+ "classname" "item_health"
+ "origin" "864 208 0"
+}
+{
+ "classname" "item_health"
+ "origin" "560 224 0"
+}
+{
+ "classname" "item_health"
+ "origin" "608 224 0"
+}
+{
+ "classname" "weapon_supernailgun"
+ "origin" "96 528 152"
+ "spawnflags" "1792"
+}
+{
+ "classname" "item_spikes"
+ "origin" "1200 728 192"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_armor2"
+ "origin" "1216 64 216"
+ "spawnflags" "3584"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "320 128 88"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "320 352 88"
+}
+{
+ "classname" "weapon_nailgun"
+ "origin" "320 72 0"
+ "spawnflags" "1792"
+}
+{
+ "classname" "light"
+ "origin" "672 192 112"
+}
+{
+ "classname" "item_health"
+ "origin" "688 -856 -368"
+ "spawnflags" "2"
+}
+{
+ "classname" "weapon_rocketlauncher"
+ "origin" "720 -720 48"
+ "spawnflags" "1536"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "item_health"
+ "origin" "640 -148 -128"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "item_health"
+ "origin" "576 -148 -128"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "0"
+ "origin" "1000 -136 -712"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "180"
+ "origin" "384 -256 -712"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "90"
+ "origin" "672 48 -552"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "270"
+ "origin" "880 128 24"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "270"
+ "origin" "672 720 -688"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "90"
+ "origin" "720 -656 -712"
+}
+{
+ "classname" "item_shells"
+ "origin" "56 -136 -736"
+}
+{
+ "classname" "item_shells"
+ "origin" "880 -720 -736"
+}
+{
+ "classname" "item_shells"
+ "origin" "32 704 -736"
+}
+{
+ "classname" "item_shells"
+ "origin" "1280 152 -576"
+}
+{
+ "classname" "item_shells"
+ "origin" "1264 -288 -576"
+}
+{
+ "classname" "info_null"
+}
+{
+ "classname" "item_rockets"
+ "origin" "176 -144 -320"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1144 -232 88"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1032 88 88"
+}
+{
+ "classname" "info_null"
+}
+{
+ "classname" "item_shells"
+ "origin" "1248 -144 152"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "448 696 -704"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "296 32 -704"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "536 32 -648"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "832 32 -648"
+}
+{
+ "classname" "func_door"
+ "angle" "-1"
+ "message" "$map_bars_elsewhere"
+ "model" "*4"
+ "sounds" "4"
+ "spawnflags" "2048"
+ "targetname" "t2"
+ "wait" "-1"
+}
+{
+ "classname" "func_door"
+ "angle" "-1"
+ "message" "$map_bars_elsewhere"
+ "model" "*5"
+ "sounds" "4"
+ "spawnflags" "2048"
+ "targetname" "t2"
+ "wait" "-1"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "672 256 -408"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "64 264 -352"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "504 712 -352"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1024 360 64"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "88 528 64"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "90"
+ "origin" "272 40 -96"
+}
+{
+ "classname" "func_door"
+ "angle" "270"
+ "model" "*6"
+ "wait" "-1"
+ "lip" "0"
+ "speed" "400"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "64 -56 -680"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "672 0 -632"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "270"
+ "origin" "1216 488 24"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "90"
+ "origin" "1024 368 24"
+}
+{
+ "classname" "func_button"
+ "angle" "270"
+ "model" "*7"
+ "spawnflags" "2048"
+ "target" "t2"
+ "wait" "-1"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "672 48 312"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1040 656 -88"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1320 360 -256"
+}
+{
+ "classname" "misc_fireball"
+ "origin" "320 -136 -776"
+ "spawnflags" "2048"
+ "speed" "150"
+}
+{
+ "classname" "misc_fireball"
+ "origin" "832 536 -752"
+ "spawnflags" "2048"
+ "speed" "150"
+}
+{
+ "classname" "misc_fireball"
+ "origin" "1048 416 -752"
+ "spawnflags" "2048"
+ "speed" "150"
+}
+{
+ "classname" "misc_fireball"
+ "origin" "576 576 -752"
+ "spawnflags" "2048"
+ "speed" "150"
+}
+{
+ "classname" "misc_fireball"
+ "origin" "392 536 -752"
+ "spawnflags" "2048"
+ "speed" "150"
+}
+{
+ "classname" "misc_fireball"
+ "origin" "296 336 -752"
+ "spawnflags" "2048"
+ "speed" "150"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "0"
+ "origin" "80 520 24"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "90"
+ "origin" "592 240 280"
+ "spawnflags" "768"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "90"
+ "origin" "752 240 280"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "90"
+ "origin" "328 200 176"
+ "spawnflags" "256"
+ "target" "t41"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "90"
+ "origin" "1024 88 176"
+ "target" "t43"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "225"
+ "origin" "1216 680 216"
+ "spawnflags" "256"
+}
+{
+ "classname" "light"
+ "origin" "800 -720 -288"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "225"
+ "origin" "848 -144 -552"
+ "spawnflags" "769"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "315"
+ "origin" "560 -144 -552"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "225"
+ "origin" "848 -144 -712"
+ "spawnflags" "256"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "128 -248 48"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "544 -224 -320"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "776 -224 -320"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "720 -680 -704"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "728 -504 -704"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "864 -704 -704"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "312 -704 -704"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "72 -128 -584"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "64 56 -584"
+}
+{
+ "classname" "func_door"
+ "angle" "-1"
+ "message" "$map_bars_elsewhere"
+ "model" "*8"
+ "sounds" "4"
+ "spawnflags" "2048"
+ "targetname" "t3"
+ "wait" "-1"
+}
+{
+ "classname" "func_door"
+ "angle" "-1"
+ "message" "$map_bars_elsewhere"
+ "model" "*9"
+ "sounds" "4"
+ "spawnflags" "2048"
+ "targetname" "t3"
+ "wait" "-1"
+}
+{
+ "classname" "func_button"
+ "angle" "270"
+ "model" "*10"
+ "target" "t3"
+ "wait" "-1"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "544 -304 -528"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "880 120 32"
+}
+// Entity with 0 changes to old fields
+{
+ "classname" "item_artifact_invulnerability"
+ "origin" "672 536 -712"
+ "spawnflags" "2048"
+}
+{
+ "classname" "item_artifact_invulnerability"
+ "origin" "64 -176 -288"
+ "spawnflags" "256"
+}
+{
+ "classname" "func_button"
+ "angle" "90"
+ "model" "*11"
+ "spawnflags" "2048"
+ "target" "t4"
+ "wait" "-1"
+}
+{
+ "classname" "monster_shambler"
+ "angle" "315"
+ "origin" "608 -424 280"
+ "spawnflags" "256"
+ "target" "t35"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "0"
+ "origin" "720 -664 80"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "0"
+ "origin" "448 -672 -104"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "315"
+ "origin" "72 -256 -296"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "0"
+ "origin" "184 -512 24"
+ "target" "t51"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "270"
+ "origin" "472 -384 -104"
+ "spawnflags" "256"
+ "target" "t50"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "270"
+ "origin" "736 -448 72"
+}
+{
+ "classname" "light"
+ "origin" "1512 -240 64"
+}
+{
+ "classname" "light"
+ "origin" "1608 -240 64"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1360 -240 64"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "270"
+ "origin" "1264 -320 24"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "90"
+ "origin" "1008 -248 24"
+ "spawnflags" "257"
+ "target" "t54"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "270"
+ "origin" "1024 88 24"
+ "spawnflags" "1"
+}
+{
+ "classname" "trigger_changelevel"
+ "map" "e1m5"
+ "model" "*12"
+}
+{
+ "classname" "func_door"
+ "angle" "90"
+ "message" "$map_door_elsewhere"
+ "model" "*13"
+ "sounds" "1"
+ "spawnflags" "2048"
+ "targetname" "t4"
+ "wait" "-1"
+}
+{
+ "classname" "func_door"
+ "angle" "180"
+ "message" "$map_door_elsewhere"
+ "model" "*14"
+ "sounds" "1"
+ "spawnflags" "2048"
+ "targetname" "t4"
+ "wait" "-1"
+}
+{
+ "classname" "func_door"
+ "angle" "-1"
+ "message" "$map_door_elsewhere"
+ "model" "*15"
+ "spawnflags" "2048"
+ "targetname" "t4"
+ "wait" "-1"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "48 592 160"
+ "angle" "90"
+ "target" "t7"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "48 464 160"
+ "angle" "90"
+ "target" "t8"
+}
+{
+ "classname" "info_null"
+ "origin" "12 596 540"
+ "targetname" "t7"
+}
+{
+ "classname" "info_null"
+ "origin" "12 468 540"
+ "targetname" "t8"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "48 520 192"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "272 48 160"
+ "angle" "90"
+ "target" "t10"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "368 48 160"
+ "angle" "90"
+ "target" "t9"
+}
+{
+ "classname" "info_null"
+ "origin" "276 12 540"
+ "targetname" "t10"
+}
+{
+ "classname" "info_null"
+ "origin" "364 12 540"
+ "targetname" "t9"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "320 64 192"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "560 272 264"
+ "angle" "90"
+ "target" "t11"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "784 272 264"
+ "angle" "90"
+ "target" "t12"
+}
+{
+ "classname" "info_null"
+ "origin" "548 284 556"
+ "targetname" "t11"
+}
+{
+ "classname" "info_null"
+ "origin" "796 284 556"
+ "targetname" "t12"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "976 16 160"
+ "angle" "90"
+ "target" "t13"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "1072 16 160"
+ "angle" "90"
+ "target" "t14"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1024 40 192"
+}
+{
+ "classname" "info_null"
+ "origin" "972 4 540"
+ "targetname" "t13"
+}
+{
+ "classname" "info_null"
+ "origin" "1076 4 540"
+ "targetname" "t14"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "1136 16 224"
+ "angle" "90"
+ "target" "t16"
+}
+{
+ "classname" "light"
+ "origin" "1296 16 224"
+ "angle" "90"
+ "target" "t15"
+}
+{
+ "classname" "light"
+ "origin" "1216 32 256"
+}
+{
+ "classname" "info_null"
+ "origin" "1140 4 540"
+ "targetname" "t16"
+}
+{
+ "classname" "info_null"
+ "origin" "1292 4 540"
+ "targetname" "t15"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "672 264 296"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "1168 752 200"
+ "angle" "90"
+ "target" "t17"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "1264 752 200"
+ "angle" "90"
+ "target" "t18"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1216 720 264"
+}
+{
+ "classname" "info_null"
+ "origin" "1164 764 548"
+ "targetname" "t17"
+}
+{
+ "classname" "info_null"
+ "origin" "1268 764 548"
+ "targetname" "t18"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "1072 464 160"
+ "angle" "90"
+ "target" "t19"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "1072 592 160"
+ "angle" "90"
+ "target" "t20"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1048 528 200"
+}
+{
+ "classname" "info_null"
+ "origin" "1084 580 548"
+ "targetname" "t20"
+}
+{
+ "classname" "info_null"
+ "origin" "1084 476 548"
+ "targetname" "t19"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "624 16 400"
+ "angle" "90"
+ "target" "t22"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "720 16 400"
+ "angle" "90"
+ "target" "t21"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "672 40 440"
+}
+{
+ "classname" "info_null"
+ "origin" "612 4 556"
+ "targetname" "t22"
+}
+{
+ "classname" "info_null"
+ "origin" "732 4 556"
+ "targetname" "t21"
+}
+{
+ "classname" "light"
+ "origin" "272 752 16"
+ "angle" "90"
+ "target" "t23"
+}
+{
+ "classname" "light"
+ "origin" "496 752 16"
+ "angle" "90"
+ "target" "t24"
+}
+{
+ "classname" "light"
+ "origin" "688 752 16"
+ "angle" "90"
+ "target" "t25"
+}
+{
+ "classname" "light"
+ "origin" "880 752 16"
+ "angle" "90"
+ "target" "t26"
+}
+{
+ "classname" "light"
+ "origin" "1104 752 16"
+ "angle" "90"
+ "target" "t27"
+}
+{
+ "classname" "info_null"
+ "origin" "1092 764 516"
+ "targetname" "t27"
+}
+{
+ "classname" "info_null"
+ "origin" "868 764 516"
+ "targetname" "t26"
+}
+{
+ "classname" "info_null"
+ "origin" "700 764 516"
+ "targetname" "t25"
+}
+{
+ "classname" "info_null"
+ "origin" "508 764 516"
+ "targetname" "t24"
+}
+{
+ "classname" "info_null"
+ "origin" "284 764 516"
+ "targetname" "t23"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "304 720 32"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "472 720 32"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "664 712 32"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "848 720 32"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1072 720 32"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "96 728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "224 728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "352 728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "480 728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "608 728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "736 728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "872 728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "992 728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1112 728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1224 728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "40 576 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "40 464 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "40 384 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "40 280 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "40 160 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "40 72 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1304 632 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1304 536 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1304 456 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1304 360 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1304 256 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1304 136 504"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1024 192 192"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1024 376 192"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "120 88 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "128 192 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "128 320 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "128 416 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "128 600 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "256 640 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "448 640 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "640 640 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "832 640 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "960 640 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1120 640 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1232 576 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1240 448 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1240 320 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1240 184 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1240 48 536"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "872 560 192"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "688 568 192"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "512 568 192"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "320 512 192"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "320 320 192"
+}
+{
+ "classname" "info_intermission"
+ "mangle" "30 315 0"
+ "origin" "144 592 -112"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "270"
+ "origin" "824 720 -712"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "270"
+ "origin" "880 720 -712"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "270"
+ "origin" "568 720 -712"
+}
+{
+ "classname" "item_armor2"
+ "origin" "672 312 -736"
+}
+{
+ "classname" "item_spikes"
+ "origin" "264 96 0"
+}
+{
+ "classname" "item_spikes"
+ "origin" "344 96 0"
+}
+{
+ "classname" "item_health"
+ "origin" "264 256 0"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_health"
+ "origin" "264 208 0"
+ "spawnflags" "1"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "1200 368 56"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1216 200 72"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "152 696 72"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "232 696 72"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "192 680 240"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1216 560 80"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1216 696 80"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "944 80 24"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "976 240 24"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "1296 -112 24"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "944 -368 24"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "1296 -368 24"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "944 -80 24"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1472 -168 64"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1480 -304 64"
+}
+{
+ "classname" "info_null"
+ "origin" "1332 -596 540"
+}
+{
+ "classname" "info_null"
+ "origin" "1332 -468 540"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1248 -728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1120 -728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "992 -728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "864 -728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "736 -728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "608 -728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "472 -728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "352 -728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "232 -728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "120 -728 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1304 -576 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1304 -464 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1304 -384 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1304 -280 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1304 -160 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "40 -632 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "40 -536 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "40 -456 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "40 -360 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "40 -256 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "40 -136 504"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1216 -192 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1216 -320 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1216 -416 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1216 -600 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1088 -640 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "896 -640 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "704 -640 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "512 -640 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "384 -640 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "224 -640 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "112 -576 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "104 -448 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "104 -320 536"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "104 -184 536"
+}
+{
+ "classname" "light"
+ "light" "300"
+ "origin" "400 -112 288"
+ "target" "t28"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "400 -560 288"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "784 -560 288"
+}
+{
+ "classname" "light"
+ "light" "300"
+ "origin" "784 -120 288"
+ "target" "t29"
+}
+{
+ "classname" "light"
+ "light" "300"
+ "origin" "592 -352 408"
+}
+{
+ "classname" "info_null"
+ "origin" "400 -80 372"
+ "targetname" "t28"
+}
+{
+ "classname" "info_null"
+ "origin" "784 -80 372"
+ "targetname" "t29"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "592 -184 304"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "736 -128 -80"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "784 -88 40"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "760 -528 96"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "944 -112 188"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "944 -368 188"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "1296 -368 188"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "1296 -112 188"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1168 -444 136"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1328 -442 136"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "784 -120 288"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "400 -112 288"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "888 -512 48"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1040 -512 48"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "720 -720 88"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "448 -688 -56"
+}
+{
+ "classname" "light"
+ "origin" "232 -560 288"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "448 -688 128"
+}
+{
+ "classname" "item_spikes"
+ "origin" "1264 -488 -128"
+}
+{
+ "classname" "item_spikes"
+ "origin" "1216 -488 -128"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1240 -512 -88"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1088 -512 -88"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "768 -496 -64"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "1300 -748 212"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "1136 -704 76"
+}
+{
+ "classname" "light"
+ "light" "225"
+ "origin" "304 -680 -232"
+}
+{
+ "classname" "light"
+ "light" "225"
+ "origin" "424 -680 -232"
+}
+{
+ "classname" "item_health"
+ "origin" "432 -240 256"
+}
+{
+ "classname" "item_health"
+ "origin" "432 -296 256"
+}
+{
+ "classname" "item_spikes"
+ "origin" "80 560 152"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "32 720 128"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "672 344 224"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "800 344 224"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "544 344 224"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "480 256 224"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "480 152 224"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "480 48 224"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "864 288 224"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "864 200 224"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "864 88 224"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "32 720 -248"
+}
+{
+ "classname" "item_health"
+ "origin" "48 720 -320"
+}
+{
+ "classname" "item_health"
+ "origin" "96 720 -320"
+}
+{
+ "classname" "item_shells"
+ "origin" "48 400 -320"
+ "spawnflags" "2049"
+}
+{
+ "classname" "item_health"
+ "origin" "1088 -304 -576"
+}
+{
+ "classname" "item_health"
+ "origin" "1040 -304 -576"
+}
+{
+ "classname" "item_health"
+ "origin" "848 -328 -736"
+ "spawnflags" "3073"
+}
+{
+ "classname" "item_health"
+ "origin" "848 -280 -736"
+ "spawnflags" "3073"
+}
+{
+ "classname" "item_health"
+ "origin" "1248 -192 152"
+}
+{
+ "classname" "item_health"
+ "origin" "1248 -240 152"
+ "spawnflags" "3072"
+}
+{
+ "classname" "item_spikes"
+ "origin" "280 -488 0"
+ "spawnflags" "2049"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "856 -144 -664"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "856 -312 -664"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "528 -296 -664"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "520 -160 -664"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1208 104 56"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1328 56 40"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1328 16 -528"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1272 160 -488"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1176 72 -488"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1104 248 -488"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1200 208 -672"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1096 112 -672"
+}
+{
+ "classname" "item_spikes"
+ "origin" "1280 112 -576"
+}
+{
+ "classname" "func_wall"
+ "model" "*16"
+ "spawnflags" "2048"
+}
+{
+ "classname" "weapon_rocketlauncher"
+ "origin" "672 360 0"
+ "spawnflags" "2048"
+}
+{
+ "classname" "light"
+ "origin" "1240 -584 112"
+}
+{
+ "classname" "item_spikes"
+ "origin" "1168 -488 -128"
+ "spawnflags" "3072"
+}
+{
+ "classname" "func_door"
+ "angle" "0"
+ "model" "*17"
+ "sounds" "1"
+ "spawnflags" "2064"
+ "wait" "-1"
+}
+{
+ "classname" "func_door"
+ "angle" "180"
+ "model" "*18"
+ "spawnflags" "2064"
+ "wait" "-1"
+}
+{
+ "classname" "item_key1"
+ "origin" "672 152 52"
+ "spawnflags" "2048"
+ "target" "t33"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*19"
+ "spawnflags" "2"
+ "target" "t34"
+ "targetname" "t33"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*20"
+ "spawnflags" "258"
+ "target" "t31"
+ "targetname" "t33"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*21"
+ "spawnflags" "2"
+ "target" "t30"
+ "targetname" "t33"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "90"
+ "origin" "720 -216 96"
+ "targetname" "t30"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "90"
+ "origin" "552 -280 96"
+ "targetname" "t31"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_wizard"
+ "angle" "90"
+ "origin" "608 -1008 40"
+ "spawnflags" "256"
+ "targetname" "t33"
+}
+{
+ "classname" "monster_wizard"
+ "angle" "90"
+ "origin" "680 -1008 40"
+ "targetname" "t33"
+}
+{
+ "classname" "monster_wizard"
+ "angle" "90"
+ "origin" "552 -1008 40"
+ "targetname" "t33"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "90"
+ "origin" "536 -472 -24"
+ "targetname" "t34"
+}
+{
+ "classname" "item_spikes"
+ "origin" "760 40 0"
+}
+{
+ "classname" "item_health"
+ "origin" "1120 48 -576"
+}
+{
+ "classname" "item_health"
+ "origin" "1048 616 -736"
+ "spawnflags" "3584"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "160 88 144"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "168 256 144"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "120 360 144"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "752 120 328"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "592 120 328"
+}
+{
+ "classname" "path_corner"
+ "origin" "448 -512 264"
+ "target" "t36"
+ "targetname" "t35"
+}
+{
+ "classname" "path_corner"
+ "origin" "736 -520 264"
+ "target" "t37"
+ "targetname" "t36"
+}
+{
+ "classname" "path_corner"
+ "origin" "736 -336 264"
+ "target" "t38"
+ "targetname" "t37"
+}
+{
+ "classname" "path_corner"
+ "origin" "440 -336 264"
+ "target" "t35"
+ "targetname" "t38"
+}
+{
+ "classname" "path_corner"
+ "origin" "1008 -232 160"
+ "target" "t40"
+ "targetname" "t39"
+ "spawnflags" "768"
+}
+{
+ "classname" "path_corner"
+ "origin" "1208 -232 160"
+ "target" "t39"
+ "targetname" "t40"
+ "spawnflags" "768"
+}
+{
+ "classname" "monster_shambler"
+ "origin" "1120 -224 176"
+ "spawnflags" "768"
+ "target" "t39"
+}
+{
+ "classname" "path_corner"
+ "origin" "328 440 160"
+ "target" "t41"
+ "targetname" "t42"
+ "spawnflags" "256"
+}
+{
+ "classname" "path_corner"
+ "origin" "328 240 160"
+ "target" "t42"
+ "targetname" "t41"
+ "spawnflags" "256"
+}
+{
+ "classname" "path_corner"
+ "origin" "1024 152 160"
+ "target" "t44"
+ "targetname" "t43"
+}
+{
+ "classname" "path_corner"
+ "origin" "1016 416 160"
+ "target" "t43"
+ "targetname" "t44"
+}
+{
+ "classname" "path_corner"
+ "origin" "536 -128 -384"
+ "target" "t48"
+ "targetname" "t47"
+ "spawnflags" "256"
+}
+{
+ "classname" "path_corner"
+ "origin" "544 -288 -384"
+ "target" "t47"
+ "targetname" "t46"
+ "spawnflags" "256"
+}
+{
+ "classname" "path_corner"
+ "origin" "816 -144 -384"
+ "target" "t45"
+ "targetname" "t48"
+ "spawnflags" "256"
+}
+{
+ "classname" "path_corner"
+ "origin" "816 -296 -384"
+ "target" "t46"
+ "targetname" "t45"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "270"
+ "origin" "704 -160 -368"
+ "spawnflags" "256"
+ "target" "t45"
+}
+{
+ "classname" "item_spikes"
+ "origin" "608 -240 -392"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_spikes"
+ "origin" "664 -240 -392"
+ "spawnflags" "2817"
+}
+{
+ "classname" "path_corner"
+ "origin" "464 -304 -120"
+ "target" "t50"
+ "targetname" "t49"
+}
+{
+ "classname" "path_corner"
+ "origin" "464 -472 -120"
+ "target" "t49"
+ "targetname" "t50"
+}
+{
+ "classname" "path_corner"
+ "origin" "272 -512 8"
+ "target" "t52"
+ "targetname" "t51"
+}
+{
+ "classname" "path_corner"
+ "origin" "88 -512 8"
+ "target" "t51"
+ "targetname" "t52"
+}
+{
+ "classname" "light"
+ "origin" "128 -680 96"
+}
+{
+ "classname" "info_intermission"
+ "mangle" "20 140 0"
+ "origin" "1232 -656 464"
+}
+{
+ "classname" "path_corner"
+ "origin" "1008 -320 8"
+ "target" "t53"
+ "targetname" "t54"
+ "spawnflags" "256"
+}
+{
+ "classname" "path_corner"
+ "origin" "1008 -128 8"
+ "target" "t54"
+ "targetname" "t53"
+ "spawnflags" "256"
+}
+{
+ "classname" "item_spikes"
+ "origin" "1272 -520 0"
+}
+{
+ "classname" "func_door_secret"
+ "angle" "270"
+ "model" "*22"
+ "spawnflags" "3"
+}
+{
+ "classname" "trigger_secret"
+ "model" "*23"
+}
+{
+ "classname" "info_null"
+}
+{
+ "classname" "item_artifact_invisibility"
+ "origin" "1208 92 24"
+ "spawnflags" "1792"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "624 968 -672"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "720 968 -672"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "776 808 -672"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "568 808 -672"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "664 832 -744"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "672 832 -888"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "672 728 -888"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "672 608 -888"
+}
+{
+ "classname" "trigger_secret"
+ "model" "*24"
+}
+{
+ "classname" "item_artifact_super_damage"
+ "origin" "672 920 -728"
+}
+{
+ "classname" "item_health"
+ "origin" "768 976 -752"
+}
+{
+ "classname" "item_health"
+ "origin" "552 984 -752"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "270"
+ "origin" "672 720 -720"
+ "targetname" "t55"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*25"
+ "target" "t55"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1024 728 -120"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "0"
+ "origin" "600 -496 280"
+ "spawnflags" "1536"
+ "target" "t35"
+}
+{
+ "classname" "path_corner"
+ "origin" "144 -264 -728"
+ "target" "t57"
+ "targetname" "t56"
+ "spawnflags" "768"
+}
+{
+ "classname" "path_corner"
+ "origin" "320 -264 -728"
+ "target" "t56"
+ "targetname" "t57"
+ "spawnflags" "768"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "180"
+ "origin" "240 -256 -712"
+ "spawnflags" "768"
+ "target" "t56"
+}
+{
+ "classname" "path_corner"
+ "origin" "808 -696 -728"
+ "target" "t58"
+ "targetname" "t59"
+ "spawnflags" "768"
+}
+{
+ "classname" "path_corner"
+ "origin" "504 -696 -728"
+ "target" "t59"
+ "targetname" "t58"
+ "spawnflags" "768"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "180"
+ "origin" "552 -696 -712"
+ "spawnflags" "768"
+ "target" "t58"
+}
+{
+ "classname" "func_wall"
+ "model" "*26"
+ "spawnflags" "1792"
+}
+{
+ "classname" "func_wall"
+ "model" "*27"
+ "spawnflags" "2048"
+}
+{
+ "classname" "weapon_supernailgun"
+ "origin" "672 256 -472"
+ "spawnflags" "1792"
+}
+{
+ "classname" "monster_shambler"
+ "angle" "270"
+ "origin" "816 -240 -368"
+ "spawnflags" "768"
+ "target" "t45"
+}
+{
+ "classname" "monster_wizard"
+ "angle" "225"
+ "origin" "1312 728 392"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_wizard"
+ "angle" "315"
+ "origin" "32 728 392"
+}
+{
+ "classname" "path_corner"
+ "origin" "1208 -144 256"
+ "target" "t61"
+ "targetname" "t60"
+}
+{
+ "classname" "path_corner"
+ "origin" "1032 -400 256"
+ "target" "t60"
+ "targetname" "t61"
+}
+{
+ "classname" "monster_wizard"
+ "angle" "225"
+ "origin" "1144 -216 272"
+ "target" "t61"
+}
+{
+ "classname" "path_corner"
+ "origin" "288 -136 128"
+ "target" "t62"
+ "targetname" "t63"
+ "spawnflags" "256"
+}
+{
+ "classname" "path_corner"
+ "origin" "288 -336 128"
+ "target" "t63"
+ "targetname" "t62"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_wizard"
+ "origin" "280 -384 144"
+ "spawnflags" "256"
+ "target" "t62"
+}
+{
+ "classname" "item_health"
+ "origin" "1160 48 216"
+ "spawnflags" "2305"
+}
+{
+ "classname" "light"
+ "light" "125"
+ "origin" "1024 720 -744"
+}
+// Start of new entities
+{
+ "classname" "dmatch_tag_token"
+ "origin" "672 152 24"
+}
+{
+ "classname" "item_powerup_shield"
+ "origin" "672 536 -712"
+ "spawnflags" "1792"
+}
+{
+ "classname" "item_powerup_belt"
+ "origin" "744 -132 -104"
+}
+{
+ "classname" "item_powerup_belt"
+ "origin" "704 -264 -712"
+ "static" "1"
+ "spawnflags" "2048"
+}
+{
+ "classname" "item_powerup_belt"
+ "origin" "544 -264 -552"
+ "spawnflags" "1792"
+}
+{
+ "classname" "item_lava_spikes"
+ "origin" "128 -168 -320"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_multi_rockets"
+ "origin" "984 512 152"
+}
+{
+ "classname" "item_lava_spikes"
+ "origin" "1248 176 0"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_lava_spikes"
+ "origin" "1196 176 0"
+ "spawnflags" "1"
+}
