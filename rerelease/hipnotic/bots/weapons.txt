@@ -149,7 +149,7 @@
   number		16
   damage		120
   min_range		96
-  max_range		1048
+  max_range		1024  //Ry: Was 1048, which bugged me
   min_height	0
   max_height	512
   priority		6
@@ -236,7 +236,7 @@
   number		65536
   damage		95
   min_range		96
-  max_range		1048
+  max_range		512  //Ry: These don't bounce like Grenades, so require closer range
   min_height	0
   max_height	512
   priority		6

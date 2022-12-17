@@ -92,9 +92,7 @@
 { // func_door_secret in Hipnotic was just called "door".
   name			door
   interaction	shoot
-  spawnflags	16
-  targetname	false
-  logic_op		or
+  health		true //Ry: Take health into account instead of flags, which don't match up between door types
 }
 
 {
