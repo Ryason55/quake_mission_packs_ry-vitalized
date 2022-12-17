@@ -122,3 +122,13 @@
   classname		"monster_super_wrath"
   flags			ranged | flyer | melee
 }
+
+{ //Ry: Dragon
+  classname		"monster_dragon"
+  flags			ranged | flyer | melee
+}
+
+{ //Ry: Temporal Energy Converter
+  classname		"item_time_machine"
+  flags			flyer
+}

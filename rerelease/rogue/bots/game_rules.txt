@@ -14,6 +14,13 @@
 // 	horde
 // 	ctf
 
+{ //Ry: Dissolution Horde
+  cvar				horde
+  value				1
+  weapon_stay 		true
+  game_type			horde
+}
+
 {
   cvar				coop
   value				1
@@ -21,10 +28,59 @@
   game_type			coop
 }
 
+//{  //Ry: The CTF cvar isn't unset when you switch modes, causing bots to get stuck in CTF mode
+//  cvar				ctf
+//  value				1
+//  weapon_stay 		true
+//  game_type			ctf
+//}
+
+//Ry: Original Dissolution CTF Teamplay modes
 {
   cvar				teamplay
   value				4
-  weapon_stay 		false
+  weapon_stay 		true
+  game_type			ctf
+}
+{
+  cvar				teamplay
+  value				5
+  weapon_stay 		true
+  game_type			ctf
+}
+{
+  cvar				teamplay
+  value				6
+  weapon_stay 		true
+  game_type			ctf
+}
+
+//Ry: Possible Teamplay modes when starting CTF in Remaster
+{ // Auto Teams, Friendly Fire
+  cvar				teamplay
+  value				360
+  weapon_stay 		true
+  game_type			ctf
+}
+
+{ // Auto Teams, No Friendly Fire
+  cvar				teamplay
+  value				361
+  weapon_stay 		true
+  game_type			ctf
+}
+
+{ // Team Select, Friendly Fire
+  cvar				teamplay
+  value				1320
+  weapon_stay 		true
+  game_type			ctf
+}
+
+{ // Team Select, No Friendly Fire
+  cvar				teamplay
+  value				1321
+  weapon_stay 		true
   game_type			ctf
 }
 

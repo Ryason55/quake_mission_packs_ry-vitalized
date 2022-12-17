@@ -184,10 +184,22 @@
 
 { // CTF Red Flag
   name			"item_flag_team1"
+  team			5
   flags			objective
 }
 
 { // CTF Blue Flag
   name			"item_flag_team2"
+  team			3
   flags			objective
+}
+
+{ // Ry: Any CTF Rune
+  name			"item_rune"
+  flags			powerup | rune
+}
+
+{ // Ry: Deathmatch tag token
+  name			"dmatch_tag_token"
+  flags			powerup | objective
 }
