@@ -1,0 +1,135 @@
+slot 0
+{
+    impulse     2
+    icon        "gfx/weapons/ww_shotgun1_1.lmp"
+    icon_sel    "gfx/weapons/ww_shotgun1_2.lmp"
+    ammoicon    "sb_shells"
+    entvaroffs  216
+    weaponnum   1
+}
+
+slot 1
+{
+    impulse     3
+    icon        "gfx/weapons/ww_shotgun2_1.lmp"
+    icon_sel    "gfx/weapons/ww_shotgun2_2.lmp"
+    ammoicon    "sb_shells"
+    entvaroffs  216
+    weaponnum   2
+}
+
+slot 2
+{
+    impulse     65
+    icon        "gfx/weapons/ww_nail1_1.lmp"
+    icon_sel    "gfx/weapons/ww_nail1_2.lmp"
+    ammoicon    "sb_nails"
+    entvaroffs  428
+    weaponnum   4
+}
+
+slot 3
+{
+    impulse     60
+    icon        "gfx/weapons/ui_r_weapon_lava_1.lmp"
+    icon_sel    "gfx/weapons/ui_r_weapon_lava_2.lmp"
+    ammoicon    "r_ammolava"
+    entvaroffs  440
+    weaponnum   4096
+}
+
+slot 4
+{
+    impulse     66
+    icon        "gfx/weapons/ww_nail2_1.lmp"
+    icon_sel    "gfx/weapons/ww_nail2_2.lmp"
+    ammoicon    "sb_nails"
+    entvaroffs  428
+    weaponnum   8
+}
+
+slot 5
+{
+    impulse     61
+    icon        "gfx/weapons/ui_r_weapon_superlava_1.lmp"
+    icon_sel    "gfx/weapons/ui_r_weapon_superlava_2.lmp"
+    ammoicon    "r_ammolava"
+    entvaroffs  440
+    weaponnum   8192
+}
+
+slot 6
+{
+    impulse     67
+    icon        "gfx/weapons/ww_rocket1_1.lmp"
+    icon_sel    "gfx/weapons/ww_rocket1_2.lmp"
+    ammoicon    "sb_rocket"
+    entvaroffs  432
+    weaponnum   16
+}
+
+slot 7
+{
+    impulse     62
+    icon        "gfx/weapons/ui_r_weapon_gren_1.lmp"
+    icon_sel    "gfx/weapons/ui_r_weapon_gren_2.lmp"
+    ammoicon    "r_ammoplasma"
+    entvaroffs  444
+    weaponnum   16384
+}
+
+slot 8
+{
+    impulse     68
+    icon        "gfx/weapons/ww_rocket2_1.lmp"
+    icon_sel    "gfx/weapons/ww_rocket2_2.lmp"
+    ammoicon    "sb_rocket"
+    entvaroffs  432
+    weaponnum   32
+}
+
+slot 9
+{
+    impulse     63
+    icon        "gfx/weapons/ui_r_weapon_multirock_1.lmp"
+    icon_sel    "gfx/weapons/ui_r_weapon_multirock_2.lmp"
+    ammoicon    "r_ammoplasma"
+    entvaroffs  444
+    weaponnum   32768
+}
+
+slot 10
+{
+    impulse     69
+    icon        "gfx/weapons/ww_light_1.lmp"
+    icon_sel    "gfx/weapons/ww_light_2.lmp"
+    ammoicon    "sb_cells"
+    entvaroffs  436
+    weaponnum   64
+}
+
+slot 11
+{
+    impulse     64
+    icon        "gfx/weapons/ui_r_weapon_plasma_1.lmp"
+    icon_sel    "gfx/weapons/ui_r_weapon_plasma_2.lmp"
+    ammoicon    "r_ammomulti"
+    entvaroffs  448
+    weaponnum   65536
+}
+
+slot 12
+{
+    impulse     1
+    weaponnum   2048
+    icon        "gfx/weapons/ww_axe_1.lmp"
+    icon_sel    "gfx/weapons/ww_axe_2.lmp"
+}
+
+slot 13
+{
+    impulse     22
+    weaponnum   8388608
+    icon        "gfx/weapons/ww_grap_1.lmp"
+    icon_sel    "gfx/weapons/ww_grap_2.lmp"
+}
