@@ -1,7 +1,9 @@
 
 void() InitBodyQue;
-//JIM
-void() InitBulletHoles;
+#ifdef GAME_HIPNOTIC
+  //JIM
+  void() InitBulletHoles;
+#endif
 
 
 void() main =
@@ -106,9 +108,6 @@ void() main =
 	precache_sound ("ambience/water1.wav");
 	precache_sound ("ambience/wind2.wav");
 
-//MED
-//Added Hipnotic Pack
-/*
 // shareware
 	precache_file ("maps/start.bsp");
 
@@ -157,28 +156,49 @@ void() main =
 	precache_file2 ("maps/dm4.bsp");
 	precache_file2 ("maps/dm5.bsp");
 	precache_file2 ("maps/dm6.bsp");
-*/
-   precache_file ("maps/start.bsp");
 
-   precache_file ("maps/hip1m1.bsp");
-   precache_file ("maps/hip1m2.bsp");
-   precache_file ("maps/hip1m3.bsp");
-   precache_file ("maps/hip1m4.bsp");
-   precache_file ("maps/hip1m5.bsp");
-   precache_file ("maps/hip2m1.bsp");
-   precache_file ("maps/hip2m2.bsp");
-   precache_file ("maps/hip2m3.bsp");
-   precache_file ("maps/hip2m4.bsp");
-   precache_file ("maps/hip2m5.bsp");
-   precache_file ("maps/hip2m6.bsp");
-   precache_file ("maps/hip3m1.bsp");
-   precache_file ("maps/hip3m2.bsp");
-   precache_file ("maps/hip3m3.bsp");
-   precache_file ("maps/hip3m4.bsp");
-   precache_file ("maps/hipdm1.bsp");
-   precache_file ("maps/hipend.bsp");
-   precache_file ("maps/zoo.bsp");
-   precache_file ("maps/mark.bsp");
+  #ifdef GAME_HIPNOTIC
+    //MED
+    //Added Hipnotic Pack
+    precache_file ("maps/hip1m1.bsp");
+    precache_file ("maps/hip1m2.bsp");
+    precache_file ("maps/hip1m3.bsp");
+    precache_file ("maps/hip1m4.bsp");
+    precache_file ("maps/hip1m5.bsp");
+    precache_file ("maps/hip2m1.bsp");
+    precache_file ("maps/hip2m2.bsp");
+    precache_file ("maps/hip2m3.bsp");
+    precache_file ("maps/hip2m4.bsp");
+    precache_file ("maps/hip2m5.bsp");
+    precache_file ("maps/hip2m6.bsp");
+    precache_file ("maps/hip3m1.bsp");
+    precache_file ("maps/hip3m2.bsp");
+    precache_file ("maps/hip3m3.bsp");
+    precache_file ("maps/hip3m4.bsp");
+    precache_file ("maps/hipdm1.bsp");
+    precache_file ("maps/hipend.bsp");
+    //precache_file ("maps/zoo.bsp");
+    //precache_file ("maps/mark.bsp");
+  #endif
+
+  #ifdef GAME_ROGUE
+    precache_file ("maps/r1m1.bsp");
+    precache_file ("maps/r1m2.bsp");
+    precache_file ("maps/r1m3.bsp");
+    precache_file ("maps/r1m4.bsp");
+    precache_file ("maps/r1m5.bsp");
+    precache_file ("maps/r1m6.bsp");
+    precache_file ("maps/r1m7.bsp");
+    precache_file ("maps/r2m1.bsp");
+    precache_file ("maps/r2m2.bsp");
+    precache_file ("maps/r2m3.bsp");
+    precache_file ("maps/r2m4.bsp");
+    precache_file ("maps/r2m5.bsp");
+    precache_file ("maps/r2m6.bsp");
+    precache_file ("maps/r2m7.bsp");
+    precache_file ("maps/r2m8.bsp");
+    precache_file ("maps/ctf1.bsp");
+  #endif
 };
 
 
@@ -203,8 +223,10 @@ void() worldspawn =
   lastspawn = world;
 	InitBodyQue ();
 
-//JIM
-   InitBulletHoles();
+  #ifdef GAME_HIPNOTIC
+    //JIM
+    InitBulletHoles();
+  #endif
 
 // custom map attributes
 	if (self.model == "maps/e1m8.bsp")
@@ -212,13 +234,18 @@ void() worldspawn =
 	else
 		cvar_set ("sv_gravity", "800");
   
-  //Ry: Custom map title, from QuakeEnhancedQC
-  self.message = GetMapName(self.message);
+  #ifdef ENGINE_KEX
+    //Ry: Custom map title, from QuakeEnhancedQC
+    self.message = GetMapName(self.message);
+  #endif
 
 // the area based ambient sounds MUST be the first precache_sounds
 
 // player precaches
 	W_Precache ();			// get weapon precaches
+  #ifdef GAME_ROGUE
+    RunePrecache();
+  #endif
 
 // sounds used from C physics code
 	precache_sound ("demon/dland2.wav");		// landing thud
@@ -289,25 +316,39 @@ void() worldspawn =
 	precache_sound ("misc/water1.wav");			// swimming
 	precache_sound ("misc/water2.wav");			// swimming
 
-//MED 10/21/96 added flies sound
-   precache_sound ("misc/flys.wav");
-//MED 01/13/97 added explosion sounds
-   precache_sound ("misc/shortexp.wav");
-   precache_sound ("misc/longexpl.wav");
-   precache_sound ("misc/foot1.wav");
-   precache_sound ("misc/foot2.wav");
-   precache_sound ("misc/foot3.wav");
-   precache_sound ("misc/foot4.wav");
-   precache_sound ("misc/foot5.wav");
-   precache_sound ("misc/foot6.wav");
-   precache_sound ("misc/foot7.wav");
+  #ifdef GAME_HIPNOTIC
+    //MED 10/21/96 added flies sound
+    precache_sound ("misc/flys.wav");
+    //MED 01/13/97 added explosion sounds
+    precache_sound ("misc/shortexp.wav");
+    precache_sound ("misc/longexpl.wav");
+    precache_sound ("misc/foot1.wav");
+    precache_sound ("misc/foot2.wav");
+    precache_sound ("misc/foot3.wav");
+    precache_sound ("misc/foot4.wav");
+    precache_sound ("misc/foot5.wav");
+    precache_sound ("misc/foot6.wav");
+    precache_sound ("misc/foot7.wav");
+  #endif
+  #ifdef GAME_ROGUE
+    // PGM Addition Sounds
+    precache_sound ("enforcer/enfstop.wav");    // shield impact
+    precache_sound ("plasma/explode.wav");
+    precache_sound ("plasma/flight.wav");			
+    precache_sound ("plasma/fire.wav");
+    precache_sound ("shield/hit.wav");
+    precache_sound ("belt/use.wav");
+    precache_sound ("items/damage2.wav");
+  #endif
 
-   precache_model ("progs/player.mdl");
+  precache_model ("progs/player.mdl");
 	precache_model ("progs/eyes.mdl");
 	precache_model ("progs/h_player.mdl");
-//MED 12/03/96 added player with hammer
-   precache_model ("progs/playham.mdl");
-   precache_model ("progs/gib1.mdl");
+  #ifdef GAME_HIPNOTIC
+    //MED 12/03/96 added player with hammer
+    precache_model ("progs/playham.mdl");
+  #endif
+  precache_model ("progs/gib1.mdl");
 	precache_model ("progs/gib2.mdl");
 	precache_model ("progs/gib3.mdl");
 
@@ -321,29 +362,63 @@ void() worldspawn =
 	precache_model ("progs/v_shot2.mdl");
 	precache_model ("progs/v_nail2.mdl");
 	precache_model ("progs/v_rock2.mdl");
-//MED 10/31/96 added precache for hip view models
-   precache_model ("progs/v_laserg.mdl");
-   precache_model ("progs/v_hammer.mdl");
-   precache_model ("progs/v_prox.mdl");
-   precache_model ("progs/proxbomb.mdl");
+
+  #ifdef GAME_HIPNOTIC
+    //MED 10/31/96 added precache for hip view models
+    precache_model ("progs/v_laserg.mdl");
+    precache_model ("progs/v_hammer.mdl");
+    precache_model ("progs/v_prox.mdl");
+    precache_model ("progs/proxbomb.mdl");
+  #endif
+  #ifdef GAME_ROGUE
+    // Lava Gun models - pgm change
+    precache_model ("progs/v_lava.mdl");
+    precache_model ("progs/v_lava2.mdl");
+    precache_model ("progs/v_multi.mdl");
+    precache_model ("progs/v_multi2.mdl");
+  #endif
 
 	precache_model ("progs/bolt.mdl");		// for lightning gun
 	precache_model ("progs/bolt2.mdl");		// for lightning gun
 	precache_model ("progs/bolt3.mdl");		// for boss shock
 	precache_model ("progs/lavaball.mdl");	// for testing
-//MED 10/18/96 added precache for laser cannon
-   precache_model ("progs/lasrspik.mdl");
+  #ifdef GAME_HIPNOTIC
+    //MED 10/18/96 added precache for laser cannon
+    precache_model ("progs/lasrspik.mdl");
+  #endif
 
 	precache_model ("progs/missile.mdl");
 	precache_model ("progs/grenade.mdl");
 	precache_model ("progs/spike.mdl");
 	precache_model ("progs/s_spike.mdl");
+  
+  #ifdef GAME_ROGUE
+    // PGM addition
+    precache_model ("progs/mervup.mdl");
+    precache_model ("progs/rockup.mdl");
+    precache_model ("progs/rockup_d.mdl");
+    precache_model ("progs/lspike.mdl");
+    precache_model ("progs/shield.mdl");
+    precache_model ("progs/p_shield.mdl");
+  #endif
 
 	precache_model ("progs/backpack.mdl");
 
 	precache_model ("progs/zom_gib.mdl");
 
 	precache_model ("progs/v_light.mdl");
+  
+  #ifdef GAME_ROGUE
+    precache_model ("progs/plasma.mdl");
+    precache_model ("progs/v_plasma.mdl");
+    
+    //ZOID--
+    // hook for CTF
+    precache_model ("progs/hook.mdl");
+    precache_model ("progs/v_grpple.mdl");
+    precache_model ("progs/beam.mdl"); //Ry: Remaster doesn't like that this wasn't precached
+    //--ZOID
+  #endif
   
   precache_sound ("doors/runeuse.wav"); //Ry: New frag confirmation sound
 
@@ -393,77 +468,282 @@ void() worldspawn =
 	// 63 testing
 	lightstyle(63, "a");
 
-//JIM
-	StopEarthQuake();
-//MED 
-  if ( !(cvar("temp5") & RY_FL_DISABLE_FOOTSTEPS) ) //Ry: Footsteps enabled by default, but can be turned off with a flag
-    footsteps = TRUE;
+  #ifdef GAME_HIPNOTIC
+    //JIM
+    StopEarthQuake();
+    //MED 
+    if ( !(cvar(SETTINGS_CVAR) & RY_FL_DISABLE_FOOTSTEPS) ) //Ry: Footsteps enabled by default, but can be turned off with a flag
+      footsteps = TRUE;
 
-  if ( !(cvar("temp5") & RY_FL_DISABLE_GREMITEMSTEAL) ) //Ry: Flag toggle for Gremlin's ability to pick up items
-    grem_itemstealallowed = TRUE;
+    if ( !(cvar(SETTINGS_CVAR) & RY_FL_DISABLE_GREMITEMSTEAL) ) //Ry: Flag toggle for Gremlin's ability to pick up items
+      grem_itemstealallowed = TRUE;
+  #endif
+  
+  #ifndef GAME_ID1
+    if ( !(cvar(SETTINGS_CVAR) & RY_FL_DISABLE_HIPREBALANCE) ) //Ry: Flag toggle for disabling balance adjustments for Mission Pack weapons and powerups
+      hip_rebalance = TRUE;
+  #endif
 
-  if ( !(cvar("temp5") & RY_FL_DISABLE_HIPREBALANCE) ) //Ry: Flag toggle for disabling balance adjustments for Hipnotic weapons and powerups
-    hip_rebalance = TRUE;
-
-  if ( !(cvar("temp5") & RY_FL_DISABLE_WIDELIGHTNING) ) //Ry: Flag toggle for disabling the wide Thunderbolt beam fix
+  if ( !(cvar(SETTINGS_CVAR) & RY_FL_DISABLE_WIDELIGHTNING) ) //Ry: Flag toggle for disabling the wide Thunderbolt beam fix
     wide_lightning = TRUE;
 
-  if ( !(cvar("temp5") & RY_FL_DISABLE_WIDESPIKES) ) //Ry: Flag toggle for disabling Nails/Lasers having a bigger hitbox against players
+  if ( !(cvar(SETTINGS_CVAR) & RY_FL_DISABLE_WIDESPIKES) ) //Ry: Flag toggle for disabling Nails/Lasers having a bigger hitbox against players
     wide_spikes = TRUE;
+
+  if (!deathmatch)
+  {
+    if ( cvar(SETTINGS_CVAR) & RY_FL_FASTMONSTERS ) //Ry: Flag toggle for Doom-style Fast Monsters
+      fastmonsters = TRUE;
+
+    if ( cvar(SETTINGS_CVAR) & RY_FL_COPPERNIGHTMARE ) //Ry: Some people enjoy this, I guess
+      copper_nightmare = TRUE;
+  }
 
   ach_weaponfired = FALSE; //Ry: Remaster ID1 achievements, now handled globally for proper Co-op handling
   ach_damagetaken = FALSE;
-  
+
   mapstartweapons = 0;
-  hipnoticmap = FALSE;
-  if (deathmatch)
-    hip_weaponconverttime = time + 0.3;
-  else
-    hip_weaponconverttime = time + 5;
-  hip_entconverttime = time + 0.3;
+  #ifndef GAME_ID1
+    missionpackmap = FALSE;
+    replacetime_ents = time + 0.3;
+    #ifdef GAME_HIPNOTIC
+      if (deathmatch)
+        replacetime_weapons = time + 0.3;
+      else
+        replacetime_weapons = time + 5;
+    #endif
+  #endif
+
+  #ifdef GAME_ROGUE
+    teamplay = cvar("teamplay");
+    #ifdef ENGINE_KEX //Ry: CTF mode innately uses Teamplay for Threewave settings
+      if (cvar("ctf") && deathmatch)
+      {
+        if (teamplay == 0) //Ry: Switching off of CTF sets the Teamplay back to 0, but doesn't touch the actual CTF variable
+        {
+          cvar_set("ctf",ftos(0));
+        }
+        else if ( (teamplay < TEAM_CTF) || (teamplay > TEAM_CTF_ALT) )
+        {
+          //Ry: Convert Threewave teamplay flags to Dissolution gamecfg flags
+          gameconfig = cvar("gamecfg");
+
+          if (teamplay & TW_TEAM_HEALTH_PROTECT)
+            gameconfig -= (gameconfig & GAMECFG_TEAM_HEALTH_DMG);
+          else
+            gameconfig |= GAMECFG_TEAM_HEALTH_DMG;
+
+          if (teamplay & TW_TEAM_ARMOR_PROTECT)
+            gameconfig -= (gameconfig & GAMECFG_TEAM_ARMOR_DMG);
+          else
+            gameconfig |= GAMECFG_TEAM_ARMOR_DMG;
+
+          if (teamplay & TW_TEAM_SELECT_TEAM)
+            gameconfig -= (gameconfig & GAMECFG_AUTO_TEAM);
+          else
+            gameconfig |= GAMECFG_AUTO_TEAM;
+
+          cvar_set("gamecfg",ftos(gameconfig));
+          teamplay = TEAM_CTF;
+        }
+      }
+      else if (teamplay > TEAM_NORMAL_DAMAGE)
+      {
+        cvar_set("ctf",ftos(0));
+        if (coop)
+          teamplay = TEAM_NORMAL_NODAMAGE;
+        else
+          teamplay = FALSE;
+      }
+      cvar_set("teamplay",ftos(teamplay));
+    #endif
+    if (teamplay >= TEAM_CTF || (cvar(SETTINGS_CVAR) & RY_FL_ALWAYSGRAPPLE))
+      grappleenabled = TRUE;
+    
+    //Ry: Experimental; When firing the Plasma Gun, the bolt is launched with a delay to match up to the firing sound.
+    //    Not great for netplay.
+    if ( (cvar(SETTINGS_CVAR) & RY_FL_ALTPLASMA) )
+      altplasma = TRUE;
+    
+    #ifdef ENGINE_KEX
+    //Ry: Initiate Deathmatch Tag through this now [09-21-2022]
+    if ( deathmatch && (teamplay < TEAM_CTF) && (cvar("gamecfg") & GAMECFG_DMATCH_TAG) )
+    #else
+    if ( deathmatch && (teamplay == TEAM_DMATCH_TAG) )
+    #endif
+      dmatchtag = TRUE;
+  #elifdef ENGINE_KEX
+    //Ry: Reset these in case they were set by Dissolution
+    if (cvar("ctf"))
+      cvar_set("ctf",ftos(0));
+    if (cvar("teamplay") > 2)
+    {
+      if (coop)
+        cvar_set("teamplay",ftos(1));
+      else
+        cvar_set("teamplay",ftos(0));
+    }
+  #endif
   
+  #ifdef GAME_ROGUE
+  if (cvar("teamplay") >= TEAM_CTF)
+    motd_priority = CPRINT_CHOICE;
+  else
+  #endif
+    motd_priority = CPRINT_MOTD;
+
+  //Ry: Set ammo caps for certain ammo types [09-06-2022]
+  if (deathmatch)
+  {
+    ammocap_rockets = 50;
+    #ifdef GAME_ROGUE
+      ammocap_lava = 100;
+      ammocap_multi = 20;
+      ammocap_plasma = 30;
+    #endif
+  }
+  else
+  {
+    ammocap_rockets = 100;
+    #ifdef GAME_ROGUE
+      ammocap_lava = 200;
+      ammocap_multi = 100;
+      ammocap_plasma = 100;
+    #endif
+  }
+
   debugspawns = FALSE;
-  /*if ( (cvar("temp5") & RY_FL_DEBUGSPAWNS) )
+  /*if ( (cvar(SETTINGS_CVAR) & RY_FL_DEBUGSPAWNS) )
   {
     debugspawns = TRUE;
     dprint("Spawn point debugging enabled\n");
   }*/
-  
-  };
+
+};
 
 void() StartFrame =
 {
 	teamplay = cvar("teamplay");
 	skill = cvar("skill");
-	cheats_allowed = cvar("sv_cheats");
-  horde = cvar("horde");
-	if (!campaign_valid)
-	{
-		campaign_valid = TRUE;
-		campaign = cvar("campaign");
-	}
-	else
-	{
-		cvar_set("campaign", ftos(campaign));
-	}
+  #ifdef GAME_ROGUE
+    gameconfig = cvar("gamecfg");
+  #endif
+  #ifndef ENGINE_WINQUAKE
+    cheats_allowed = cvar("sv_cheats");
+    horde = cvar("horde");
+    if (!campaign_valid)
+    {
+      campaign_valid = TRUE;
+      campaign = cvar("campaign");
+    }
+    else
+    {
+      cvar_set("campaign", ftos(campaign));
+    }
+  #endif
 	framecount = framecount + 1;
   
-  #ifdef GAME_HIPNOTIC
-    //Ry: Automatic replacements on ID1 maps
-    if (!hipnoticmap && (time >= hip_entconverttime)) //Ry: Monster and Biosuit replacements
+  //Ry: Keep track of when the team wipes in Horde mode [09-22-2022]
+  if (horde_ent)
+  {
+    if (!teamwipetime)
     {
-      hipnoticmap = 2;
-      ReplaceBiosuits();
-      if (!deathmatch)
-        InjectHipnoticMonsters();
+      if (HordeGetPlayersAlive() <= 0)
+        teamwipetime = time + 1;
     }
-    if ( !deathmatch && (hipnoticmap == 2) && (time >= hip_weaponconverttime) ) //Ry: Weapon item replacements
+    else
     {
-      hipnoticmap = 3;
-      InjectHipnoticWeapons();
+      if (HordeGetPlayersAlive() > 0) //Ry: If players somehow come back
+      {
+        teamwipetime = 0;
+        local entity plr;
+        plr = find(world,classname,"player");
+        while (plr)
+        {
+          if (plr.deadflag && !(plr.flags & FL_ISBOT))
+          {
+            plr.lastcenterprinttype = CPRINT_NONE;
+            plr.lastcenterprinttime = 0;
+            centerprint(plr,"");
+          }
+          plr = find(plr,classname,"player");
+        }
+      }
+      else if (time >= teamwipetime)
+      {
+        plr = find(world,classname,"player");
+        while (plr)
+        {
+          if (plr.deadflag && !(plr.flags & FL_ISBOT))
+          {
+            if (plr.goalentity) //Ry: Spectator
+              FilteredCenterPrint(plr,CPRINT_CHOICE,"GAME OVER\n\nAll players have fallen...");
+            else //Ry: Dead on the floor (pushed down so the scoreboard doesn't cover it)
+              FilteredCenterPrint(plr,CPRINT_CHOICE,"\n\n\n\n\n\n\n\n\n\nGAME OVER\n\nAll players have fallen...");
+          }
+          plr = find(plr,classname,"player");
+        }
+        teamwipetime = time + 1;
+      }
+    }
+  }
+  
+  #ifndef GAME_ID1
+    //Ry: Automatic replacements on ID1 maps
+    if (!missionpackmap && (time >= replacetime_ents)) //Ry: Non-weapon replacements
+    {
+      missionpackmap = 2;
+      #ifdef GAME_HIPNOTIC
+        ReplaceBiosuits();
+        if (!deathmatch)
+          InjectHipnoticMonsters();
+      #endif
+      #ifdef GAME_ROGUE
+        InjectAlternateAmmos();
+        if (!deathmatch)
+        {
+          GenericMonsterReplace("monster_fish","eel",0.3);
+          GenericMonsterReplace("monster_knight","sword",0.2);
+          if (world.model != "maps/end.bsp")
+          GenericMonsterReplace("monster_shalrath","wrath",0.25);
+        }
+      #endif
+    }
+    #ifdef GAME_HIPNOTIC
+      if ( !deathmatch && (missionpackmap == 2) && (time >= replacetime_weapons) ) //Ry: Weapon item replacements
+      {
+        missionpackmap = 3;
+        InjectHipnoticWeapons();
+      }
+    #endif
+  #endif
+  
+  #ifdef GAME_ROGUE
+    //Ry: Check for any players who want to switch teams
+    if (deathmatch && (teamplay >= TEAM_CTF) && (teamplay <= TEAM_CTF_ALT))
+    {
+      local entity player,changeplayer;
+      player = find(world,classname,"player");
+      while (player)
+      {
+        if (player.desireteamchangetime)
+        {
+          if (!changeplayer)
+            changeplayer = player;
+          else if (player.desireteamchangetime < changeplayer.desireteamchangetime)
+            changeplayer = player;
+        }
+        player = find(player,classname,"player");
+      }
+      if (changeplayer)
+      {
+        TryChangeTeam(changeplayer);
+      }
     }
   #endif
   
+  //Ry: If enabled, do fast monsters here [09-06-2022]
+  DoFastMonsters();
 };
 
 /*
@@ -514,8 +794,8 @@ void(entity ent) CopyToBodyQue =
 {
   if (ent.model != "") //Ry: Make sure player has a model, in case this is called during deferred spawning
   {
-    local entity head;
     #ifdef GAME_HIPNOTIC
+      local entity head;
       if (ent.model == "progs/h_player.mdl") //Ry: Set this appropriately based on whether it's a head or not (For Gremlins)
         bodyque_head.gremstate = GREM_GORGING;
       else
@@ -529,7 +809,11 @@ void(entity ent) CopyToBodyQue =
         if ( (head.health > 0) && (head.enemy == ent) )
           head.enemy = bodyque_head;
     #endif
-    
+    #ifdef GAME_ROGUE
+      // PGM - support for new deathmatch skins on corpses too!
+      bodyque_head.skin = ent.skin;
+    #endif
+
     bodyque_head.angles = ent.angles;
     bodyque_head.model = ent.model;
     bodyque_head.modelindex = ent.modelindex;
@@ -538,6 +822,14 @@ void(entity ent) CopyToBodyQue =
     bodyque_head.movetype = ent.movetype;
     bodyque_head.velocity = ent.velocity;
     bodyque_head.flags = 0;
+
+    //Ry: Allow the death animation to finish if it didn't (Can happen in Horde Mode when everyone respawns) [07-31-2022]
+    if (ent.deadflag == DEAD_DYING)
+    {
+      bodyque_head.think = ent.think;
+      bodyque_head.nextthink = ent.nextthink;
+    }
+
     setorigin (bodyque_head, ent.origin);
     setsize (bodyque_head, ent.mins, ent.maxs);
     bodyque_head = bodyque_head.owner;

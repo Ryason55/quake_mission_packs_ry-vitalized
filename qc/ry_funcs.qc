@@ -23,6 +23,9 @@ void() damageownerfield_use =
 
 void() func_damageownerfield =
 {
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
+    return;
+
   if (!self.mins && !self.maxs)
   {
     self.mins = '-64 -64 -64';
@@ -101,7 +104,7 @@ void() teleport_togglemap_touch =
 
 void() trigger_teleport_togglenextmap =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
     
   if (!self.map || !self.altmap) //Ry: If not set up properly, set up as a regular teleport
@@ -136,12 +139,109 @@ void() trigger_teleport_togglenextmap =
 	}
 }
 
-//Ry: [Unfinished] Pushes back players while allowing monsters through. Can be deactivated with a key, or on use.
-void() playerbarrier =
+
+//Ry: Point entity that will assist monsters in navigating to a foe behind a corner
+void() path_trafficmirror =
 {
-  if (!self.mins && !self.maxs)
+  if (!EntityValidForMode(ENTTYPE_LEVEL))
+    return;
+
+  if (!(self.spawnflags & 1)) //Ry: Drop down flag
   {
-    self.mins = '-64 -64 -64';
-    self.maxs = '64 64 64';
+    if (!droptofloor(0,0))
+    {
+      dprint("traffic mirror unable to drop to floor\n");
+      remove(self);
+      return;
+    }
   }
+  self.origin_z += 24;
+  setorigin(self,self.origin);
+  
+  if (!self.distance)
+    self.distance = 32;
 }
+
+
+// ==================
+//   Remaster Funcs
+// ==================
+
+
+// ======================================================
+/*QUAKED trigger_multitouch (.5 .5 .5) ?
+A trigger that fires its targets on "first touch", "emptied" or both
+
+YODER Feb08, 2022
+*/
+float IGNORE_FIRST_TOUCH = 16;
+float IGNORE_EMPTIED = 32;
+
+void() trigger_multitouch_think =
+{
+    self.wait = 0;
+    if (!(self.spawnflags & IGNORE_EMPTIED))
+        SUB_UseTargets();
+};
+
+void() trigger_multitouch_touch =
+{
+  if (other.classname != "player")
+    return;
+	if (other.health <= 0)
+		return;
+
+  if (self.wait == 0) // first touch?
+  {
+      self.wait = 1;
+      if (!(self.spawnflags & IGNORE_FIRST_TOUCH))
+          SUB_UseTargets();
+  }
+
+  // think
+  self.think = trigger_multitouch_think;
+  self.nextthink = time + 0.2;
+};
+
+void() trigger_multitouch =
+{
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
+    return;
+
+  InitTrigger ();
+  self.touch = trigger_multitouch_touch;
+  self.wait = 0; // 0 is empty, 1 is touched
+};
+
+
+
+// =====================
+//   Placeholder Funcs
+// =====================
+
+#ifndef GAME_HIPNOTIC
+  void() weapon_proximity_gun = { remove(self); }
+  void() weapon_laser_gun = { remove(self); }
+  void() weapon_mjolnir = { remove(self); }
+  void() item_artifact_empathy_shields = { remove(self); }
+  void() item_artifact_wetsuit = { remove(self); }
+  void() item_hornofconjuring = { remove(self); }
+  void() func_spawn = { remove(self); }
+  void() func_spawn_small = { remove(self); }
+#endif
+
+#ifndef GAME_ROGUE
+  void() item_powerup_shield = { remove(self); }
+  void() item_powerup_belt = { remove(self); }
+  void() item_sphere = { remove(self); }
+  void() item_random_powerup = { remove(self); }
+  void() item_lava_spikes = { remove(self); }
+  void() item_multi_rockets = { remove(self); }
+  void() item_plasma = { remove(self); }
+  void() dmatch_tag_token = { remove(self); }
+  void() item_flag_team1 = { remove(self); }
+  void() item_flag_team2 = { remove(self); }
+  void() item_flag = { remove(self); }
+  void() info_player_team1 = { remove(self); }
+  void() info_player_team2 = { remove(self); }
+#endif

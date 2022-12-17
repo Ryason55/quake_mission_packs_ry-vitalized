@@ -7,7 +7,7 @@ void() SUB_regen =
 {
 	self.model = self.mdl;		// restore original model
 	self.solid = SOLID_TRIGGER;	// allow it to be touched again
-  self.effects = self.itemeffect; //Ry: Add item effect if defined
+  SetLightEffect(self,self.itemeffect,TRUE); //Ry: Add item effect if defined
   #ifndef ENGINE_WINQUAKE
     self.alpha = 0; //Ry: Remove alpha effects
   #endif
@@ -23,25 +23,27 @@ void() SUB_regen =
 
 void(vector org) spawn_tfog;
 
-void() GremlinItemSafety = //Ry: Ensure that a weapon item dropped by a Gremlin warps back if it ends up unreachable
-{
-  local float content;
-  if (self.solid == SOLID_TRIGGER)
+#ifdef GAME_HIPNOTIC
+  void() GremlinItemSafety = //Ry: Ensure that a weapon item dropped by a Gremlin warps back if it ends up unreachable
   {
-    content = pointcontents(self.origin);
-    if ( (content == CONTENT_SOLID) || (content == CONTENT_SKY) || (self.watertype == CONTENT_SLIME) || (self.watertype == CONTENT_LAVA) || ((world.model == "maps/hipdm1.bsp") && ( self.origin_z < -1300 )) )
+    local float content;
+    if (self.solid == SOLID_TRIGGER)
     {
-      self.waterlevel = 0;
-      if (self.static)
-        self.movetype = MOVETYPE_FLY;
-      setorigin(self,self.pickorigin);
-      spawn_tfog(self.origin);
-      self.displaced = FALSE;
+      content = pointcontents(self.origin);
+      if ( (content == CONTENT_SOLID) || (content == CONTENT_SKY) || (self.watertype == CONTENT_SLIME) || (self.watertype == CONTENT_LAVA) || ((world.model == "maps/hipdm1.bsp") && ( self.origin_z < -1300 )) )
+      {
+        self.waterlevel = 0;
+        if (self.static)
+          self.movetype = MOVETYPE_FLY;
+        setorigin(self,self.pickorigin);
+        spawn_tfog(self.origin);
+        self.displaced = FALSE;
+      }
+      else
+        self.nextthink = time + 1;
     }
-    else
-      self.nextthink = time + 1;
-  }
-};
+  };
+#endif
 
 void(entity item, float newalpha) UpdateItemVisibility = //Ry: In Co-op, set item to be transparent if all active players have picked the item
 {
@@ -58,7 +60,7 @@ void(entity item, float newalpha) UpdateItemVisibility = //Ry: In Co-op, set ite
         if (item.solid != SOLID_TRIGGER) //Ry: Show the item again if it was hidden
         {
           item.solid = SOLID_TRIGGER;
-          setmodel(item,item.mdl);
+          item.model = item.mdl;
         }
         return;
       }
@@ -86,11 +88,13 @@ void(entity item, float newalpha) UpdateItemVisibility = //Ry: In Co-op, set ite
 void() TransparentThink = //Ry: Thinker version of the above
 {
   UpdateItemVisibility(self,0);
-  if (self.displaced) //Ry: Reinstate safety thinker if it was running
-  {
-    self.think = GremlinItemSafety;
-    self.nextthink = time + 1;
-  }
+  #ifdef GAME_HIPNOTIC
+    if (self.displaced) //Ry: Reinstate safety thinker if it was running
+    {
+      self.think = GremlinItemSafety;
+      self.nextthink = time + 1;
+    }
+  #endif
 }
 
 void() CreateExtraItemThinker = //Ry: External thinker for items, written to "trigger_field"
@@ -106,14 +110,22 @@ void() CreateExtraItemThinker = //Ry: External thinker for items, written to "tr
   }
 }
 
+#ifdef GAME_ROGUE
+  void() random_regen;
+  void() random_pick_type;
+#endif
+
 #ifndef ENGINE_WINQUAKE
   void() ItemPreSpawnGhost = //Ry: Show a ghost of the item shortly before spawning
   {
-    if (self.enemy.model == string_null)
-    {
-      self.enemy.model = self.enemy.mdl;
-      self.enemy.alpha = 0.2;
-    }
+    self = self.enemy;
+    #ifdef GAME_ROGUE
+      if (self.lefty) //Ry: If is the random item, choose the next item at this point [09-01-2022]
+        random_pick_type();
+    #endif
+    if (self.model == string_null)
+      self.model = self.mdl;
+    self.alpha = 0.2;
   }
 #endif
 
@@ -137,8 +149,10 @@ void(float spawntime) PrepareItemRespawn =
         self.trigger_field.think = ItemPreSpawnGhost;
         self.trigger_field.nextthink = spawntime-5;
       }
-    
     }
+  #elifdef GAME_ROGUE
+    if (self.lefty) //Ry: Random powerup
+      self.think = random_regen;
   #endif
 }
 
@@ -157,10 +171,15 @@ void() SUB_revertpowerup = //Ry: Put the powerup back into position for spawning
 
 void(entity item, entity player) droppowerup = //Ry: Make the dropped powerup functional again, and place it where the player died
 {
+  //Ry: Don't drop powerups that everyone can pick [09-26-2022]
+  if (item.oneperplayer)
+    return;
   item.model = item.mdl;
-  item.effects = item.itemeffect; //Ry: Add item effect if defined
-  item.origin = player.origin;
-  item.flags = FL_ITEM;
+  SetLightEffect(item,item.itemeffect,TRUE); //Ry: Add item effect if defined
+  item.flags -= (item.flags & FL_ONGROUND);
+  item.watertype = CONTENT_EMPTY;
+  item.waterlevel = 0;
+  setorigin(item,player.origin);
   item.solid = SOLID_TRIGGER;
   item.movetype = MOVETYPE_TOSS;
   item.velocity_z = 300;
@@ -180,7 +199,7 @@ void(entity item, entity player) droppowerup = //Ry: Make the dropped powerup fu
 
 void() DropPowerups = //Ry: New function for dropping each powerup on death
 {
-  if ((self.super_damage_finished - time > 3) && ( coop || (time < self.super_validdroptime) ) && (self.super_item) )
+  if ( (self.super_damage_finished - time > 3) && ( coop || (time < self.super_validdroptime) ) && self.super_item )
   {
     self.super_item.remaintime = self.super_damage_finished - time;
     self.super_damage_finished = 0;
@@ -188,7 +207,7 @@ void() DropPowerups = //Ry: New function for dropping each powerup on death
     self.items = self.items - IT_QUAD;
     droppowerup(self.super_item,self);
   }
-  if ((self.invincible_finished - time > 3) && ( coop || (time < self.invincible_validdroptime) ) && (self.invincible_item) )
+  if ( (self.invincible_finished - time > 3) && ( coop || (time < self.invincible_validdroptime) ) && self.invincible_item )
   {
     self.invincible_item.remaintime = self.invincible_finished - time;
     self.invincible_finished = 0;
@@ -196,7 +215,7 @@ void() DropPowerups = //Ry: New function for dropping each powerup on death
     self.items = self.items - IT_INVULNERABILITY;
     droppowerup(self.invincible_item,self);
   }
-  if ((self.invisible_finished - time > 3) && ( coop || (time < self.invisible_validdroptime) ) && (self.invisible_item))
+  if ( (self.invisible_finished - time > 3) && ( coop || (time < self.invisible_validdroptime) ) && self.invisible_item )
   {
     self.invisible_item.remaintime = self.invisible_finished - time;
     self.invisible_finished = 0;
@@ -204,7 +223,7 @@ void() DropPowerups = //Ry: New function for dropping each powerup on death
     self.items = self.items - IT_INVISIBILITY;
     droppowerup(self.invisible_item,self);
   }
-  if (!coop && (self.radsuit_finished - time > 3) && (time < self.radsuit_validdroptime) && (self.radsuit_item) ) //Ry: Don't drop in Co-op, since it's already shared
+  if ( (self.radsuit_finished - time > 3) &&  ( coop || (time < self.radsuit_validdroptime) ) && self.radsuit_item )
   {
     self.radsuit_item.remaintime = self.radsuit_finished - time;
     self.radsuit_finished = 0;
@@ -212,31 +231,52 @@ void() DropPowerups = //Ry: New function for dropping each powerup on death
     self.items = self.items - IT_SUIT;
     droppowerup(self.radsuit_item,self);
   }
-  if ((self.empathy_finished - time > 3) && ( coop || (time < self.empathy_validdroptime) ) && (self.empathy_item) ) //Ry: SoA Powerups
-  {
-    self.empathy_item.remaintime = self.empathy_finished - time;
-    self.empathy_finished = 0;
-    self.empathy_time = 0;
-    self.items2 = self.items2 - HIP_IT_EMPATHY_SHIELDS;
-    droppowerup(self.empathy_item,self);
-  }
-  if (!coop && (self.wetsuit_finished - time > 3) && (time < self.wetsuit_validdroptime) && (self.wetsuit_item) ) //Ry: Don't drop in Co-op, since it's already shared
-  {
-    self.wetsuit_item.remaintime = self.wetsuit_finished - time;
-    self.wetsuit_finished = 0;
-    self.wetsuit_time = 0;
-    self.items2 = self.items2 - HIP_IT_WETSUIT;
-    droppowerup(self.wetsuit_item,self);
-  }
+  #ifdef GAME_HIPNOTIC
+    if ( (self.empathy_finished - time > 3) && ( coop || (time < self.empathy_validdroptime) ) && self.empathy_item ) //Ry: SoA Powerups
+    {
+      self.empathy_item.remaintime = self.empathy_finished - time;
+      self.empathy_finished = 0;
+      self.empathy_time = 0;
+      self.items2 = self.items2 - HIP_IT_EMPATHY_SHIELDS;
+      droppowerup(self.empathy_item,self);
+    }
+    if ( (self.wetsuit_finished - time > 3) && ( coop || (time < self.wetsuit_validdroptime) ) && self.wetsuit_item )
+    {
+      self.wetsuit_item.remaintime = self.wetsuit_finished - time;
+      self.wetsuit_finished = 0;
+      self.wetsuit_time = 0;
+      self.items2 = self.items2 - HIP_IT_WETSUIT;
+      droppowerup(self.wetsuit_item,self);
+    }
+  #endif
+  #ifdef GAME_ROGUE
+    if ( (self.shield_finished - time > 3) && ( coop || (time < self.shield_validdroptime) ) && self.shield_item ) //Ry: DoE Powerups
+    {
+      self.shield_item.remaintime = self.shield_finished - time;
+      self.shield_finished = 0;
+      self.shield_time = 0;
+      self.items2 = self.items2 - IT2_SHIELD;
+      droppowerup(self.shield_item,self);
+    }
+    if ( (self.antigrav_finished - time > 3) && ( coop || (time < self.antigrav_validdroptime) ) && self.antigrav_item )
+    {
+      self.antigrav_item.remaintime = self.antigrav_finished - time;
+      self.antigrav_finished = 0;
+      self.antigrav_time = 0;
+      self.items2 = self.items2 - IT2_ANTIGRAV;
+      droppowerup(self.antigrav_item,self);
+    }
+  #endif
   self.effects = 0;
 }
 
 void(entity item) RecoverItem =
 {
   item.lastfragtime = time + 2;
-  item.origin = item.lastsafevect;
-  item.flags = FL_ITEM;
+  item.flags -= (item.flags & FL_ONGROUND);
+  item.watertype = CONTENT_EMPTY;
   item.waterlevel = 0;
+  setorigin(item,item.lastsafevect);
   item.solid = SOLID_TRIGGER;
   item.movetype = MOVETYPE_TOSS;
   item.velocity_z = 200;
@@ -251,51 +291,90 @@ void() PlayerBackpackSafety = //Ry: Make sure a backpack dropped by a player sta
   if (self.owner && self.owner.view_ofs == '0 0 0') //Ry: Return backpack contents immediately if players are exiting the level
   {
     local float acount = 0;
-    self.owner.ammo_shells = self.owner.ammo_shells + self.ammo_shells;
-    self.owner.ammo_nails = self.owner.ammo_nails + self.ammo_nails;
-    self.owner.ammo_rockets = self.owner.ammo_rockets + self.ammo_rockets;
-    self.owner.ammo_cells = self.owner.ammo_cells + self.ammo_cells;
+    self.owner.AMMO_SHELLS += self.AMMO_SHELLS;
+    self.owner.AMMO_NAILS += self.AMMO_NAILS;
+    self.owner.AMMO_ROCKETS += self.AMMO_ROCKETS;
+    self.owner.AMMO_CELLS += self.AMMO_CELLS;
     
-    if (self.owner.ammo_shells > 100)
-      self.owner.ammo_shells = 100;
-    if (self.owner.ammo_nails > 200)
-      self.owner.ammo_nails = 200;
-    if (self.owner.ammo_rockets > 100)
-      self.owner.ammo_rockets = 100;
-    if (self.owner.ammo_cells > 100)
-      self.owner.ammo_cells = 100;
+    if (self.owner.AMMO_SHELLS > 100)
+      self.owner.AMMO_SHELLS = 100;
+    if (self.owner.AMMO_NAILS > 200)
+      self.owner.AMMO_NAILS = 200;
+    if (self.owner.AMMO_ROCKETS > ammocap_rockets)
+      self.owner.AMMO_ROCKETS = ammocap_rockets;
+    if (self.owner.AMMO_CELLS > 100)
+      self.owner.AMMO_CELLS = 100;
+    
+    #ifdef GAME_ROGUE
+      self.owner.ammo_lava_nails += self.ammo_lava_nails;
+      self.owner.ammo_multi_rockets += self.ammo_multi_rockets;
+      self.owner.ammo_plasma += self.ammo_plasma;
+      
+      if (self.owner.ammo_lava_nails > ammocap_lava)
+        self.owner.ammo_lava_nails = ammocap_lava;
+      if (self.owner.ammo_multi_rockets > ammocap_multi)
+        self.owner.ammo_multi_rockets = ammocap_multi;
+      if (self.owner.ammo_plasma > ammocap_plasma)
+        self.owner.ammo_plasma = ammocap_plasma;
+    #endif
     
     sprint(self.owner,"Reclaimed "); //Ry: Let player know they got their stuff back
-    if (self.ammo_shells > 0)
+    if (self.AMMO_SHELLS > 0)
     {
       acount = 1;
-      sprint (self.owner, ftos(self.ammo_shells) );
+      sprint (self.owner, ftos(self.AMMO_SHELLS) );
       sprint (self.owner, " shells");
     }
-    if (self.ammo_nails > 0)
+    if (self.AMMO_NAILS > 0)
     {
       if (acount)
         sprint(self.owner, ", ");
       acount = 1;
-      sprint (self.owner, ftos(self.ammo_nails) );
+      sprint (self.owner, ftos(self.AMMO_NAILS) );
       sprint (self.owner, " nails");
     }
-    if (self.ammo_rockets > 0)
+    if (self.AMMO_ROCKETS > 0)
     {
       if (acount)
         sprint(self.owner, ", ");
       acount = 1;
-      sprint (self.owner, ftos(self.ammo_rockets) );
+      sprint (self.owner, ftos(self.AMMO_ROCKETS) );
       sprint (self.owner, " rockets");
     }
-    if (self.ammo_cells > 0)
+    if (self.AMMO_CELLS > 0)
     {
       if (acount)
         sprint(self.owner, ", ");
       acount = 1;
-      sprint (self.owner, ftos(self.ammo_cells) );
+      sprint (self.owner, ftos(self.AMMO_CELLS) );
       sprint (self.owner, " cells");
     }
+    #ifdef GAME_ROGUE
+      if (self.ammo_lava_nails > 0)
+      {
+        if (acount)
+          sprint(self.owner, ", ");
+        acount = 1;
+        sprint (self.owner, ftos(self.ammo_lava_nails) );
+        sprint (self.owner, " lava nails");
+      }
+      if (self.ammo_multi_rockets > 0)
+      {
+        if (acount)
+          sprint(self.owner, ", ");
+        acount = 1;
+        sprint (self.owner, ftos(self.ammo_multi_rockets) );
+        sprint (self.owner, " multi rockets");
+      }
+      if (self.ammo_plasma > 0)
+      {
+        if (acount)
+          sprint(self.owner, ", ");
+        acount = 1;
+        sprint (self.owner, ftos(self.ammo_plasma) );
+        sprint (self.owner, " plasma balls");
+      }
+    #endif
     sprint (self.owner, "\n");
     
     remove(self);
@@ -316,13 +395,15 @@ void() PlayerBackpackSafety = //Ry: Make sure a backpack dropped by a player sta
   self.nextthink = time + 1;
 }
 
-void() GremlinBackpackSafety = //Ry: Trimmed version of above for Gremlin backpacks
-{
-  if ( (self.watertype == CONTENT_SLIME) || (self.watertype == CONTENT_LAVA) || ((world.model == "maps/hipdm1.bsp") && ( self.origin_z < -1300 )) )
-    RecoverItem(self);
+#ifdef GAME_HIPNOTIC
+  void() GremlinBackpackSafety = //Ry: Trimmed version of above for Gremlin backpacks
+  {
+    if ( (self.watertype == CONTENT_SLIME) || (self.watertype == CONTENT_LAVA) || ((world.model == "maps/hipdm1.bsp") && ( self.origin_z < -1300 )) )
+      RecoverItem(self);
 
-  self.nextthink = time + 1;
-}
+    self.nextthink = time + 1;
+  }
+#endif
 
 void() RecordSafeVect =
 {
@@ -336,43 +417,96 @@ void() RecordSafeVect =
   }
 }
 
-void(float weapon, string name, float gremallowed) BackpackWeaponTake =
+string(float weapon) GetWeaponName =
+{
+  if (weapon == IT_AXE)
+    return "Axe";
+  else if (weapon == IT_SHOTGUN)
+    return "Shotgun";
+  else if (weapon == IT_SUPER_SHOTGUN)
+    return "Double-barrelled Shotgun";
+  else if (weapon == IT_NAILGUN)
+    return "Nailgun";
+  else if (weapon == IT_SUPER_NAILGUN)
+    return "Super Nailgun";
+  else if (weapon == IT_GRENADE_LAUNCHER)
+    return "Grenade Launcher";
+  else if (weapon == IT_ROCKET_LAUNCHER)
+    return "Rocket Launcher";
+  else if (weapon == IT_LIGHTNING)
+    return "Thunderbolt";
+  #ifdef GAME_HIPNOTIC
+    else if (weapon == IT_PROXIMITY_GUN)
+      return "Proximity Gun";
+    else if (weapon == IT_LASER_CANNON)
+      return "Laser Cannon";
+    else if (weapon == IT_MJOLNIR)
+      return "Mjolnir";
+  #endif
+  #ifdef GAME_ROGUE
+    else if (weapon == IT_LAVA_NAILGUN)
+      return "Lava Nailgun";
+    else if (weapon == IT_LAVA_SUPER_NAILGUN)
+      return "Super Lava Nailgun";
+    else if (weapon == IT_MULTI_GRENADE)
+      return "Multi Grenade Launcher";
+    else if (weapon == IT_MULTI_ROCKET)
+      return "Multi Rocket Launcher";
+    else if (weapon == IT_PLASMA_GUN)
+      return "Plasma Gun";
+  #endif
+  return "";
+}
+
+float take_stolenweps, take_weps;
+
+void(float weapon, float gremallowed) BackpackWeaponTake =
 {
   if (self.items & weapon) //Ry: self is the item, other is the picker
   {
-    if (other.classname == "monster_gremlin")
-    {
-      if ( gremallowed && !(other.items & weapon) )
+    #ifdef GAME_HIPNOTIC
+      if (other.classname == "monster_gremlin")
       {
+        if ( gremallowed && !(other.items & weapon) )
+        {
+          self.items = self.items - weapon;
+          other.items |= weapon;
+          if ( self.stolenitems & weapon )
+            other.stolenitems |= weapon;
+          take_weps += 1;
+        }
+      }
+      //Ry: Player can collect if it isn't Co-op, or it's not a stolen weapon and they don't already have it, or that weapon had been stolen from them
+      else if ( (other.flags & FL_CLIENT) && ( !coop || ( ((other.items & weapon) && !(self.stolenitems & weapon)) || (other.stolenitems & weapon)) ) )
+      {
+        if (other.stolenitems & weapon)
+        {
+          if (take_stolenweps == 0)
+            sprint(other, "Retrieved your ");
+          else
+            sprint(other, ", ");
+          sprint(other, GetWeaponName(weapon));
+          take_stolenweps += 1;
+        }
+        else
+        {
+          self.netname = GetWeaponName(weapon);
+        }
+        take_weps += 1;
+        
         self.items = self.items - weapon;
         other.items |= weapon;
-        if ( self.stolenitems & weapon )
-          other.stolenitems |= weapon;
-        self.aflag = self.aflag + 1;
+        other.stolenitems -= (other.stolenitems & weapon);
       }
-    }
-    //Ry: Player can collect if it isn't Co-op, it's not a stolen weapon and they 
-    else if ( (other.flags & FL_CLIENT) && ( !coop || ( ((other.items & weapon) && !(self.stolenitems & weapon)) || (other.stolenitems & weapon)) ) )
-    {
-      if (other.stolenitems & weapon)
+    #else
+      if (!coop || !(other.items & weapon)) //Ry: Weapons in backpacks should no longer come up in Co-op in other games, but just in case
       {
-        if (self.count == 0)
-          sprint(other, "Retrieved your ");
-        else
-          sprint(other, ", ");
-        sprint(other, name);
-        self.count = self.count + 1;
+        self.netname = GetWeaponName(weapon);
+        take_weps += 1;
+        self.items = self.items - weapon;
+        other.items |= weapon;
       }
-      else
-      {
-        self.netname = name;
-      }
-      self.aflag = self.aflag + 1;
-      
-      self.items = self.items - weapon;
-      other.items |= weapon;
-      other.stolenitems -= (other.stolenitems & weapon);
-    }
+    #endif
   }
 }
 
@@ -404,14 +538,14 @@ void() PlaceItem =
 {
 	local float	oldz;
   
-  if (!EntityValidForMode(FALSE,TRUE)) //Ry: Don't place items unless flagged in hybrid maps
+  if (!EntityValidForMode(ENTTYPE_GAMEPLAY)) //Ry: Don't place items unless flagged in hybrid maps
   {
     remove(self);
     return;
   }
 
 	self.mdl = self.model;		// so it can be restored on respawn
-	self.flags = FL_ITEM;		// make extra wide
+	self.flags |= FL_ITEM;		// make extra wide  //Ry: Allow flags to have been previously applied [09-01-2022]
 	self.solid = SOLID_TRIGGER;
 	self.velocity = '0 0 0';
 	self.origin_z = self.origin_z + 6;
@@ -420,17 +554,11 @@ void() PlaceItem =
   self.pickorigin = self.origin; //Ry: For dropping powerups
   self.remaintime = 0;
   self.nextspawntime = 0;
+  if (!self.category)
+    self.category = "item"; //Ry: For easy searching
   
-  /*if (self.weapon)
-  {
-    dprint("Weapon ");
-    dprint(self.classname);
-    dprint(" placed with value ");
-    dprint(ftos(self.weapon));
-    dprint("\n");
-  }*/
-  
-  if ( ((!deathmatch) && (!coop)) && (self.respawntimesp > 0) ) //Ry: Set respawn time if an override is set
+  //Ry: Set respawn time if an override is set
+  if ( ((!deathmatch) && (!coop)) && (self.respawntimesp > 0) )
   {
     self.respawntime = self.respawntimesp;
   }
@@ -442,7 +570,11 @@ void() PlaceItem =
   {
     self.respawntime = self.respawntimedm;
   }
-  
+
+  //Ry: Unset oneperplayer if there's a respawn time
+  if (self.oneperplayer && (self.respawntime || !coop))
+    self.oneperplayer = FALSE;
+
   if (self.static) //Ry: Added capability for items to be placed in the air
   {
     self.movetype = MOVETYPE_FLY;
@@ -478,7 +610,7 @@ void() PlaceItem =
     PrepareItemRespawn(time + self.delayspawn - 0.2); //Ry: Now also sets up a ghost for the item when close to spawning
   }
   else
-    self.effects = self.itemeffect; //Ry: Add item effect if defined
+    SetLightEffect(self,self.itemeffect,TRUE); //Ry: Add item effect if defined
   
 };
 
@@ -540,9 +672,10 @@ void() item_megahealth_rot;
 void() item_health =
 {
 	self.touch = health_touch;
-  self.enttype = "item"; //Ry: For easy searching
   if (deathmatch) //Ry: DM Respawn time defined here now
     self.respawntime = 20;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 
 	if (self.spawnflags & H_ROTTEN)
 	{
@@ -595,7 +728,7 @@ void() health_touch =
 	if (other.classname != "player")
 		return;
   
-  if ( coop && (!self.respawntime) && (other.flags & FL_CLIENT) && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the item
+  if ( self.oneperplayer && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the item
   {
     #ifndef ENGINE_WINQUAKE
       if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
@@ -629,7 +762,7 @@ void() health_touch =
 
 	stuffcmd (other, "bf\n");
   
-  if (!coop || self.respawntime) //Ry: Leave health in Co-op
+  if (!self.oneperplayer) //Ry: Leave health in Co-op
   {
     self.model = string_null;
     self.solid = SOLID_NOT;
@@ -663,7 +796,7 @@ void() health_touch =
     PrepareItemRespawn(time + self.respawntime); //Ry: Now also sets up a ghost for the item when close to spawning
 	}
   
-  if (coop && (!self.respawntime))
+  if (self.oneperplayer)
   {
     if (self.healtype > 0) //Ry: Demote the item each pick
     {
@@ -715,11 +848,11 @@ void() item_megahealth_rot =
 
   if (coop || deathmatch)
   {
-    if (coop && (!self.enemy.respawntime)) //Ry: Multiplayer modes now use a separate thinker for the rotting, which can be removed when the rot is done
+    if (self.oneperplayer || !self.enemy.respawntime) //Ry: Multiplayer modes now use a separate thinker for the rotting, which can be removed when the rot is done
     {
       remove(self);
     }
-    else if ( self.enemy.respawntime && (deathmatch != 2) && (self.enemy.model == string_null) )
+    else if ( (deathmatch != 2) && (self.enemy.model == string_null) )
     {
       self = self.enemy;
       PrepareItemRespawn(time + self.respawntime); //Ry: Now also sets up a ghost for the item when close to spawning
@@ -746,7 +879,7 @@ void() armor_touch =
 	if (other.classname != "player")
 		return;
   
-  if ( coop && (!self.respawntime) && (other.flags & FL_CLIENT) && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the item
+  if ( self.oneperplayer && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the item
   {
     #ifndef ENGINE_WINQUAKE
       if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
@@ -761,29 +894,45 @@ void() armor_touch =
 	{
 		type = 0.3;
 		value = 100;
+    #ifdef GAME_ROGUE
+      bit = IT2_ARMOR1;
+    #else
       bit = IT_ARMOR1;
+    #endif
    }
 	if (self.classname == "item_armor2")
 	{
 		type = 0.6;
 		value = 150;
-		bit = IT_ARMOR2;
+    #ifdef GAME_ROGUE
+      bit = IT2_ARMOR2;
+    #else
+      bit = IT_ARMOR2;
+    #endif
 	}
 	if (self.classname == "item_armorInv")
 	{
 		type = 0.8;
 		value = 200;
-		bit = IT_ARMOR3;
+    #ifdef GAME_ROGUE
+      bit = IT2_ARMOR3;
+    #else
+      bit = IT_ARMOR3;
+    #endif
 	}
 	if (other.armortype*other.armorvalue >= type*value)
 		return;
 
 	other.armortype = type;
 	other.armorvalue = value;
-   other.items = other.items - (other.items & (IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3)) + bit;
+  #ifdef GAME_ROGUE
+    other.items2 = other.items2 - (other.items2 & (IT2_ARMOR1 | IT2_ARMOR2 | IT2_ARMOR3)) + bit;
+  #else
+    other.items = other.items - (other.items & (IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3)) + bit;
+  #endif
 
   
-  if (coop && (!self.respawntime))
+  if (self.oneperplayer)
   {
     if (self.classname != "item_armor1") //Ry: Demote the item each pick
     {
@@ -842,9 +991,10 @@ void() item_armor1 =
 	precache_model ("progs/armor.mdl");
 	setmodel (self, "progs/armor.mdl");
 	self.skin = 0;
-  self.enttype = "item"; //Ry: For easy searching
   if (deathmatch) //Ry: DM Respawn time defined here now
     self.respawntime = 20;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -860,9 +1010,10 @@ void() item_armor2 =
 	precache_model ("progs/armor.mdl");
 	setmodel (self, "progs/armor.mdl");
 	self.skin = 1;
-  self.enttype = "item"; //Ry: For easy searching
   if (deathmatch) //Ry: DM Respawn time defined here now
     self.respawntime = 20;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -878,9 +1029,10 @@ void() item_armorInv =
 	precache_model ("progs/armor.mdl");
 	setmodel (self, "progs/armor.mdl");
 	self.skin = 2;
-  self.enttype = "item"; //Ry: For easy searching
   if (deathmatch) //Ry: DM Respawn time defined here now
     self.respawntime = 20;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -895,40 +1047,88 @@ WEAPONS
 
 void() bound_other_ammo =
 {
-	if (other.ammo_shells > 100)
-		other.ammo_shells = 100;
-	if (other.ammo_nails > 200)
-		other.ammo_nails = 200;
-	if (other.ammo_rockets > 100)
-		other.ammo_rockets = 100;
-	if (other.ammo_cells > 100)
-		other.ammo_cells = 100;
+  if (other.AMMO_SHELLS > 100)
+    other.AMMO_SHELLS = 100;
+  if (other.AMMO_NAILS > 200)
+    other.AMMO_NAILS = 200;
+  if (other.AMMO_ROCKETS > ammocap_rockets)
+    other.AMMO_ROCKETS = ammocap_rockets;
+  if (other.AMMO_CELLS > 100)
+    other.AMMO_CELLS = 100;
+  #ifdef GAME_ROGUE
+    // PGM addition
+    if (other.ammo_lava_nails > ammocap_lava) //Ry: Separate ammo caps [09-06-2022]
+      other.ammo_lava_nails = ammocap_lava;
+    if (other.ammo_multi_rockets > ammocap_multi)
+      other.ammo_multi_rockets = ammocap_multi;
+    if (other.ammo_plasma > ammocap_plasma)
+      other.ammo_plasma = ammocap_plasma;
+  #endif
 };
 
 
 //MED 01/06/97 added hipnotic weapons into rankings
 float(float w) RankForWeapon =
 {
-	if (w == IT_LIGHTNING)
-		return 1;
-	if (w == IT_ROCKET_LAUNCHER)
-		return 2;
-  if (w == IT_LASER_CANNON)
-		return 3;
-  if (w == IT_SUPER_NAILGUN)
-    return 4;
-  if (w == IT_PROXIMITY_GUN)
-    return 5;
-  if (w == IT_GRENADE_LAUNCHER)
-    return 6;
-  if (w == IT_SUPER_SHOTGUN)
+  #ifdef GAME_HIPNOTIC
+    if (w == IT_LIGHTNING)
+      return 1;
+    if (w == IT_ROCKET_LAUNCHER)
+      return 2;
+    if (w == IT_LASER_CANNON)
+      return 3;
+    if (w == IT_SUPER_NAILGUN)
+      return 4;
+    if (w == IT_PROXIMITY_GUN)
+      return 5;
+    if (w == IT_GRENADE_LAUNCHER)
+      return 6;
+    if (w == IT_SUPER_SHOTGUN)
+      return 7;
+    if (w == IT_NAILGUN)
+      return 8;
+    if (w == IT_MJOLNIR)
+      return 9;
+    return 10;
+  #elifdef GAME_ROGUE
+    if (w == IT_PLASMA_GUN)
+      return 1;
+    if (w == IT_LIGHTNING)
+      return 2;
+    if (w == IT_MULTI_ROCKET)
+      return 3;
+    if (w == IT_ROCKET_LAUNCHER)
+      return 4;
+    if (w == IT_LAVA_SUPER_NAILGUN)
+      return 5;
+    if (w == IT_SUPER_NAILGUN)
+      return 6;
+    if (w == IT_MULTI_GRENADE)
+      return 7;
+    if (w == IT_GRENADE_LAUNCHER)
+      return 8;
+    if (w == IT_LAVA_NAILGUN)
+      return 9;
+    if (w == IT_SUPER_SHOTGUN)
+      return 10;
+    if (w == IT_NAILGUN)
+      return 11;
+    return 12;
+  #else
+    if (w == IT_LIGHTNING)
+      return 1;
+    if (w == IT_ROCKET_LAUNCHER)
+      return 2;
+    if (w == IT_SUPER_NAILGUN)
+      return 3;
+    if (w == IT_GRENADE_LAUNCHER)
+      return 4;
+    if (w == IT_SUPER_SHOTGUN)
+      return 5;
+    if (w == IT_NAILGUN)
+      return 6;
     return 7;
-	if (w == IT_NAILGUN)
-    return 8;
-  if (w == IT_MJOLNIR)
-    return 9;
-
-  return 10;
+  #endif
 };
 
 /*
@@ -942,20 +1142,85 @@ Deathmatch weapon change rules for picking up a weapon
 */
 void(float old, float new) Deathmatch_Weapon =
 {
-  if (!(self.weapon == IT_MJOLNIR) || self.ammo_cells < 15) //Ry: Don't switch off of Mjolnir (when usable) on picking an item pls
-  {
-    local float or, nr;
-    
-    if ( self.flags & FL_ISBOT )
+  local float or, nr;
+  
+  if ( self.flags & FL_ISBOT )
+    return;
+  
+  #ifdef GAME_HIPNOTIC
+    //Ry: Don't switch off of Mjolnir (when usable) on picking an item pls
+    if ((self.weapon == IT_MJOLNIR) && self.AMMO_CELLS >= 15)
       return;
+  #endif
+  
+  #ifdef GAME_ROGUE
+    // PGM - fix for changing to weapons when grappling.
+    if (self.weapon == IT_GRAPPLE && self.button0)
+      return;
+  #endif
 
-    // change self.weapon if desired
-    or = RankForWeapon (self.weapon);
-    nr = RankForWeapon (new);
-    if ( nr < or )
-      self.weapon = new;
-  }
+  // change self.weapon if desired
+  or = RankForWeapon (self.weapon);
+  nr = RankForWeapon (new);
+  if ( nr < or )
+    self.weapon = new;
 }
+
+#ifdef GAME_ROGUE
+  void(entity comboOwner) EnableComboWeapons =
+  {
+    if (comboOwner.classname != "player")
+      return;
+    
+    if (!(comboOwner.items & IT_LAVA_NAILGUN))
+    {
+      if (comboOwner.ammo_lava_nails > 0 && (comboOwner.items & IT_NAILGUN))
+      {
+        sprint (comboOwner, "Lava Enabled\n");
+        comboOwner.items = comboOwner.items | IT_LAVA_NAILGUN;
+      }
+    }
+
+    if (!(comboOwner.items & IT_LAVA_SUPER_NAILGUN))
+    {
+      if (comboOwner.ammo_lava_nails > 0 && 
+                (comboOwner.items & IT_SUPER_NAILGUN))
+      {
+        sprint (comboOwner, "Super Lava Enabled\n");
+        comboOwner.items = comboOwner.items | IT_LAVA_SUPER_NAILGUN;		
+      }
+    }
+
+    if (!(comboOwner.items & IT_MULTI_GRENADE))
+    {
+      if (comboOwner.ammo_multi_rockets > 0 && 
+                (comboOwner.items & IT_GRENADE_LAUNCHER))
+      {
+        sprint (comboOwner, "Multi Grenades Enabled\n");
+        comboOwner.items = comboOwner.items | IT_MULTI_GRENADE;		
+      }
+    }
+
+    if (!(comboOwner.items & IT_MULTI_ROCKET))
+    {
+      if (comboOwner.ammo_multi_rockets > 0 && 
+                (comboOwner.items & IT_ROCKET_LAUNCHER))
+      {
+        sprint (comboOwner, "Multi Rockets Enabled\n");
+        comboOwner.items = comboOwner.items | IT_MULTI_ROCKET;		
+      }
+    }
+
+    if (!(comboOwner.items & IT_PLASMA_GUN))
+    {
+      if (comboOwner.ammo_plasma > 0 && (comboOwner.items & IT_LIGHTNING))
+      {
+        sprint (comboOwner, "Plasma Gun Enabled\n");
+        comboOwner.items = comboOwner.items | IT_PLASMA_GUN;		
+      }
+    }
+  };
+#endif
 
 /*
 =============
@@ -974,8 +1239,12 @@ void() weapon_touch =
   local string itemname;
   //local float respawntime;
 
+  #ifdef GAME_HIPNOTIC
   //Ry: Gremlins are now able to pick a weapon off the ground
 	if (!(other.flags & FL_CLIENT || (grem_itemstealallowed && (other.classname == "monster_gremlin") && (other.gremstate != GREM_GORGING) && (!other.super_item) && (self.classname != "weapon_mjolnir") && (self.gremstate < GREM_ARMED)) ))
+  #else
+  if (!(other.flags & FL_CLIENT))
+  #endif
 		return;
 	if (other.health <= 0) //Ry: Health wasn't being checked here
 		return;
@@ -1005,39 +1274,39 @@ void() weapon_touch =
     leave = 0;
     if (self.classname == "weapon_nailgun")
     {
-      hadammo = other.ammo_nails;
+      hadammo = other.AMMO_NAILS;
         
       if (other.items & IT_NAILGUN)
       {
-        other.ammo_nails = other.ammo_nails + 10;
+        other.AMMO_NAILS = other.AMMO_NAILS + 10;
         itemname = "nails";
       }
       else
       {
         new = IT_NAILGUN;
-        other.ammo_nails = other.ammo_nails + 30;
+        other.AMMO_NAILS = other.AMMO_NAILS + 30;
       }
     }
     else if (self.classname == "weapon_supernailgun")
     {
-      hadammo = other.ammo_nails;
+      hadammo = other.AMMO_NAILS;
         
       if (other.items & IT_SUPER_NAILGUN)
       {
-        other.ammo_nails = other.ammo_nails + 10;
+        other.AMMO_NAILS = other.AMMO_NAILS + 10;
         itemname = "nails";
       }
       else
       {
         new = IT_SUPER_NAILGUN;
-        other.ammo_nails = other.ammo_nails + 30;
+        other.AMMO_NAILS = other.AMMO_NAILS + 30;
       }
     }
     else if (self.classname == "weapon_supershotgun")
     {
-      hadammo = other.ammo_shells;
+      hadammo = other.AMMO_SHELLS;
         
-      other.ammo_shells = other.ammo_shells + 5;
+      other.AMMO_SHELLS = other.AMMO_SHELLS + 5;
       if (other.items & IT_SUPER_SHOTGUN)
         itemname = "shells";
       else
@@ -1045,99 +1314,101 @@ void() weapon_touch =
     }
     else if (self.classname == "weapon_rocketlauncher")
     {
-      hadammo = other.ammo_rockets;
+      hadammo = other.AMMO_ROCKETS;
         
       if (other.items & IT_ROCKET_LAUNCHER)
       {
-        other.ammo_rockets = other.ammo_rockets + 2;
+        other.AMMO_ROCKETS = other.AMMO_ROCKETS + 2;
         itemname = "rockets";
       }
       else
       {
         new = IT_ROCKET_LAUNCHER;
-        other.ammo_rockets = other.ammo_rockets + 5;
+        other.AMMO_ROCKETS = other.AMMO_ROCKETS + 5;
       }
     }
     else if (self.classname == "weapon_grenadelauncher")
     {
-      hadammo = other.ammo_rockets;
+      hadammo = other.AMMO_ROCKETS;
         
       if (other.items & IT_GRENADE_LAUNCHER)
       {
-        other.ammo_rockets = other.ammo_rockets + 2;
+        other.AMMO_ROCKETS = other.AMMO_ROCKETS + 2;
         itemname = "rockets";
       }
       else
       {
         new = IT_GRENADE_LAUNCHER;
-        other.ammo_rockets = other.ammo_rockets + 5;
+        other.AMMO_ROCKETS = other.AMMO_ROCKETS + 5;
       }
     }
     else if (self.classname == "weapon_lightning")
     {
-      hadammo = other.ammo_cells;
+      hadammo = other.AMMO_CELLS;
         
       if (other.items & IT_LIGHTNING)
       {
-        other.ammo_cells = other.ammo_cells + 3;
+        other.AMMO_CELLS = other.AMMO_CELLS + 3;
         itemname = "cells";
       }
       else
       {
         new = IT_LIGHTNING;
-        other.ammo_cells = other.ammo_cells + 15;
+        other.AMMO_CELLS = other.AMMO_CELLS + 15;
       }
     }
-  //MED
-     else if (self.classname == "weapon_laser_gun")
+    #ifdef GAME_HIPNOTIC
+    //MED
+    else if (self.classname == "weapon_laser_gun")
     {
-      hadammo = other.ammo_cells;
+      hadammo = other.AMMO_CELLS;
         
       if (other.items & IT_LASER_CANNON)
       {
-        other.ammo_cells = other.ammo_cells + 5;
+        other.AMMO_CELLS = other.AMMO_CELLS + 5;
         itemname = "cells";
       }
       else
       {
         new = IT_LASER_CANNON;
-        other.ammo_cells = other.ammo_cells + 30;
+        other.AMMO_CELLS = other.AMMO_CELLS + 30;
       }
     }
-  //MED
-     else if (self.classname == "weapon_mjolnir")
+    //MED
+    else if (self.classname == "weapon_mjolnir")
     {
-      hadammo = other.ammo_cells;
+      hadammo = other.AMMO_CELLS;
       //respawntime = 30;
         
       if (other.items & IT_MJOLNIR)
       {
-        other.ammo_cells = other.ammo_cells + 15;
+        other.AMMO_CELLS = other.AMMO_CELLS + 15;
         itemname = "cells";
       }
       else
       {
         new = IT_MJOLNIR;
-        other.ammo_cells = other.ammo_cells + 30;
+        other.AMMO_CELLS = other.AMMO_CELLS + 30;
       }
     }
-  //MED
-     else if (self.classname == "weapon_proximity_gun")
+    //MED
+    else if (self.classname == "weapon_proximity_gun")
     {
-      hadammo = other.ammo_rockets;
+      hadammo = other.AMMO_ROCKETS;
         
       if (other.items & IT_PROXIMITY_GUN)
       {
-        other.ammo_rockets = other.ammo_rockets + 2;
+        other.AMMO_ROCKETS = other.AMMO_ROCKETS + 2;
         itemname = "rockets";
       }
       else
       {
         new = IT_PROXIMITY_GUN;
-        other.ammo_rockets = other.ammo_rockets + 6;
+        other.AMMO_ROCKETS = other.AMMO_ROCKETS + 6;
       }
     }
-     else
+    #endif
+    else
       objerror ("weapon_touch: unknown classname");
   }
   else
@@ -1152,101 +1423,117 @@ void() weapon_touch =
       
     if (self.classname == "weapon_nailgun")
     {
-      if (leave && (other.items & IT_NAILGUN) && (other.ammo_nails >= 200) ) //Ry: Will only leave now if can't collect the ammo
+      if (leave && (other.items & IT_NAILGUN) && (other.AMMO_NAILS >= 200) ) //Ry: Will only leave now if can't collect the ammo
         return;
-      if ((other.classname == "monster_gremlin") && (other.items & IT_NAILGUN)) //Ry: Gremlins leave the weapon if they already have a stolen one
-        return;
-      hadammo = other.ammo_nails;
+      #ifdef GAME_HIPNOTIC
+        if ((other.classname == "monster_gremlin") && (other.items & IT_NAILGUN)) //Ry: Gremlins leave the weapon if they already have a stolen one
+          return;
+      #endif
+      hadammo = other.AMMO_NAILS;
       new = IT_NAILGUN;
-      other.ammo_nails = other.ammo_nails + 30;
+      other.AMMO_NAILS = other.AMMO_NAILS + 30;
     }
     else if (self.classname == "weapon_supernailgun")
     {
-      if (leave && (other.items & IT_SUPER_NAILGUN) && (other.ammo_nails >= 200) )
+      if (leave && (other.items & IT_SUPER_NAILGUN) && (other.AMMO_NAILS >= 200) )
         return;
-      if ((other.classname == "monster_gremlin") && (other.items & IT_SUPER_NAILGUN))
-        return;
-      hadammo = other.ammo_rockets;
+      #ifdef GAME_HIPNOTIC
+        if ((other.classname == "monster_gremlin") && (other.items & IT_SUPER_NAILGUN))
+          return;
+      #endif
+      hadammo = other.AMMO_ROCKETS;
       new = IT_SUPER_NAILGUN;
-      other.ammo_nails = other.ammo_nails + 30;
+      other.AMMO_NAILS = other.AMMO_NAILS + 30;
     }
     else if (self.classname == "weapon_supershotgun")
     {
-      if (leave && (other.items & IT_SUPER_SHOTGUN) && (other.ammo_shells >= 100) )
+      if (leave && (other.items & IT_SUPER_SHOTGUN) && (other.AMMO_SHELLS >= 100) )
         return;
-      if ((other.classname == "monster_gremlin") && (other.items & IT_SUPER_SHOTGUN))
-        return;
-      hadammo = other.ammo_rockets;
+      #ifdef GAME_HIPNOTIC
+        if ((other.classname == "monster_gremlin") && (other.items & IT_SUPER_SHOTGUN))
+          return;
+      #endif
+      hadammo = other.AMMO_ROCKETS;
       new = IT_SUPER_SHOTGUN;
+      #ifdef GAME_HIPNOTIC
       if (other.classname == "monster_gremlin") //Ry: Give Gremlins a bit more shotgun ammo to work with, since they don't have starting shells like players
-        other.ammo_shells = other.ammo_shells + 20;
+        other.AMMO_SHELLS = other.AMMO_SHELLS + 20;
       else
-        other.ammo_shells = other.ammo_shells + 5;
+      #endif
+        other.AMMO_SHELLS = other.AMMO_SHELLS + 5;
     }
     else if (self.classname == "weapon_rocketlauncher")
     {
-      if (leave && (other.items & IT_ROCKET_LAUNCHER) && (other.ammo_rockets >= 100) )
+      if (leave && (other.items & IT_ROCKET_LAUNCHER) && (other.AMMO_ROCKETS >= 100) )
         return;
-      if ((other.classname == "monster_gremlin") && (other.items & IT_ROCKET_LAUNCHER))
-        return;
-      hadammo = other.ammo_rockets;
+      #ifdef GAME_HIPNOTIC
+        if ((other.classname == "monster_gremlin") && (other.items & IT_ROCKET_LAUNCHER))
+          return;
+      #endif
+      hadammo = other.AMMO_ROCKETS;
       new = IT_ROCKET_LAUNCHER;
-      other.ammo_rockets = other.ammo_rockets + 5;
+      other.AMMO_ROCKETS = other.AMMO_ROCKETS + 5;
     }
     else if (self.classname == "weapon_grenadelauncher")
     {
-      if (leave && (other.items & IT_GRENADE_LAUNCHER) && (other.ammo_rockets >= 100) )
+      if (leave && (other.items & IT_GRENADE_LAUNCHER) && (other.AMMO_ROCKETS >= 100) )
         return;
-      if ((other.classname == "monster_gremlin") && (other.items & IT_GRENADE_LAUNCHER))
-        return;
-      hadammo = other.ammo_rockets;
+      #ifdef GAME_HIPNOTIC
+        if ((other.classname == "monster_gremlin") && (other.items & IT_GRENADE_LAUNCHER))
+          return;
+      #endif
+      hadammo = other.AMMO_ROCKETS;
       new = IT_GRENADE_LAUNCHER;
-      other.ammo_rockets = other.ammo_rockets + 5;
+      other.AMMO_ROCKETS = other.AMMO_ROCKETS + 5;
     }
     else if (self.classname == "weapon_lightning")
     {
-      if (leave && (other.items & IT_LIGHTNING) && (other.ammo_cells >= 100) )
+      if (leave && (other.items & IT_LIGHTNING) && (other.AMMO_CELLS >= 100) )
         return;
-      if ((other.classname == "monster_gremlin") && (other.items & IT_LIGHTNING))
-        return;
-      hadammo = other.ammo_rockets;
+      #ifdef GAME_HIPNOTIC
+        if ((other.classname == "monster_gremlin") && (other.items & IT_LIGHTNING))
+          return;
+      #endif
+      hadammo = other.AMMO_ROCKETS;
       new = IT_LIGHTNING;
-      other.ammo_cells = other.ammo_cells + 15;
+      other.AMMO_CELLS = other.AMMO_CELLS + 15;
     }
-  //MED
-     else if (self.classname == "weapon_laser_gun")
+    #ifdef GAME_HIPNOTIC
+    //MED
+    else if (self.classname == "weapon_laser_gun")
     {
-      if (leave && (other.items & IT_LASER_CANNON) && (other.ammo_cells >= 100) )
+      if (leave && (other.items & IT_LASER_CANNON) && (other.AMMO_CELLS >= 100) )
         return;
       if ((other.classname == "monster_gremlin") && (other.items & IT_LASER_CANNON))
         return;
-      hadammo = other.ammo_rockets;
+      hadammo = other.AMMO_ROCKETS;
         new = IT_LASER_CANNON;
-        other.ammo_cells = other.ammo_cells + 30;
+        other.AMMO_CELLS = other.AMMO_CELLS + 30;
     }
-  //MED
-     else if (self.classname == "weapon_mjolnir")
+    //MED
+    else if (self.classname == "weapon_mjolnir")
     {
-      if (leave && (other.items & IT_MJOLNIR) && (other.ammo_cells >= 100) )
+      if (leave && (other.items & IT_MJOLNIR) && (other.AMMO_CELLS >= 100) )
         return;
       if ((other.classname == "monster_gremlin") && (other.items & IT_MJOLNIR))
         return;
-      hadammo = other.ammo_rockets;
+      hadammo = other.AMMO_ROCKETS;
         new = IT_MJOLNIR;
-        other.ammo_cells = other.ammo_cells + 30;
+        other.AMMO_CELLS = other.AMMO_CELLS + 30;
     }
-  //MED
-     else if (self.classname == "weapon_proximity_gun")
+    //MED
+    else if (self.classname == "weapon_proximity_gun")
     {
-      if (leave && (other.items & IT_PROXIMITY_GUN) && (other.ammo_rockets >= 100) )
+      if (leave && (other.items & IT_PROXIMITY_GUN) && (other.AMMO_ROCKETS >= 100) )
         return;
       if ((other.classname == "monster_gremlin") && (other.items & IT_PROXIMITY_GUN))
         return;
-      hadammo = other.ammo_rockets;
+      hadammo = other.AMMO_ROCKETS;
         new = IT_PROXIMITY_GUN;
-        other.ammo_rockets = other.ammo_rockets + 6;
+        other.AMMO_ROCKETS = other.AMMO_ROCKETS + 6;
     }
-     else
+    #endif
+    else
       objerror ("weapon_touch: unknown classname");
   }
   
@@ -1271,24 +1558,66 @@ void() weapon_touch =
   // weapon touch sound
   sound (other, CHAN_ITEM, "weapons/pkup.wav", 1, ATTN_NORM);
 
-    bound_other_ammo ();
+  bound_other_ammo ();
 
 // change to the weapon
   oldweapon = other.weapon; //Ry: Store these separately
   olditems = other.items;
   other.items = other.items | new;
+  
+  #ifdef GAME_ROGUE
+    EnableComboWeapons ( other );
+
+    // PGM - fake picking up the plasma gun.
+    if (new == IT_LIGHTNING)
+    {
+      if (other.ammo_plasma > 0)
+        new = IT_PLASMA_GUN;
+    }
+    else if (new == IT_ROCKET_LAUNCHER)
+    {
+      if (other.ammo_multi_rockets > 0)
+        new = IT_MULTI_ROCKET;
+    }
+    else if (new == IT_GRENADE_LAUNCHER)
+    {
+      if (other.ammo_multi_rockets > 0)
+        new = IT_MULTI_GRENADE;
+    }
+    else if (new == IT_SUPER_NAILGUN)
+    {
+      if (other.ammo_lava_nails > 1)
+        new = IT_LAVA_SUPER_NAILGUN;
+    }
+    else if (new == IT_NAILGUN)
+    {
+      if (other.ammo_lava_nails > 0)
+        new = IT_LAVA_NAILGUN;
+    }
+  #endif
 
   stemp = self;
   self = other;
 
+  #ifdef ENGINE_KEX
   if(W_WantsToChangeWeapon(other, olditems, other.items) == 1) //Ry: Remaster function for checking the user's weapon switch settings
-  {
+  #endif
     if (!deathmatch)
-      self.weapon = new;
+    {
+      #ifdef GAME_ROGUE
+      //Ry: Don't switch off Grapple in use [09-10-2022]
+      if ((self.weapon != IT_GRAPPLE) || (self.hookstatus < HOOK_FIRED))
+      #endif
+        self.weapon = new;
+    }
     else
       Deathmatch_Weapon (oldweapon, new);
-  }
 
+  #ifdef GAME_ROGUE
+    UpdateAmmoCounts(self);
+  #endif
+
+  #ifdef GAME_HIPNOTIC
   if (self.classname == "monster_gremlin") //Ry: Gremlin
   {
     if (!self.pickorigin)
@@ -1306,33 +1635,33 @@ void() weapon_touch =
     W_UpdateAmmo();
   }
   else //Ry: Player
+  #endif
     if (self.weapon == oldweapon) //Ry: Actually check if the weapon changed instead of always resetting weapon
       W_UpdateAmmo();
     else
       W_SetCurrentAmmo();
 
 	self = stemp;
-  
-  /*dprint("Player picked weapon ");
-  dprint(self.classname);
-  dprint(" with value ");
-  dprint(ftos(self.weapon));
-  dprint("\n");*/
 
-	if (leave)
-		return;
+  // Moved up so the targets are fired even in coop, but only once.
+  activator = other;
+  SUB_UseTargets();				// fire all targets / killtargets
+
+  if (leave)
+  {
+    self.target = string_null;
+    return;
+  }
 
 // remove it in single player, or setup for respawning in deathmatch
 	self.model = string_null;
 	self.solid = SOLID_NOT;
   
-	if (self.respawntime) //Ry Edit: Respawn in Deathmatch always if the item doesn't stay
+	if (self.respawntime) //Ry: Respawn in Deathmatch always if the item doesn't stay
   {
     PrepareItemRespawn(time + self.respawntime); //Ry: Now also sets up a ghost for the item when close to spawning
   }
 
-	activator = other;
-	SUB_UseTargets();				// fire all targets / killtargets
 };
 
 
@@ -1346,9 +1675,10 @@ void() weapon_supershotgun =
 	self.weapon = IT_SUPER_SHOTGUN;
 	self.netname = "Double-barrelled Shotgun";
 	self.touch = weapon_touch;
-  self.enttype = "item"; //Ry: For easy searching
   if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
     self.respawntime = 5;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -1363,9 +1693,10 @@ void() weapon_nailgun =
 	self.weapon = IT_NAILGUN;
 	self.netname = "Nailgun";
 	self.touch = weapon_touch;
-  self.enttype = "item"; //Ry: For easy searching
   if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
     self.respawntime = 5;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -1380,9 +1711,10 @@ void() weapon_supernailgun =
 	self.weapon = IT_SUPER_NAILGUN;
 	self.netname = "Super Nailgun";
 	self.touch = weapon_touch;
-  self.enttype = "item"; //Ry: For easy searching
   if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
     self.respawntime = 5;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -1393,14 +1725,17 @@ void() weapon_supernailgun =
 void() weapon_grenadelauncher =
 {
 	precache_model ("progs/g_rock.mdl");
-  precache_model ("progs/g_prox.mdl"); //Ry: Also precache hipnotic's Proximity Gun
+  #ifdef GAME_HIPNOTIC
+    precache_model ("progs/g_prox.mdl"); //Ry: Also precache hipnotic's Proximity Gun
+  #endif
 	setmodel (self, "progs/g_rock.mdl");
 	self.weapon = IT_GRENADE_LAUNCHER; //Ry: Was 3; Fixed
 	self.netname = "Grenade Launcher";
 	self.touch = weapon_touch;
-  self.enttype = "item"; //Ry: For easy searching
   if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
     self.respawntime = 5;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -1415,9 +1750,10 @@ void() weapon_rocketlauncher =
 	self.weapon = IT_ROCKET_LAUNCHER; //Ry: Was 3; Fixed
 	self.netname = "Rocket Launcher";
 	self.touch = weapon_touch;
-  self.enttype = "item"; //Ry: For easy searching
   if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
     self.respawntime = 5;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -1429,15 +1765,18 @@ void() weapon_rocketlauncher =
 void() weapon_lightning =
 {
   precache_model ("progs/g_light.mdl");
-	precache_model ("progs/g_laserg.mdl"); //Ry: Also precache hipnotic's Laser Cannon and Mjolnir
-  precache_model ("progs/g_hammer.mdl");
+  #ifdef GAME_HIPNOTIC
+    precache_model ("progs/g_laserg.mdl"); //Ry: Also precache hipnotic's Laser Cannon and Mjolnir
+    precache_model ("progs/g_hammer.mdl");
+  #endif
 	setmodel (self, "progs/g_light.mdl");
 	self.weapon = IT_LIGHTNING; //Ry: Was 3; Fixed
 	self.netname = "Thunderbolt";
 	self.touch = weapon_touch;
-  self.enttype = "item"; //Ry: For easy searching
   if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
     self.respawntime = 5;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -1451,20 +1790,22 @@ AMMO
 ===============================================================================
 */
 
-float WEAPON_BIG2 = 1; //Ry: Moved this up here
-
 void() ammo_touch =
 {
   local entity	stemp;
   local float		best;
   local	float	leave; //Ry: Now can leave ammo in Co-op
 
+  #ifdef GAME_HIPNOTIC
 	if (!(other.classname == "player" || ( grem_itemstealallowed && (other.classname == "monster_gremlin") && (other.gremstate != GREM_GORGING) && (self.gremstate < GREM_ARMED) ) )) //Ry: Gremlins now grab ammo if they have a gun that needs it
+  #else
+  if (other.classname != "player")
+  #endif
 		return;
 	if (other.health <= 0)
 		return;
   
-  if ( coop && (other.flags & FL_CLIENT) && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the item
+  if ( self.oneperplayer && (self.pickers & other.playerindex) ) //Ry: Cancel if player has already collected the item
   {
     #ifndef ENGINE_WINQUAKE
       if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
@@ -1485,42 +1826,78 @@ void() ammo_touch =
 // shotgun
 	if (self.weapon == 1)
 	{
-		if (other.ammo_shells >= 100)
+		if (other.AMMO_SHELLS >= 100)
 			return;
-    if ((other.classname == "monster_gremlin") && !(other.items & (IT_SHOTGUN|IT_SUPER_SHOTGUN)) ) //Ry: Gremlin must have a relevant weapon
-      return;
-		other.ammo_shells = other.ammo_shells + self.aflag;
+    #ifdef GAME_HIPNOTIC
+      if ((other.classname == "monster_gremlin") && !(other.items & (IT_SHOTGUN|IT_SUPER_SHOTGUN)) ) //Ry: Gremlin must have a relevant weapon
+        return;
+    #endif
+		other.AMMO_SHELLS += self.aflag;
 	}
 
 // spikes
 	if (self.weapon == 2)
 	{
-		if (other.ammo_nails >= 200)
+		if (other.AMMO_NAILS >= 200)
 			return;
-    if ((other.classname == "monster_gremlin") && !(other.items & (IT_NAILGUN|IT_SUPER_NAILGUN)) )
-      return;
-		other.ammo_nails = other.ammo_nails + self.aflag;
+    #ifdef GAME_HIPNOTIC
+      if ((other.classname == "monster_gremlin") && !(other.items & (IT_NAILGUN|IT_SUPER_NAILGUN)) )
+        return;
+    #endif
+		other.AMMO_NAILS += self.aflag;
 	}
 
 //	rockets
 	if (self.weapon == 3)
 	{
-		if (other.ammo_rockets >= 100)
+		if (other.AMMO_ROCKETS >= ammocap_rockets)
 			return;
-    if ((other.classname == "monster_gremlin") && !(other.items & (IT_ROCKET_LAUNCHER|IT_GRENADE_LAUNCHER|IT_PROXIMITY_GUN)) )
-      return;
-		other.ammo_rockets = other.ammo_rockets + self.aflag;
+    #ifdef GAME_HIPNOTIC
+      if ((other.classname == "monster_gremlin") && !(other.items & (IT_ROCKET_LAUNCHER|IT_GRENADE_LAUNCHER|IT_PROXIMITY_GUN)) )
+        return;
+    #endif
+		other.AMMO_ROCKETS += self.aflag;
 	}
 
 //	cells
 	if (self.weapon == 4)
 	{
-		if (other.ammo_cells >= 100)
+		if (other.AMMO_CELLS >= 100)
 			return;
-    if ((other.classname == "monster_gremlin") && !(other.items & (IT_LIGHTNING|IT_LASER_CANNON)) )
-      return;
-		other.ammo_cells = other.ammo_cells + self.aflag;
+    #ifdef GAME_HIPNOTIC
+      if ((other.classname == "monster_gremlin") && !(other.items & (IT_LIGHTNING|IT_LASER_CANNON)) )
+        return;
+    #endif
+		other.AMMO_CELLS += self.aflag;
 	}
+
+  #ifdef GAME_ROGUE
+    //	lava spikes
+    if (self.weapon == 5)
+    {
+      if(other.ammo_lava_nails >= ammocap_lava)
+        return;			
+      other.ammo_lava_nails += self.aflag;
+    }
+
+    //	multi grenades
+    if (self.weapon == 6)
+    {
+      if(other.ammo_multi_rockets >= ammocap_multi)
+        return;
+      other.ammo_multi_rockets += self.aflag;
+    }
+
+    //	plasma
+    if (self.weapon == 7)
+    {
+      if(other.ammo_plasma >= ammocap_plasma)
+        return;
+      other.ammo_plasma += self.aflag;
+    }
+
+    EnableComboWeapons ( other );
+  #endif
 
 	bound_other_ammo ();
 
@@ -1531,48 +1908,82 @@ void() ammo_touch =
     sprint (other, "\n");
     stuffcmd (other, "bf\n");
   }
+  #ifdef GAME_HIPNOTIC
   else if (!deathmatch) //Ry: Only one Gremlin can grab the ammo in campaign
     self.gremstate = GREM_ARMED;
-  
-  if (coop)
+  #endif
+
+  if (self.oneperplayer)
   {
     leave = TRUE;
     if (self.spawnflags & WEAPON_BIG2) //Ry: Demote big item when the first player picks
     {
       self.spawnflags = self.spawnflags - WEAPON_BIG2;
-      if (self.weapon == 1 && self.aflag > 20) 
+      if (self.weapon == 1) 
       {
         self.mdl = "maps/b_shell0.bsp";
         self.aflag = 20;
         self.origin = self.origin + '4 4 0'; //Ry: Adjust origin so the item looks centered on where the big item was
+        setmodel (self,self.mdl);
         setsize (self, '-4 -4 0', '28 28 56'); //Ry: While hitbox remains in basically the same place
         self.view_ofs = '12 12 0';
       }
-      else if (self.weapon == 2 && self.aflag > 25)
+      else if (self.weapon == 2)
       {
         self.mdl = "maps/b_nail0.bsp";
         self.aflag = 25;
         self.origin = self.origin + '4 4 0';
+        setmodel (self,self.mdl);
         setsize (self, '-4 -4 0', '28 28 56');
         self.view_ofs = '12 12 0';
       }
-      else if (self.weapon == 3 && self.aflag > 5)
+      else if (self.weapon == 3)
       {
         self.mdl = "maps/b_rock0.bsp";
         self.aflag = 5;
         self.origin = self.origin + '8 0 0';
+        setmodel (self,self.mdl);
         setsize (self, '-8 0 0', '24 32 56');
         self.view_ofs = '8 8 0';
       }
-      else if (self.weapon == 4 && self.aflag > 6)
+      else if (self.weapon == 4)
       {
         self.mdl = "maps/b_batt0.bsp";
         self.aflag = 6;
         self.origin = self.origin + '4 4 0';
+        setmodel (self,self.mdl);
         setsize (self, '-4 -4 0', '28 28 56');
         self.view_ofs = '12 12 0';
       }
-      setmodel (self,self.mdl);
+      #ifdef GAME_ROGUE
+        else if (self.weapon == 5)
+        {
+          self.mdl = "maps/b_lnail0.bsp";
+          self.aflag = 25;
+          self.origin = self.origin + '4 4 0';
+          setmodel (self,self.mdl);
+          setsize (self, '-4 -4 0', '28 28 56');
+          self.view_ofs = '12 12 0';
+        }
+        else if (self.weapon == 6)
+        {
+          self.mdl = "maps/b_mrock0.bsp";
+          self.aflag = 5;
+          self.origin = self.origin + '8 0 0';
+          setmodel (self,self.mdl);
+          setsize (self, '-8 0 0', '24 32 56');
+          self.view_ofs = '8 8 0';
+        }
+        else if (self.weapon == 7)
+        {
+          self.mdl = "maps/b_plas0.bsp";
+          self.aflag = 6;
+          self.origin = self.origin + '4 4 0';
+          setmodel (self,self.mdl);
+          setsize (self, '-4 -4 0', '28 28 56');
+          self.view_ofs = '12 12 0';
+        }
+      #endif
     }
     if (other.classname == "player")
     {
@@ -1594,6 +2005,7 @@ void() ammo_touch =
   stemp = self;
   self = other;
   
+  #ifdef GAME_HIPNOTIC
   if (self.classname == "monster_gremlin") //Ry: Gremlin
   {
     if ( (self.gremstate >= GREM_ARMED) && self.weapon )
@@ -1611,14 +2023,23 @@ void() ammo_touch =
   else //Ry: Player
   {
     //Ry: Condensed this a bit, made a lighter ammo update, and don't switch off usable Mjolnir. Also Remaster check for weapon switch setting.
-    if ( self.weapon == best && (W_WantsToChangeWeapon(self, 0, 1) == 1) && (!deathmatch || !(self.weapon == IT_MJOLNIR) || self.ammo_cells < 15 ) )
+    if ( self.weapon == best && (W_WantsToChangeWeapon(self, 0, 1) == 1) && (!deathmatch || !(self.weapon == IT_MJOLNIR) || self.AMMO_CELLS < 15 ) )
+  #else
+    if ( self.weapon == best && (W_WantsToChangeWeapon(self, 0, 1) == 1) )
+  #endif
     {
       self.weapon = W_BestWeapon();
       W_SetCurrentAmmo ();
     }
     else
       W_UpdateAmmo();
+  #ifdef GAME_HIPNOTIC
   }
+  #endif
+
+  #ifdef GAME_ROGUE
+    UpdateAmmoCounts ( other );
+  #endif
 
 	self = stemp;
   
@@ -1628,9 +2049,9 @@ void() ammo_touch =
 // remove it in single player, or setup for respawning in deathmatch
 	self.model = string_null;
 	self.solid = SOLID_NOT;
-	if (deathmatch && (deathmatch != 2)) //Ry edit: Respawn in Deathmatch 3/4 as well
+	if (deathmatch && (deathmatch != 2)) //Ry: Respawn in Deathmatch 3/4 as well
   {
-    PrepareItemRespawn(time + 30); //Ry: Now also sets up a ghost for the item when close to spawning
+    PrepareItemRespawn(time + self.respawntime); //Ry: Now also sets up a ghost for the item when close to spawning
   }
 
 	activator = other;
@@ -1646,9 +2067,9 @@ void() item_shells =
 {
 	self.touch = ammo_touch;
 
+  precache_model ("maps/b_shell0.bsp"); //Ry: Always precache smaller item now
 	if (self.spawnflags & WEAPON_BIG2)
 	{
-    precache_model ("maps/b_shell0.bsp"); //Ry: Precache smaller item too now
 		precache_model ("maps/b_shell1.bsp");
 		setmodel (self, "maps/b_shell1.bsp");
 		self.aflag = 40;
@@ -1656,16 +2077,16 @@ void() item_shells =
 	}
 	else
 	{
-		precache_model ("maps/b_shell0.bsp");
 		setmodel (self, "maps/b_shell0.bsp");
 		self.aflag = 20;
     self.view_ofs = '12 12 0';
 	}
 	self.weapon = 1;
 	self.netname = "shells";
-  self.enttype = "item"; //Ry: For easy searching
-  if (deathmatch) //Ry: Unused for this item type currently
+  if (deathmatch) //Ry: DM Respawn time defined here now
     self.respawntime = 30;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '0 0 0', '32 32 56');
 	StartItem ();
 };
@@ -1677,26 +2098,32 @@ void() item_spikes =
 {
 	self.touch = ammo_touch;
 
+  precache_model ("maps/b_nail0.bsp"); //Ry: Always precache smaller item now
+  #ifdef GAME_ROGUE
+    precache_model ("maps/b_lnail0.bsp"); //Ry: Precache alternate ammo in case of replacement [09-08-2022]
+  #endif
 	if (self.spawnflags & WEAPON_BIG2)
 	{
-    precache_model ("maps/b_nail0.bsp"); //Ry: Precache smaller item too now
 		precache_model ("maps/b_nail1.bsp");
+    #ifdef GAME_ROGUE
+      precache_model ("maps/b_lnail1.bsp");
+    #endif
 		setmodel (self, "maps/b_nail1.bsp");
 		self.aflag = 50;
     self.view_ofs = '16 16 0';
 	}
 	else
 	{
-		precache_model ("maps/b_nail0.bsp");
 		setmodel (self, "maps/b_nail0.bsp");
 		self.aflag = 25;
     self.view_ofs = '12 12 0';
 	}
 	self.weapon = 2;
 	self.netname = "nails";
-  self.enttype = "item"; //Ry: For easy searching
-  if (deathmatch) //Ry: Unused for this item type currently
+  if (deathmatch) //Ry: DM Respawn time defined here now
     self.respawntime = 30;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '0 0 0', '32 32 56');
 	StartItem ();
 };
@@ -1708,26 +2135,32 @@ void() item_rockets =
 {
 	self.touch = ammo_touch;
 
+  precache_model ("maps/b_rock0.bsp"); //Ry: Always precache smaller item now
+  #ifdef GAME_ROGUE
+    precache_model ("maps/b_mrock0.bsp"); //Ry: Precache alternate ammo in case of replacement [09-08-2022]
+  #endif
 	if (self.spawnflags & WEAPON_BIG2)
 	{
-    precache_model ("maps/b_rock0.bsp"); //Ry: Precache smaller item too now
 		precache_model ("maps/b_rock1.bsp");
+    #ifdef GAME_ROGUE
+      precache_model ("maps/b_mrock1.bsp");
+    #endif
 		setmodel (self, "maps/b_rock1.bsp");
 		self.aflag = 10;
     self.view_ofs = '16 8 0';
 	}
 	else
 	{
-		precache_model ("maps/b_rock0.bsp");
 		setmodel (self, "maps/b_rock0.bsp");
 		self.aflag = 5;
     self.view_ofs = '8 8 0';
 	}
 	self.weapon = 3;
 	self.netname = "rockets";
-  self.enttype = "item"; //Ry: For easy searching
-  if (deathmatch) //Ry: Unused for this item type currently
+  if (deathmatch) //Ry: DM Respawn time defined here now
     self.respawntime = 30;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '0 0 0', '32 32 56');
 	StartItem ();
 };
@@ -1740,29 +2173,134 @@ void() item_cells =
 {
 	self.touch = ammo_touch;
 
+  precache_model ("maps/b_batt0.bsp"); //Ry: Always precache smaller item now
+  #ifdef GAME_ROGUE
+    precache_model ("maps/b_plas0.bsp"); //Ry: Precache alternate ammo in case of replacement [09-08-2022]
+  #endif
 	if (self.spawnflags & WEAPON_BIG2)
 	{
-    precache_model ("maps/b_batt0.bsp"); //Ry: Precache smaller item too now
 		precache_model ("maps/b_batt1.bsp");
+    #ifdef GAME_ROGUE
+      precache_model ("maps/b_plas1.bsp");
+    #endif
 		setmodel (self, "maps/b_batt1.bsp");
 		self.aflag = 12;
     self.view_ofs = '16 16 0';
 	}
 	else
 	{
-		precache_model ("maps/b_batt0.bsp");
 		setmodel (self, "maps/b_batt0.bsp");
 		self.aflag = 6;
     self.view_ofs = '12 12 0';
 	}
 	self.weapon = 4;
 	self.netname = "cells";
-  self.enttype = "item"; //Ry: For easy searching
-  if (deathmatch) //Ry: Unused for this item type currently
+  if (deathmatch) //Ry: DM Respawn time defined here now
     self.respawntime = 30;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '0 0 0', '32 32 56');
 	StartItem ();
 };
+
+#ifdef GAME_ROGUE
+  /*QUAKED item_lava_spikes (0 .5 .8) (0 0 0) (32 32 32) big
+  Small box is 25, Big box is 50.
+  */
+
+  void() item_lava_spikes =
+  {
+    missionpackmap = TRUE;
+    self.touch = ammo_touch;
+
+    precache_model ("maps/b_lnail0.bsp");
+    if (self.spawnflags & WEAPON_BIG2)
+    {
+      precache_model ("maps/b_lnail1.bsp");
+      setmodel (self, "maps/b_lnail1.bsp");
+      self.aflag = 50;
+      self.view_ofs = '16 16 0';
+    }
+    else
+    {
+      setmodel (self, "maps/b_lnail0.bsp");
+      self.aflag = 25;
+      self.view_ofs = '12 12 0';
+    }
+    self.weapon = 5;
+    self.netname = "lava nails";
+    if (deathmatch) //Ry: DM Respawn time defined here now
+      self.respawntime = 30;
+    else if (coop) //Ry: All players in Co-op can pick this once
+      self.oneperplayer = TRUE;
+    setsize (self, '0 0 0', '32 32 56');
+    StartItem ();
+  };
+
+  /*QUAKED item_multi_rockets (0 .5 .8) (0 0 0) (32 32 32) big
+  Small box is 5, Big box is 10.
+  */
+
+  void() item_multi_rockets =
+  {
+    missionpackmap = TRUE;
+    self.touch = ammo_touch;
+
+    precache_model ("maps/b_mrock0.bsp");
+    if (self.spawnflags & WEAPON_BIG2)
+    {
+      precache_model ("maps/b_mrock1.bsp");
+      setmodel (self, "maps/b_mrock1.bsp");
+      self.aflag = 10;
+      self.view_ofs = '16 8 0';
+    }
+    else
+    {
+      setmodel (self, "maps/b_mrock0.bsp");
+      self.aflag = 5;
+      self.view_ofs = '8 8 0';
+    }
+    self.weapon = 6;
+    self.netname = "multi rockets";
+    if (deathmatch) //Ry: DM Respawn time defined here now
+      self.respawntime = 30;
+    else if (coop) //Ry: All players in Co-op can pick this once
+      self.oneperplayer = TRUE;
+    setsize (self, '0 0 0', '32 32 56');
+    StartItem ();
+  };
+
+  /*QUAKED item_plasma (0 .5 .8) (0 0 0) (32 32 32) big
+  Small box is 6, Big box is 12.
+  */
+  void() item_plasma =
+  {
+    missionpackmap = TRUE;
+    self.touch = ammo_touch;
+
+    precache_model ("maps/b_plas0.bsp");
+    if (self.spawnflags & WEAPON_BIG2)
+    {
+      precache_model ("maps/b_plas1.bsp");
+      setmodel (self, "maps/b_plas1.bsp");
+      self.aflag = 12;
+    }
+    else
+    {
+      setmodel (self, "maps/b_plas0.bsp");
+      self.aflag = 6;
+    }
+    self.view_ofs = '16 12 0';
+    self.weapon = 7;
+    self.netname = "plasma";
+    if (deathmatch) //Ry: DM Respawn time defined here now
+      self.respawntime = 30;
+    else if (coop) //Ry: All players in Co-op can pick this once
+      self.oneperplayer = TRUE;
+    setsize (self, '0 0 0', '32 32 56');
+    StartItem ();
+  };
+#endif
 
 
 /*QUAKED item_weapon (0 .5 .8) (0 0 0) (32 32 32) shotgun rocket spikes big
@@ -1775,75 +2313,44 @@ float WEAPON_SPIKES = 4;
 float WEAPON_BIG = 8;
 void() item_weapon =
 {
-	self.touch = ammo_touch;
-  self.view_ofs = '16 16 0'; //Ry: Offset for Gremlins moving towards the item
-
+  //Ry: Translate this item into the proper items [09-26-2022]
 	if (self.spawnflags & WEAPON_SHOTGUN)
 	{
 		if (self.spawnflags & WEAPON_BIG)
-		{
-      precache_model ("maps/b_shell0.bsp"); //Ry: Precache smaller item too now
-			precache_model ("maps/b_shell1.bsp");
-			setmodel (self, "maps/b_shell1.bsp");
-			self.aflag = 40;
-		}
+      self.spawnflags = WEAPON_BIG2;
 		else
-		{
-			precache_model ("maps/b_shell0.bsp");
-			setmodel (self, "maps/b_shell0.bsp");
-			self.aflag = 20;
-      self.view_ofs = '12 12 0';
-		}
-		self.weapon = 1;
-		self.netname = "shells";
+      self.spawnflags = 0;
+    self.classname = "item_shells";
+    item_shells();
+    return;
 	}
 
 	if (self.spawnflags & WEAPON_SPIKES)
 	{
 		if (self.spawnflags & WEAPON_BIG)
-		{
-      precache_model ("maps/b_nail0.bsp"); //Ry: Precache smaller item too now
-			precache_model ("maps/b_nail1.bsp");
-			setmodel (self, "maps/b_nail1.bsp");
-			self.aflag = 40;
-		}
+      self.spawnflags = WEAPON_BIG2;
 		else
-		{
-			precache_model ("maps/b_nail0.bsp");
-			setmodel (self, "maps/b_nail0.bsp");
-			self.aflag = 20;
-      self.view_ofs = '12 12 0';
-		}
-		self.weapon = 2;
-		self.netname = "nails"; //Ry: More consistent naming
+      self.spawnflags = 0;
+    self.classname = "item_spikes";
+    item_spikes();
+    return;
 	}
 
 	if (self.spawnflags & WEAPON_ROCKET)
 	{
 		if (self.spawnflags & WEAPON_BIG)
-		{
-      precache_model ("maps/b_rock0.bsp"); //Ry: Precache smaller item too now
-			precache_model ("maps/b_rock1.bsp");
-			setmodel (self, "maps/b_rock1.bsp");
-			self.aflag = 10;
-      self.view_ofs = '16 8 0';
-		}
+      self.spawnflags = WEAPON_BIG2;
 		else
-		{
-			precache_model ("maps/b_rock0.bsp");
-			setmodel (self, "maps/b_rock0.bsp");
-			self.aflag = 5;
-      self.view_ofs = '8 8 0';
-		}
-		self.weapon = 3;
-		self.netname = "rockets";
+      self.spawnflags = 0;
+    self.classname = "item_rockets";
+    item_rockets();
+    return;
 	}
 
-  self.enttype = "item"; //Ry: For easy searching
-  if (deathmatch) //Ry: Unused for this item type currently
-    self.respawntime = 30;
-	setsize (self, '0 0 0', '32 32 56');
-	StartItem ();
+  dprint("item_weapon has no ammo type set at ");
+  dprint(vtos(self.origin));
+  dprint("\n");
+  remove(self);
 };
 
 
@@ -1861,6 +2368,16 @@ void() key_touch =
 		return;
 	if (other.health <= 0)
 		return;
+
+  //Ry: Fire any targets even if the player already has the key
+  if (self.target || self.killtarget)
+  {
+    activator = other;
+    SUB_UseTargets();				// fire all targets / killtargets
+    self.target = string_null; //Only fire the trigger once though.
+    self.killtarget = string_null;
+  }
+
 	if (other.items & self.items)
 		return;
 
@@ -1877,9 +2394,6 @@ void() key_touch =
 		self.solid = SOLID_NOT;
 		self.model = string_null;
 	}
-
-	activator = other;
-	SUB_UseTargets();				// fire all targets / killtargets
 };
 
 
@@ -2055,15 +2569,25 @@ POWERUPS
 ===============================================================================
 */
 
-void() powerup_touch;
-
 void() powerup_touch =
 {
 	if (other.classname != "player")
 		return;
 	if (other.health <= 0)
 		return;
-  
+
+  //Ry: Each player can collect a Biosuit once in Co-op [09-26-2022]
+  if (self.oneperplayer && (self.pickers & other.playerindex))
+  {
+    #ifndef ENGINE_WINQUAKE
+      if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
+        self.alpha = 0.25;
+      self.nextthink = time + 0.1;
+      self.think = TransparentThink;
+    #endif
+    return;
+  }
+
   local float poweruptime; //Ry: Adjust powerup time if it was dropped
   if (self.remaintime > 0)
   {
@@ -2089,13 +2613,11 @@ void() powerup_touch =
 	{
     if (self.remaintime == 0) //Ry: Regularly spawned powerup
 		{
-      if ((self.classname == "item_artifact_invulnerability") ||
-        (self.classname == "item_artifact_invisibility"))
-        self.nextspawntime = time + 60*5;
-      else if (self.classname == "item_artifact_envirosuit")
-        self.nextspawntime = time + 60;
-      else
-        self.nextspawntime = time + 120; //Ry: Powerup respawn time extended since now the powerups will stay in play for longer
+      self.nextspawntime = time + self.respawntime;
+      #ifdef GAME_ROGUE
+        if (self.lefty) //Ry: Random powerup
+          self.nextspawntime = time + 120;
+      #endif
 
       self.pickorigin = self.origin;
       PrepareItemRespawn(self.nextspawntime); //Ry: Now also sets up a ghost for the item when close to spawning
@@ -2105,15 +2627,6 @@ void() powerup_touch =
       SUB_revertpowerup();
     }
 	}
-  else if (coop && (self.classname == "item_artifact_envirosuit")) //Ry: Respawn in Co-op
-  {
-    self.nextthink = time + 3;
-    self.think = SUB_regen;
-  }
-  
-  self.solid = SOLID_NOT;
-  self.model = string_null;
-  self.effects = 0; //Ry: Disable effect on item
 
   if (poweruptime > 0) //Ry: Just to make sure
   {
@@ -2121,11 +2634,12 @@ void() powerup_touch =
     sprint (other, self.netname);
     sprint (other,"\n");
 
-    sound (other, CHAN_VOICE, self.noise, 1, ATTN_NORM);
+    //Ry: New channel for powerup pickups [09-04-2022]
+    sound (other, CHAN_POWERUP, self.noise, 1, ATTN_NORM);
     stuffcmd (other, "bf\n");
     other.items = other.items | self.items;
 
-  // do the apropriate action
+  // do the appropriate action
     if ((self.classname == "item_artifact_envirosuit") && (other.radsuit_finished < poweruptime)) //Ry: Ensure you don't lose time off your current powerup by picking up a dropped powerup
     {
       other.rad_time = 1;
@@ -2157,11 +2671,23 @@ void() powerup_touch =
       other.super_item = self;
       other.super_validdroptime = self.nextspawntime - 5;
     }
+  }
 
+  if (self.oneperplayer)
+  {
+    self.pickers = self.pickers + other.playerindex; //Ry: Mark off that this player has picked the item
+    UpdateItemVisibility(self,0.25); //Ry: If everyone has the item, hide it
+    if (self.solid == SOLID_TRIGGER) //Ry: Otherwise, set the transparency thinker so the item becomes solid when the player steps off it
+    {
+      self.nextthink = time + 0.1;
+      self.think = TransparentThink;
+    }
   }
   else
   {
-    sprint(other,"Oh, apparently that powerup was empty. That's not supposed to happen.\n");
+    self.solid = SOLID_NOT;
+    self.model = string_null;
+    self.effects = 0; //Ry: Disable effect on item
   }
 
 	activator = other;
@@ -2184,10 +2710,10 @@ void() item_artifact_invulnerability =
 	setmodel (self, "progs/invulner.mdl");
 	self.netname = "Pentagram of Protection";
 	self.items = IT_INVULNERABILITY;
-  if (deathmatch) //Ry: Unused for this item type currently
+  if (deathmatch) //Ry: DM Respawn time defined here now
     self.respawntime = 300;
 	setsize (self, '-16 -16 -24', '16 16 32');
-  self.itemeffect = EF_PENTALIGHT; //Ry: New light for powerup
+  self.itemeffect = SET_EF_PENTA; //Ry: New light for powerup
 	StartItem ();
 };
 
@@ -2201,18 +2727,22 @@ void() item_artifact_envirosuit =
 	precache_model ("progs/suit.mdl");
 	precache_sound ("items/suit.wav");
 	precache_sound ("items/suit2.wav");
-  
-  precache_model ("progs/wetsuit.mdl"); //Ry: Precache Wetsuit too
-  precache_sound ("misc/wetsuit.wav");
-  precache_sound ("misc/weton.wav");
-  precache_sound ("items/suit2.wav");
+
+  #ifdef GAME_HIPNOTIC
+    precache_model ("progs/wetsuit.mdl"); //Ry: Precache Wetsuit too
+    precache_sound ("misc/wetsuit.wav");
+    precache_sound ("misc/weton.wav");
+    precache_sound ("items/suit2.wav");
+  #endif
   
 	self.noise = "items/suit.wav";
 	setmodel (self, "progs/suit.mdl");
 	self.netname = "Biosuit";
 	self.items = IT_SUIT;
-  if (deathmatch) //Ry: Unused for this item type currently
+  if (deathmatch) //Ry: DM Respawn time defined here now
     self.respawntime = 60;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '-16 -16 -24', '16 16 32');
 	StartItem ();
 };
@@ -2233,8 +2763,8 @@ void() item_artifact_invisibility =
 	setmodel (self, "progs/invisibl.mdl");
 	self.netname = "Ring of Shadows";
 	self.items = IT_INVISIBILITY;
-  if (deathmatch) //Ry: Unused for this item type currently
-    self.respawntime = 300;
+  if (deathmatch) //Ry: DM Respawn time defined here now
+    self.respawntime = 180; //Ry: Reduced to 3 minutes [11-01-2022]
 	setsize (self, '-16 -16 -24', '16 16 32');
 	StartItem ();
 };
@@ -2255,10 +2785,10 @@ void() item_artifact_super_damage =
 	setmodel (self, "progs/quaddama.mdl");
 	self.netname = "Quad Damage";
 	self.items = IT_QUAD;
-  if (deathmatch) //Ry: Unused for this item type currently
+  if (deathmatch) //Ry: DM Respawn time defined here now
     self.respawntime = 120;
 	setsize (self, '-16 -16 -24', '16 16 32');
-  self.itemeffect = EF_QUADLIGHT; //Ry: New light for powerup
+  self.itemeffect = SET_EF_QUAD; //Ry: New light for powerup
 	StartItem ();
 };
 
@@ -2275,12 +2805,19 @@ PLAYER BACKPACKS
 void() BackpackTouch =
 {
   local entity stemp;
-  local string   s;
+  local	float	acount;
   local float olditems, oldweapon, new;
-	local	float	acount;
-  local float take_shells, take_nails, take_rockets, take_cells, leave, takenfrom, fullpick; //Ry: For Co-op
+  local float take_shells, take_nails, take_rockets, take_cells; //Ry: For Co-op
+  #ifdef GAME_ROGUE
+    local float take_lava, take_multi, take_plasma;
+  #endif
+  local float pickflags; //Ry: Consolidated leave, takenfrom, and fullpick into a single var [07-23-2022]
 
-	if (!(other.classname == "player" || (grem_itemstealallowed && (other.classname == "monster_gremlin") && (other.gremstate != GREM_GORGING)) )) //Ry: eheh
+  #ifdef GAME_HIPNOTIC
+	if (!(other.classname == "player" || (grem_itemstealallowed && (other.classname == "monster_gremlin") && (other.gremstate != GREM_GORGING)) )) //Ry: Gremlins can steal backpacks too now
+  #else
+  if (other.classname != "player")
+  #endif
 		return;
 	if (other.health <= 0)
 		return;
@@ -2288,7 +2825,7 @@ void() BackpackTouch =
   if ( (other != self.owner) && (self.lastfragtime > time) ) //Ry: Players who aren't the owner have to wait between picks
     return;
   if ( (!self.owner) || (self.owner == other) )
-    fullpick = TRUE;
+    pickflags |= PICK_FULL;
 
   new = self.items; //Ry: Moved this bit up here
 	if (new > 0)
@@ -2296,67 +2833,83 @@ void() BackpackTouch =
     if (deathmatch) //Ry: Give a minimum amount of ammo on picking up a new gun via backpack in deathmatch
     {
       self.items = 0;
-      takenfrom = TRUE;
-      if ( ((new == IT_SHOTGUN) || (new == IT_SUPER_SHOTGUN)) && (self.ammo_shells < 5) )
-        self.ammo_shells = 5;
+      pickflags |= PICK_TAKENFROM;
+      if ( ((new == IT_SHOTGUN) || (new == IT_SUPER_SHOTGUN)) && (self.AMMO_SHELLS < 5) )
+        self.AMMO_SHELLS = 5;
       
-      else if ( ((new == IT_NAILGUN) || (new == IT_SUPER_NAILGUN)) && (self.ammo_nails < 30) )
-        self.ammo_nails = 30;
+      else if ( ((new == IT_NAILGUN) || (new == IT_SUPER_NAILGUN)) && (self.AMMO_NAILS < 30) )
+        self.AMMO_NAILS = 30;
       
-      else if ( ((new == IT_ROCKET_LAUNCHER) || (new == IT_GRENADE_LAUNCHER)) && (self.ammo_rockets < 5) )
-        self.ammo_rockets = 5;
-      else if ( (new == IT_PROXIMITY_GUN) && (self.ammo_rockets < 6) )
-        self.ammo_rockets = 6;
-      
-      else if ( ((new == IT_LIGHTNING) || (new == IT_MJOLNIR)) && (self.ammo_cells < 15) ) //Mjolnir is good enough that just one guaranteed use is fine
-        self.ammo_cells = 15;
-      else if ( (new == IT_LASER_CANNON) && (self.ammo_cells < 30) )
-        self.ammo_cells = 30;
+      else if ( ((new == IT_ROCKET_LAUNCHER) || (new == IT_GRENADE_LAUNCHER)) && (self.AMMO_ROCKETS < 5) )
+        self.AMMO_ROCKETS = 5;
+      #ifdef GAME_HIPNOTIC
+        else if ( (new == IT_PROXIMITY_GUN) && (self.AMMO_ROCKETS < 6) )
+          self.AMMO_ROCKETS = 6;
+        
+        else if ( ((new == IT_LIGHTNING) || (new == IT_MJOLNIR)) && (self.AMMO_CELLS < 15) ) //Mjolnir is good enough that just one guaranteed use is fine
+          self.AMMO_CELLS = 15;
+        else if ( (new == IT_LASER_CANNON) && (self.AMMO_CELLS < 30) )
+          self.AMMO_CELLS = 30;
+      #else
+        else if ( (new == IT_LIGHTNING) && (self.AMMO_CELLS < 15) )
+          self.AMMO_CELLS = 15;
+      #endif
+      #ifdef GAME_ROGUE
+        else if ( ((new == IT_LAVA_NAILGUN) || (new == IT_LAVA_SUPER_NAILGUN)) && (self.ammo_lava_nails < 20) )
+          self.ammo_lava_nails = 20;
+        else if ( ((new == IT_MULTI_GRENADE) || (new == IT_MULTI_ROCKET)) && (self.ammo_multi_rockets < 3) )
+          self.ammo_multi_rockets = 3;
+        else if ( (new == IT_PLASMA_GUN) && (self.ammo_plasma < 5) )
+          self.ammo_plasma = 5;
+      #endif
     }
     else //Ry: Only collect the weapon in a backpack if you didn't already have it in Co-op (For Gremlin backpacks)
     {
       self.netname = "";
-      if (fullpick)
+      if (pickflags & PICK_FULL)
       {
-        new = 0;
-        self.count = 0; //Ry: Stolen weapons collected
-        self.aflag = 0; //Ry: Total weapons collected
+        take_stolenweps = 0; //Ry: Stolen weapons collected
+        take_weps = 0; //Ry: Total weapons collected
         
         //Ry: This function now handles each weapon from the backpack; The function also sets up a unique message for recovering stolen weapons.
-        BackpackWeaponTake(IT_AXE,"Axe",FALSE);
-        BackpackWeaponTake(IT_SHOTGUN,"Shotgun",FALSE);
-        BackpackWeaponTake(IT_SUPER_SHOTGUN,"Double-barrelled Shotgun",TRUE);
-        BackpackWeaponTake(IT_NAILGUN,"Nailgun",TRUE);
-        BackpackWeaponTake(IT_SUPER_NAILGUN,"Super Nailgun",TRUE);
-        BackpackWeaponTake(IT_GRENADE_LAUNCHER,"Grenade Launcher",TRUE);
-        BackpackWeaponTake(IT_PROXIMITY_GUN,"Proximity Gun",TRUE);
-        BackpackWeaponTake(IT_ROCKET_LAUNCHER,"Rocket Launcher",TRUE);
-        BackpackWeaponTake(IT_LIGHTNING,"Thunderbolt",TRUE);
-        BackpackWeaponTake(IT_LASER_CANNON,"Laser Cannon",TRUE);
-        BackpackWeaponTake(IT_MJOLNIR,"Mjolnir",FALSE);
-        
-        if ( (self.count > 0) && (other.flags & FL_CLIENT) )
+        BackpackWeaponTake(IT_AXE,FALSE);
+        BackpackWeaponTake(IT_SHOTGUN,FALSE);
+        BackpackWeaponTake(IT_SUPER_SHOTGUN,TRUE);
+        BackpackWeaponTake(IT_NAILGUN,TRUE);
+        BackpackWeaponTake(IT_SUPER_NAILGUN,TRUE);
+        BackpackWeaponTake(IT_GRENADE_LAUNCHER,TRUE);
+        #ifdef GAME_HIPNOTIC
+          BackpackWeaponTake(IT_PROXIMITY_GUN,TRUE);
+        #endif
+        BackpackWeaponTake(IT_ROCKET_LAUNCHER,TRUE);
+        BackpackWeaponTake(IT_LIGHTNING,TRUE);
+        #ifdef GAME_HIPNOTIC
+          BackpackWeaponTake(IT_LASER_CANNON,TRUE);
+          BackpackWeaponTake(IT_MJOLNIR,FALSE);
+        #endif
+      
+        if ( (take_stolenweps > 0) && (other.flags & FL_CLIENT) )
           sprint(other, "\n");
         
-        if (self.aflag > 0)
-          takenfrom = TRUE;
+        if (take_weps > 0)
+          pickflags |= PICK_TAKENFROM;
         
-        if (self.aflag == 0)
+        if (take_weps < 1)
           new = other.weapon;
-        else if (self.aflag > 1)
+        else
         { //Ry: Equip the best weapon obtained from the backpack
+          stemp = self;
+          self = other;
           oldweapon = W_BestWeapon();
           if (new & oldweapon)
             new = oldweapon;
           else
             new = other.weapon;
+          self = stemp;
         }
         
-        self.count = 0;
-        self.aflag = 0;
-        
         if (self.items)
-          leave = TRUE;
+          pickflags |= PICK_LEAVE;
         
       }
       else
@@ -2372,150 +2925,261 @@ void() BackpackTouch =
   
   if (!coop) //Ry: Normal behavior for SP and DM, just with the new vars
   {
-    take_shells = self.ammo_shells;
-    other.ammo_shells = other.ammo_shells + self.ammo_shells;
-    take_nails = self.ammo_nails;
-    other.ammo_nails = other.ammo_nails + self.ammo_nails;
-    take_rockets = self.ammo_rockets;
-    other.ammo_rockets = other.ammo_rockets + self.ammo_rockets;
-    take_cells = self.ammo_cells;
-    other.ammo_cells = other.ammo_cells + self.ammo_cells;
-    takenfrom = TRUE;
+    take_shells = self.AMMO_SHELLS;
+    other.AMMO_SHELLS = other.AMMO_SHELLS + self.AMMO_SHELLS;
+    take_nails = self.AMMO_NAILS;
+    other.AMMO_NAILS = other.AMMO_NAILS + self.AMMO_NAILS;
+    take_rockets = self.AMMO_ROCKETS;
+    other.AMMO_ROCKETS = other.AMMO_ROCKETS + self.AMMO_ROCKETS;
+    take_cells = self.AMMO_CELLS;
+    other.AMMO_CELLS = other.AMMO_CELLS + self.AMMO_CELLS;
+    #ifdef GAME_ROGUE
+      take_lava = self.ammo_lava_nails;
+      other.ammo_lava_nails = other.ammo_lava_nails + self.ammo_lava_nails;
+      take_multi = self.ammo_multi_rockets;
+      other.ammo_multi_rockets = other.ammo_multi_rockets + self.ammo_multi_rockets;
+      take_plasma = self.ammo_plasma;
+      other.ammo_plasma = other.ammo_plasma + self.ammo_plasma;
+    #endif
+    pickflags |= PICK_TAKENFROM;
   }
   else //Ry: In Co-op, only take what you need from a backpack
   {
 
-    if (fullpick)
+    if (pickflags & PICK_FULL)
     {
-      take_shells = 100 - other.ammo_shells; //Ry: How much ammo of each the player can take
-      take_nails = 200 - other.ammo_nails;
-      take_rockets = 100 - other.ammo_rockets;
-      take_cells = 100 - other.ammo_cells;
+      take_shells = 100 - other.AMMO_SHELLS; //Ry: How much ammo of each the player can take
+      take_nails = 200 - other.AMMO_NAILS;
+      take_rockets = ammocap_rockets - other.AMMO_ROCKETS;
+      take_cells = 100 - other.AMMO_CELLS;
+      #ifdef GAME_ROGUE
+        take_lava = ammocap_lava - other.ammo_lava_nails;
+        take_multi = ammocap_multi - other.ammo_multi_rockets;
+        take_plasma = ammocap_plasma - other.ammo_plasma;
+      #endif
     }
     else //Ry: Non-owner players will only take spawn amounts of ammo
     {
       
-      if (other.ammo_shells < 25)
-        take_shells = 25 - other.ammo_shells;
+      if (other.AMMO_SHELLS < 25)
+        take_shells = 25 - other.AMMO_SHELLS;
       else
         take_shells = 0;
       
-      if ( ((other.items & IT_NAILGUN) || (other.items & IT_SUPER_NAILGUN)) && (other.ammo_nails < 30) )
-        take_nails = 30 - other.ammo_nails;
+      if ( (other.items & (IT_NAILGUN|IT_SUPER_NAILGUN)) && (other.AMMO_NAILS < 30) )
+        take_nails = 30 - other.AMMO_NAILS;
       else
         take_nails = 0;
       
-      if ( ((other.items & IT_ROCKET_LAUNCHER) || (other.items & IT_GRENADE_LAUNCHER) || (other.items & IT_PROXIMITY_GUN)) && (other.ammo_rockets < 5) )
-        take_rockets = 5 - other.ammo_rockets;
+      #ifdef GAME_HIPNOTIC
+      if ( (other.items & (IT_ROCKET_LAUNCHER|IT_GRENADE_LAUNCHER|IT_PROXIMITY_GUN)) && (other.AMMO_ROCKETS < 5) )
+      #else
+      if ( (other.items & (IT_ROCKET_LAUNCHER|IT_GRENADE_LAUNCHER)) && (other.AMMO_ROCKETS < 5) )
+      #endif
+        take_rockets = 5 - other.AMMO_ROCKETS;
       else
         take_rockets = 0;
       
-      if ( ((other.items & IT_LIGHTNING) || (other.items & IT_LASER_CANNON) || (other.items & IT_MJOLNIR)) && (other.ammo_cells < 15) )
-        take_cells = 15 - other.ammo_cells;
+      #ifdef GAME_HIPNOTIC
+      if ( (other.items & (IT_LIGHTNING|IT_LASER_CANNON|IT_MJOLNIR)) && (other.AMMO_CELLS < 15) )
+      #else
+      if ( (other.items & IT_LIGHTNING) && (other.AMMO_CELLS < 15) )
+      #endif
+        take_cells = 15 - other.AMMO_CELLS;
       else
         take_cells = 0;
       
+      #ifdef GAME_ROGUE
+        if ( (other.items & (IT_LAVA_NAILGUN|IT_LAVA_SUPER_NAILGUN)) && (other.ammo_lava_nails < 20) )
+          take_lava = 20 - other.ammo_lava_nails;
+        else
+          take_lava = 0;
+        
+        if ( (other.items & (IT_MULTI_GRENADE|IT_MULTI_ROCKET)) && (other.ammo_multi_rockets < 3) )
+          take_multi = 3 - other.ammo_multi_rockets;
+        else
+          take_multi = 0;
+        
+        if ( (other.items & IT_PLASMA_GUN) && (other.ammo_plasma < 5) )
+          take_plasma = 5 - other.ammo_plasma;
+        else
+          take_plasma = 0;
+      #endif
     }
     
-    if (self.ammo_shells > 0)
+    if (self.AMMO_SHELLS > 0)
     {
       if (take_shells > 0)
       {
-        takenfrom = TRUE;
-        if (take_shells >= self.ammo_shells) //Ry: Higher capacity than given ammo
+        pickflags |= PICK_TAKENFROM;
+        if (take_shells >= self.AMMO_SHELLS) //Ry: Higher capacity than given ammo
         {
-          take_shells = self.ammo_shells;
-          other.ammo_shells = other.ammo_shells + self.ammo_shells;
-          self.ammo_shells = 0;
+          take_shells = self.AMMO_SHELLS;
+          other.AMMO_SHELLS = other.AMMO_SHELLS + self.AMMO_SHELLS;
+          self.AMMO_SHELLS = 0;
         }
         else //Ry: Can't carry all of it
         {
-          other.ammo_shells = other.ammo_shells + take_shells;
-          self.ammo_shells = self.ammo_shells - take_shells;
-          leave = TRUE;
+          other.AMMO_SHELLS = other.AMMO_SHELLS + take_shells;
+          self.AMMO_SHELLS = self.AMMO_SHELLS - take_shells;
+          pickflags |= PICK_LEAVE;
         }
       }
       else
-        leave = TRUE;
+        pickflags |= PICK_LEAVE;
     }
     else
       take_shells = 0;
     
-    if (self.ammo_nails > 0)
+    if (self.AMMO_NAILS > 0)
     {
       if (take_nails > 0)
       {
-        takenfrom = TRUE;
-        if (take_nails >= self.ammo_nails) //Ry: Higher capacity than given ammo
+        pickflags |= PICK_TAKENFROM;
+        if (take_nails >= self.AMMO_NAILS) //Ry: Higher capacity than given ammo
         {
-          take_nails = self.ammo_nails;
-          other.ammo_nails = other.ammo_nails + self.ammo_nails;
-          self.ammo_nails = 0;
+          take_nails = self.AMMO_NAILS;
+          other.AMMO_NAILS = other.AMMO_NAILS + self.AMMO_NAILS;
+          self.AMMO_NAILS = 0;
         }
         else //Ry: Can't carry all of it
         {
-          other.ammo_nails = other.ammo_nails + take_nails;
-          self.ammo_nails = self.ammo_nails - take_nails;
-          leave = TRUE;
+          other.AMMO_NAILS = other.AMMO_NAILS + take_nails;
+          self.AMMO_NAILS = self.AMMO_NAILS - take_nails;
+          pickflags |= PICK_LEAVE;
         }
       }
       else
-        leave = TRUE;
+        pickflags |= PICK_LEAVE;
     }
     else
       take_nails = 0;
     
-    if (self.ammo_rockets > 0)
+    if (self.AMMO_ROCKETS > 0)
     {
       if (take_rockets > 0)
       {
-        takenfrom = TRUE;
-        if (take_rockets >= self.ammo_rockets) //Ry: Higher capacity than given ammo
+        pickflags |= PICK_TAKENFROM;
+        if (take_rockets >= self.AMMO_ROCKETS) //Ry: Higher capacity than given ammo
         {
-          take_rockets = self.ammo_rockets;
-          other.ammo_rockets = other.ammo_rockets + self.ammo_rockets;
-          self.ammo_rockets = 0;
+          take_rockets = self.AMMO_ROCKETS;
+          other.AMMO_ROCKETS = other.AMMO_ROCKETS + self.AMMO_ROCKETS;
+          self.AMMO_ROCKETS = 0;
         }
         else //Ry: Can't carry all of it
         {
-          other.ammo_rockets = other.ammo_rockets + take_rockets;
-          self.ammo_rockets = self.ammo_rockets - take_rockets;
-          leave = TRUE;
+          other.AMMO_ROCKETS = other.AMMO_ROCKETS + take_rockets;
+          self.AMMO_ROCKETS = self.AMMO_ROCKETS - take_rockets;
+          pickflags |= PICK_LEAVE;
         }
       }
       else
-        leave = TRUE;
+        pickflags |= PICK_LEAVE;
     }
     else
       take_rockets = 0;
     
-    if (self.ammo_cells > 0)
+    if (self.AMMO_CELLS > 0)
     {
       if (take_cells > 0)
       {
-        takenfrom = TRUE;
-        if (take_cells >= self.ammo_cells) //Ry: Higher capacity than given ammo
+        pickflags |= PICK_TAKENFROM;
+        if (take_cells >= self.AMMO_CELLS) //Ry: Higher capacity than given ammo
         {
-          take_cells = self.ammo_cells;
-          other.ammo_cells = other.ammo_cells + self.ammo_cells;
-          self.ammo_cells = 0;
+          take_cells = self.AMMO_CELLS;
+          other.AMMO_CELLS = other.AMMO_CELLS + self.AMMO_CELLS;
+          self.AMMO_CELLS = 0;
         }
         else //Ry: Can't carry all of it
         {
-          other.ammo_cells = other.ammo_cells + take_cells;
-          self.ammo_cells = self.ammo_cells - take_cells;
-          leave = TRUE;
+          other.AMMO_CELLS = other.AMMO_CELLS + take_cells;
+          self.AMMO_CELLS = self.AMMO_CELLS - take_cells;
+          pickflags |= PICK_LEAVE;
         }
       }
       else
-        leave = TRUE;
+        pickflags |= PICK_LEAVE;
     }
     else
       take_cells = 0;
     
+    #ifdef GAME_ROGUE
+      if (self.ammo_lava_nails > 0)
+      {
+        if (take_lava > 0)
+        {
+          pickflags |= PICK_TAKENFROM;
+          if (take_lava >= self.ammo_lava_nails) //Ry: Higher capacity than given ammo
+          {
+            take_lava = self.ammo_lava_nails;
+            other.ammo_lava_nails = other.ammo_lava_nails + self.ammo_lava_nails;
+            self.ammo_lava_nails = 0;
+          }
+          else //Ry: Can't carry all of it
+          {
+            other.ammo_lava_nails = other.ammo_lava_nails + take_lava;
+            self.ammo_lava_nails = self.ammo_lava_nails - take_lava;
+            pickflags |= PICK_LEAVE;
+          }
+        }
+        else
+          pickflags |= PICK_LEAVE;
+      }
+      else
+        take_lava = 0;
+      
+      if (self.ammo_multi_rockets > 0)
+      {
+        if (take_multi > 0)
+        {
+          pickflags |= PICK_TAKENFROM;
+          if (take_multi >= self.ammo_multi_rockets) //Ry: Higher capacity than given ammo
+          {
+            take_multi = self.ammo_multi_rockets;
+            other.ammo_multi_rockets = other.ammo_multi_rockets + self.ammo_multi_rockets;
+            self.ammo_multi_rockets = 0;
+          }
+          else //Ry: Can't carry all of it
+          {
+            other.ammo_multi_rockets = other.ammo_multi_rockets + take_multi;
+            self.ammo_multi_rockets = self.ammo_multi_rockets - take_multi;
+            pickflags |= PICK_LEAVE;
+          }
+        }
+        else
+          pickflags |= PICK_LEAVE;
+      }
+      else
+        take_multi = 0;
+      
+      if (self.ammo_plasma > 0)
+      {
+        if (take_plasma > 0)
+        {
+          pickflags |= PICK_TAKENFROM;
+          if (take_plasma >= self.ammo_plasma) //Ry: Higher capacity than given ammo
+          {
+            take_plasma = self.ammo_plasma;
+            other.ammo_plasma = other.ammo_plasma + self.ammo_plasma;
+            self.ammo_plasma = 0;
+          }
+          else //Ry: Can't carry all of it
+          {
+            other.ammo_plasma = other.ammo_plasma + take_plasma;
+            self.ammo_plasma = self.ammo_plasma - take_plasma;
+            pickflags |= PICK_LEAVE;
+          }
+        }
+        else
+          pickflags |= PICK_LEAVE;
+      }
+      else
+        take_plasma = 0;
+    #endif
+    
   }
 
-  if ( fullpick && (other == self.owner) ) //Ry: Unset owner once they run over the backpack (even if they don't collect anything)
+  if ( (pickflags & PICK_FULL) && (other == self.owner) ) //Ry: Unset owner once they run over the backpack (even if they don't collect anything)
   {
     self.owner = entity_null;
     self.effects = 0;
@@ -2523,7 +3187,7 @@ void() BackpackTouch =
     self.think = SUB_Remove;
   }
 
-  if (!takenfrom) //Ry: Break if nothing was taken from the backpack
+  if (!(pickflags & PICK_TAKENFROM)) //Ry: Break if nothing was taken from the backpack
   {
     return;
   }
@@ -2547,8 +3211,7 @@ void() BackpackTouch =
       else
         sprint(other, ", ");
       acount = 1;
-      s = ftos(take_shells);
-      sprint (other, s);
+      sprint (other, ftos(take_shells));
       sprint (other, " shells");
     }
     if (take_nails)
@@ -2558,8 +3221,7 @@ void() BackpackTouch =
       else
         sprint(other, ", ");
       acount = 1;
-      s = ftos(take_nails);
-      sprint (other, s);
+      sprint (other, ftos(take_nails));
       sprint (other, " nails");
     }
     if (take_rockets)
@@ -2569,8 +3231,7 @@ void() BackpackTouch =
       else
         sprint(other, ", ");
       acount = 1;
-      s = ftos(take_rockets);
-      sprint (other, s);
+      sprint (other, ftos(take_rockets));
       sprint (other, " rockets");
     }
     if (take_cells)
@@ -2580,10 +3241,41 @@ void() BackpackTouch =
       else
         sprint(other, ", ");
       acount = 1;
-      s = ftos(take_cells);
-      sprint (other, s);
+      sprint (other, ftos(take_cells));
       sprint (other, " cells");
     }
+    #ifdef GAME_ROGUE
+      if (take_lava)
+      {
+        if (acount == 0)
+          sprint (other, "You got ");
+        else
+          sprint(other, ", ");
+        acount = 1;
+        sprint (other, ftos(take_lava));
+        sprint (other, " lava nails");
+      }
+      if (take_multi)
+      {
+        if (acount == 0)
+          sprint (other, "You got ");
+        else
+          sprint(other, ", ");
+        acount = 1;
+        sprint (other, ftos(take_multi));
+        sprint (other, " multi rockets");
+      }
+      if (take_plasma)
+      {
+        if (acount == 0)
+          sprint (other, "You got ");
+        else
+          sprint(other, ", ");
+        acount = 1;
+        sprint (other, ftos(take_plasma));
+        sprint (other, " plasma balls");
+      }
+    #endif
 
     if (acount > 0)
     {
@@ -2597,29 +3289,39 @@ void() BackpackTouch =
 
   bound_other_ammo ();
 
-  if (leave == TRUE) //Ry: Leave the backpack if ammo remains
+  if (pickflags & PICK_LEAVE) //Ry: Leave the backpack if ammo remains
   {
     self.lastfragtime = time + 2; //Ry: Next time backpack can be picked
-    if ( (self.think == GremlinBackpackSafety) && !self.stolenitems ) //Ry: If all stolen weapons are collected from the backpack, revert to regular backpack operation
-    {
-      self.nextthink = time + 120;	// remove after 2 minutes
-      self.think = SUB_Remove;
-    }
-    stemp = self;
+    #ifdef GAME_HIPNOTIC
+      if ( (self.think == GremlinBackpackSafety) && !self.stolenitems ) //Ry: If all stolen weapons are collected from the backpack, revert to regular backpack operation
+      {
+        self.nextthink = time + 120;	// remove after 2 minutes
+        self.think = SUB_Remove;
+      }
+    #endif
   }
   else
     remove(self);
 	self = other;
+  
+  #ifdef GAME_ROGUE
+    EnableComboWeapons ( self );
+  #endif
 
 // change to the weapon
+  #ifdef ENGINE_KEX
   if(W_WantsToChangeWeapon(other, olditems, other.items) == 1) //Ry: Remaster function for checking the user's weapon switch settings
-  {
+  #endif
     if (!deathmatch)
       self.weapon = new;
     else
       Deathmatch_Weapon (oldweapon, new);
-  }
-  
+
+  #ifdef GAME_ROGUE
+    UpdateAmmoCounts (self);
+  #endif
+
+  #ifdef GAME_HIPNOTIC
   if (self.classname == "monster_gremlin") //Ry: Gremlin stuff
   {
     if (self.goalentity == stemp)
@@ -2627,12 +3329,12 @@ void() BackpackTouch =
     W_UpdateAmmo();
   }
   else if (self.weapon == oldweapon) //Ry: Actually check if the weapon changed instead of always resetting weapon
+  #else
+  if (self.weapon == oldweapon)
+  #endif
     W_UpdateAmmo();
   else
     W_SetCurrentAmmo();
-
-  if (stemp)
-    self = stemp;
 };
 
 /*
@@ -2644,6 +3346,9 @@ void(float dropall) DropBackpack =
 {
 	local entity	item;
   local float backammo_shells, backammo_nails, backammo_rockets, backammo_cells;
+  #ifdef GAME_ROGUE
+    local float backammo_lava, backammo_multi, backammo_plasma;
+  #endif
   
 	// Yoder Sept24 2021 Horde Merge
 	// don't drop backpacks in horde mode
@@ -2653,58 +3358,103 @@ void(float dropall) DropBackpack =
   if (!dropall && coop && (self.flags & FL_CLIENT)) //Ry: Players in Co-op will be given a minimum amount of ammo on respawn, which is also taken away from the backpack
   {
     
-    if (self.ammo_shells > 25)
-      backammo_shells = self.ammo_shells - 25;
+    if (self.AMMO_SHELLS > 25)
+      backammo_shells = self.AMMO_SHELLS - 25;
     else
       backammo_shells = 0;
     
     if ( self.items & (IT_NAILGUN|IT_SUPER_NAILGUN) )
     {
-      if (self.ammo_nails > 30)
-        backammo_nails = self.ammo_nails - 30;
+      if (self.AMMO_NAILS > 30)
+        backammo_nails = self.AMMO_NAILS - 30;
       else
         backammo_nails = 0;
     }
     else
-    {
-      backammo_nails = self.ammo_nails;
-    }
+      backammo_nails = self.AMMO_NAILS;
     
+    #ifdef GAME_HIPNOTIC
     if ( self.items & (IT_ROCKET_LAUNCHER|IT_GRENADE_LAUNCHER|IT_PROXIMITY_GUN) )
+    #else
+    if ( self.items & (IT_ROCKET_LAUNCHER|IT_GRENADE_LAUNCHER) )
+    #endif
     {
-      if (self.ammo_rockets > 5)
-        backammo_rockets = self.ammo_rockets - 5;
+      if (self.AMMO_ROCKETS > 5)
+        backammo_rockets = self.AMMO_ROCKETS - 5;
       else
         backammo_rockets = 0;
     }
     else
-    {
-      backammo_rockets = self.ammo_rockets;
-    }
+      backammo_rockets = self.AMMO_ROCKETS;
     
+    #ifdef GAME_HIPNOTIC
     if ( self.items & (IT_LIGHTNING|IT_LASER_CANNON|IT_MJOLNIR) )
+    #else
+    if ( self.items & (IT_LIGHTNING) )
+    #endif
     {
-      if (self.ammo_cells > 15)
-        backammo_cells = self.ammo_cells - 15;
+      if (self.AMMO_CELLS > 15)
+        backammo_cells = self.AMMO_CELLS - 15;
       else
         backammo_cells = 0;
     }
     else
-    {
-      backammo_cells = self.ammo_cells;
-    }
+      backammo_cells = self.AMMO_CELLS;
+    
+    #ifdef GAME_ROGUE
+      if ( self.items & (IT_LAVA_NAILGUN|IT_LAVA_SUPER_NAILGUN) )
+      {
+        if (self.ammo_lava_nails > 20)
+          backammo_lava = self.ammo_lava_nails - 20;
+        else
+          backammo_lava = 0;
+      }
+      else
+        backammo_lava = self.ammo_lava_nails;
+      
+      if ( self.items & (IT_MULTI_GRENADE|IT_MULTI_ROCKET) )
+      {
+        if (self.ammo_multi_rockets > 3)
+          backammo_multi = self.ammo_multi_rockets - 3;
+        else
+          backammo_multi = 0;
+      }
+      else
+        backammo_multi = self.ammo_multi_rockets;
+      
+      if ( self.items & IT_PLASMA_GUN )
+      {
+        if (self.ammo_plasma > 5)
+          backammo_plasma = self.ammo_plasma - 5;
+        else
+          backammo_plasma = 0;
+      }
+      else
+        backammo_plasma = self.ammo_plasma;
+    #endif
     
   }
   else
   {
-    backammo_shells = self.ammo_shells;
-    backammo_nails = self.ammo_nails;
-    backammo_rockets = self.ammo_rockets;
-    backammo_cells = self.ammo_cells;
+    backammo_shells = self.AMMO_SHELLS;
+    backammo_nails = self.AMMO_NAILS;
+    backammo_rockets = self.AMMO_ROCKETS;
+    backammo_cells = self.AMMO_CELLS;
+    #ifdef GAME_ROGUE
+      backammo_lava = self.ammo_lava_nails;
+      backammo_multi = self.ammo_multi_rockets;
+      backammo_plasma = self.ammo_plasma;
+    #endif
   }
 
   //Ry: Make sure non-starting weapons are dropped in DM, even with absolutely no ammo
-	if ( (!(backammo_shells + backammo_nails + backammo_rockets + backammo_cells)) && ( !deathmatch || (self.weapon == IT_AXE) || (self.weapon == IT_SHOTGUN) ) )
+  #ifdef GAME_ROGUE
+	if ( (!(backammo_shells + backammo_nails + backammo_rockets + backammo_cells + backammo_lava + backammo_multi + backammo_plasma))
+      && ( !deathmatch || (self.weapon == IT_AXE) || (self.weapon == IT_SHOTGUN) ) )
+  #else
+  if ( (!(backammo_shells + backammo_nails + backammo_rockets + backammo_cells))
+      && ( !deathmatch || (self.weapon == IT_AXE) || (self.weapon == IT_SHOTGUN) ) )
+  #endif
 		return;	// nothing in it
 
 	item = spawn();
@@ -2714,36 +3464,30 @@ void(float dropall) DropBackpack =
   if (deathmatch) //Ry: Normal behavior for DM
   {
     item.items = self.weapon;
-     if (item.items == IT_AXE)
-      item.netname = "Axe";
-    else if (item.items == IT_SHOTGUN)
-      item.netname = "Shotgun";
-    else if (item.items == IT_SUPER_SHOTGUN)
-      item.netname = "Double-barrelled Shotgun";
-    else if (item.items == IT_NAILGUN)
-      item.netname = "Nailgun";
-    else if (item.items == IT_SUPER_NAILGUN)
-      item.netname = "Super Nailgun";
-    else if (item.items == IT_GRENADE_LAUNCHER)
-      item.netname = "Grenade Launcher";
-    else if (item.items == IT_ROCKET_LAUNCHER)
-      item.netname = "Rocket Launcher";
-    else if (item.items == IT_LIGHTNING)
-      item.netname = "Thunderbolt";
-     else if (item.items == IT_LASER_CANNON)
-        item.netname = "Laser Cannon";
-     else if (item.items == IT_PROXIMITY_GUN)
-        item.netname = "Proximity Gun";
-     else if (item.items == IT_MJOLNIR)
-        item.netname = "Mjolnir";
-     else
-      item.netname = "";
+    #ifdef GAME_ROGUE
+      if (item.items == IT_LAVA_NAILGUN)
+        item.items = IT_NAILGUN;
+      else if (item.items == IT_LAVA_SUPER_NAILGUN)
+        item.items = IT_SUPER_NAILGUN;
+      else if (item.items == IT_MULTI_GRENADE)
+        item.items = IT_GRENADE_LAUNCHER;
+      else if (item.items == IT_MULTI_ROCKET)
+        item.items = IT_ROCKET_LAUNCHER;
+      else if (item.items == IT_PLASMA_GUN)
+        item.items = IT_LIGHTNING;
+    #endif
+    item.netname = GetWeaponName(item.items);
   }
 
-	item.ammo_shells = backammo_shells;
-	item.ammo_nails = backammo_nails;
-	item.ammo_rockets = backammo_rockets;
-	item.ammo_cells = backammo_cells;
+	item.AMMO_SHELLS = backammo_shells;
+	item.AMMO_NAILS = backammo_nails;
+	item.AMMO_ROCKETS = backammo_rockets;
+	item.AMMO_CELLS = backammo_cells;
+  #ifdef GAME_ROGUE
+    item.ammo_lava_nails = backammo_lava;
+    item.ammo_multi_rockets = backammo_multi;
+    item.ammo_plasma = backammo_plasma;
+  #endif
 
 	item.velocity_z = 300;
 	item.velocity_x = -100 + (random() * 200);

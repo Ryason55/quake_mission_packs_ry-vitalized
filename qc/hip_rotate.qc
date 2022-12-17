@@ -321,7 +321,7 @@ If "deathtype" is set with a string, this is the message that will appear when a
 
 void() func_rotate_entity =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
   self.solid    = SOLID_NOT;
@@ -724,7 +724,7 @@ void() rotate_train =
 
 void() func_rotate_train =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
   if (!self.speed)
@@ -860,7 +860,7 @@ NONBLOCKING makes the brush non-solid.  This is useless if VISIBLE is set.
 */
 void() func_movewall =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
   self.angles = '0 0 0';
@@ -893,7 +893,7 @@ This defines an object to be rotated.  Used as the target of func_rotate_door.
 */
 void() rotate_object =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
   self.classname = "rotate_object";
@@ -1071,7 +1071,7 @@ once door from closing again when it's blocked.
 
 void() func_rotate_door =
    {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
    if (!self.target)

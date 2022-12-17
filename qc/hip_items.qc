@@ -26,6 +26,18 @@ void() hip_powerup_touch =
 		return;
 	if (other.health <= 0)
 		return;
+
+  //Ry: Each player can collect a Wetsuit once in Co-op [09-26-2022]
+  if (self.oneperplayer && (self.pickers & other.playerindex))
+  {
+    #ifndef ENGINE_WINQUAKE
+      if (!(self.alpha == 0.25)) //Ry: Item will turn transparent when a player that already used it is standing over it
+        self.alpha = 0.25;
+      self.nextthink = time + 0.1;
+      self.think = TransparentThink;
+    #endif
+    return;
+  }
   
   local float poweruptime; //Ry: Adjust powerup time if it was dropped
   if (self.remaintime > 0)
@@ -56,14 +68,6 @@ void() hip_powerup_touch =
       SUB_revertpowerup();
     }
 	}
-  else if (coop && (self.classname == "item_artifact_wetsuit")) //Ry: Respawn in Co-op
-  {
-    self.nextthink = time + 3;
-    self.think = SUB_regen;
-  }
-  
-  self.solid = SOLID_NOT;
-  self.model = string_null;
 
   if (poweruptime > 0) //Ry: Just to make sure
   {
@@ -71,12 +75,12 @@ void() hip_powerup_touch =
     sprint (other, self.netname);
     sprint (other,"\n");
 
-    sound (other, CHAN_VOICE, self.noise, 1, ATTN_NORM);
+    //Ry: Use a different channel for this [09-04-2022]
+    sound (other, CHAN_POWERUP, self.noise, 1, ATTN_NORM);
     stuffcmd (other, "bf\n");
     other.items2 = other.items2 | self.items2;
 
-
-  // do the apropriate action
+  // do the appropriate action
     if (( self.classname == "item_artifact_wetsuit" ) && (other.wetsuit_finished < poweruptime)) //Ry: Ensure you don't lose time off your current powerup by picking up a dropped powerup
     {
       other.wetsuit_time = 1;
@@ -92,11 +96,22 @@ void() hip_powerup_touch =
       other.empathy_item = self;
       other.empathy_validdroptime = self.nextspawntime - 5;
     }
+  }
 
+  if (self.oneperplayer)
+  {
+    self.pickers = self.pickers + other.playerindex; //Ry: Mark off that this player has picked the item
+    UpdateItemVisibility(self,0.25); //Ry: If everyone has the item, hide it
+    if (self.solid == SOLID_TRIGGER) //Ry: Otherwise, set the transparency thinker so the item becomes solid when the player steps off it
+    {
+      self.nextthink = time + 0.1;
+      self.think = TransparentThink;
+    }
   }
   else
   {
-    sprint(other,"Oh, apparently that powerup was empty. That's not supposed to happen.\n");
+    self.solid = SOLID_NOT;
+    self.model = string_null;
   }
 
 	activator = other;
@@ -109,20 +124,22 @@ Player takes no damage from electrical attacks and swims faster for 30 seconds
 */
 void() item_artifact_wetsuit =
 {
-  hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
-   self.touch = hip_powerup_touch;
+  missionpackmap = TRUE; //Ry: Map has Hipnotic entity
+  self.touch = hip_powerup_touch;
 
-   precache_model ("progs/wetsuit.mdl");
-   precache_sound ("misc/wetsuit.wav");
-   precache_sound ("misc/weton.wav");
-   precache_sound ("items/suit2.wav");
-   self.noise = "misc/weton.wav";
-   setmodel (self, "progs/wetsuit.mdl");
+  precache_model ("progs/wetsuit.mdl");
+  precache_sound ("misc/wetsuit.wav");
+  precache_sound ("misc/weton.wav");
+  precache_sound ("items/suit2.wav");
+  self.noise = "misc/weton.wav";
+  setmodel (self, "progs/wetsuit.mdl");
 	self.netname = "Wetsuit";
-   self.items2 = HIP_IT_WETSUIT;
-   if (deathmatch) //Ry: Unused for this item type currently
-     self.respawntime = 60;
-   setsize (self, '-16 -16 -24', '16 16 32');
+  self.items2 = HIP_IT_WETSUIT;
+  if (deathmatch)
+    self.respawntime = 60;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
+  setsize (self, '-16 -16 -24', '16 16 32');
 
 	StartItem ();
 };
@@ -158,7 +175,7 @@ void() horn_touch =
 
 	self.solid = SOLID_NOT;
 	self.model = string_null;
-  if (deathmatch) //Ry: Announcement when used in Deathmatch
+  if (deathmatch || horde) //Ry: Announcement when used in Deathmatch or Horde
   {
     bprint(other.netname);
     bprint(" used the Horn of Conjuring\n");
@@ -183,7 +200,8 @@ void() horn_touch =
       head = nextent(head);
     }
   }
-  sound (other, CHAN_VOICE, self.noise, 1, ATTN_NONE);
+  //Ry: New channel for powerup pickups [09-04-2022]
+  sound (other, CHAN_POWERUP, self.noise, 1, ATTN_NONE);
 	stuffcmd (other, "bf\n");
   activator = other;
   self.count = 0; //Ry: Reset summoned monster count
@@ -204,42 +222,42 @@ You must make func_spawn entities connected to this entity
 to spawn the charmed creature.
 */
 void() item_hornofconjuring =
-   {
-   hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
-   self.touch = horn_touch;
+{
+  missionpackmap = TRUE; //Ry: Map has Hipnotic entity
+  self.touch = horn_touch;
 
-   precache_model("progs/horn.mdl");
-   precache_sound("hipitems/horn.wav");
-   setmodel(self, "progs/horn.mdl");
-   self.noise = "hipitems/horn.wav";
-   if (deathmatch) //Ry: DM Respawn time defined here now
-     self.respawntime = 60;
+  precache_model("progs/horn.mdl");
+  precache_sound("hipitems/horn.wav");
+  setmodel(self, "progs/horn.mdl");
+  self.noise = "hipitems/horn.wav";
+  if (deathmatch) //Ry: DM Respawn time defined here now
+    self.respawntime = 60;
    
-   setsize (self, '-16 -16 0', '16 16 56'); //Ry: Now matches other powerup sizes (lower Z was higher with no adjustment for the upper)
+  setsize (self, '-16 -16 0', '16 16 56'); //Ry: Now matches other powerup sizes (lower Z was higher with no adjustment for the upper)
 	StartItem ();
-   };
+};
 
 /*QUAKED item_artifact_empathy_shields (0 .5 .8) (-16 -16 0) (16 16 32)
 Empathy Shield.
 */
 void() item_artifact_empathy_shields =
-   {
-   hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
-   self.touch = hip_powerup_touch;
+{
+  missionpackmap = TRUE; //Ry: Map has Hipnotic entity
+  self.touch = hip_powerup_touch;
 
-   precache_model("progs/empathy.mdl");
-   precache_sound("hipitems/empathy.wav");
-   precache_sound("hipitems/empathy2.wav");
-   precache_sound ("items/suit2.wav");
-   setmodel(self, "progs/empathy.mdl");
-   self.noise = "hipitems/empathy.wav";
-   self.netname = "Empathy Shields";
-   self.items2 = HIP_IT_EMPATHY_SHIELDS;
-   if (deathmatch) //Ry: Unused for this item type currently
-     self.respawntime = 120;
-   setsize (self, '-16 -16 0', '16 16 56'); //Ry: Now matches other powerup sizes (lower Z was higher with no adjustment for the upper)
+  precache_model("progs/empathy.mdl");
+  precache_sound("hipitems/empathy.wav");
+  precache_sound("hipitems/empathy2.wav");
+  precache_sound ("items/suit2.wav");
+  setmodel(self, "progs/empathy.mdl");
+  self.noise = "hipitems/empathy.wav";
+  self.netname = "Empathy Shields";
+  self.items2 = HIP_IT_EMPATHY_SHIELDS;
+  if (deathmatch) //Ry: DM Respawn time defined here now
+    self.respawntime = 120;
+  setsize (self, '-16 -16 0', '16 16 56'); //Ry: Now matches other powerup sizes (lower Z was higher with no adjustment for the upper)
 	StartItem ();
-   };
+};
 /*
 ===============================================================================
 
@@ -253,16 +271,17 @@ HIPNOTIC WEAPONS
 
 void() weapon_mjolnir =
 {
-  hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
+  missionpackmap = TRUE; //Ry: Map has Hipnotic entity
    precache_model ("progs/g_hammer.mdl");
    setmodel (self, "progs/g_hammer.mdl");
 	self.weapon = IT_MJOLNIR; //Ry: Was 3; Fixed
    self.netname = "Mjolnir";
    self.items = IT_MJOLNIR;
 	self.touch = weapon_touch;
-  self.enttype = "item"; //Ry: For easy searching
   if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
     self.respawntime = 30;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -272,16 +291,17 @@ void() weapon_mjolnir =
 
 void() weapon_laser_gun =
 {
-  hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
-   precache_model ("progs/g_laserg.mdl");
-   setmodel (self, "progs/g_laserg.mdl");
+  missionpackmap = TRUE; //Ry: Map has Hipnotic entity
+  precache_model ("progs/g_laserg.mdl");
+  setmodel (self, "progs/g_laserg.mdl");
 	self.weapon = IT_LASER_CANNON; //Ry: Was 3; Fixed
-   self.netname = "Laser Cannon";
-   self.items = IT_LASER_CANNON;
-   self.touch = weapon_touch;
-   self.enttype = "item"; //Ry: For easy searching
+  self.netname = "Laser Cannon";
+  self.items = IT_LASER_CANNON;
+  self.touch = weapon_touch;
   if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
     self.respawntime = 5;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -291,16 +311,17 @@ void() weapon_laser_gun =
 
 void() weapon_proximity_gun =
 {
-  hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
-   precache_model ("progs/g_prox.mdl");
-   setmodel (self, "progs/g_prox.mdl");
+  missionpackmap = TRUE; //Ry: Map has Hipnotic entity
+  precache_model ("progs/g_prox.mdl");
+  setmodel (self, "progs/g_prox.mdl");
 	self.weapon = IT_PROXIMITY_GUN; //Ry: Was 3; Fixed
-   self.netname = "Proximity Gun";
-   self.items = IT_PROXIMITY_GUN;
-   self.touch = weapon_touch;
-   self.enttype = "item"; //Ry: For easy searching
+  self.netname = "Proximity Gun";
+  self.items = IT_PROXIMITY_GUN;
+  self.touch = weapon_touch;
   if (deathmatch && (deathmatch != 2)) //Ry: DM Respawn time defined here now
     self.respawntime = 5;
+  else if (coop) //Ry: All players in Co-op can pick this once
+    self.oneperplayer = TRUE;
 	setsize (self, '-16 -16 0', '16 16 56');
 	StartItem ();
 };
@@ -338,7 +359,7 @@ void() SpawnLightningThink =
       WriteCoord (MSG_BROADCAST, self.oldorigin_y);
       WriteCoord (MSG_BROADCAST, self.oldorigin_z);
       }
-   LightningDamage(self.origin, self.oldorigin, self.lastvictim, self.lastvictim, self.dmg, FALSE); //Ry: Added inflictor, which is the same
+   LightningDamage(self.origin, self.oldorigin, self.lastvictim, self.lastvictim, self.dmg, FALSE, 0); //Ry: Added inflictor, extra traces disabled, and empty team [07-31-2022]
    self.nextthink = time + 0.1;
    };
 
@@ -410,10 +431,10 @@ void() trap_lightning_use =
       WriteCoord (MSG_BROADCAST, p2_x);
       WriteCoord (MSG_BROADCAST, p2_y);
       WriteCoord (MSG_BROADCAST, p2_z);
-      LightningDamage(p1, p2, self, self, self.dmg, FALSE); //Ry: Inflictor
+      LightningDamage(p1, p2, self, self, self.dmg, FALSE, 0); //Ry: Added inflictor, extra traces disabled, and empty team [07-31-2022]
       }
    else
-      LightningDamage(p1, p2, self, self, self.dmg, FALSE); //Ry: Inflictor
+      LightningDamage(p1, p2, self, self, self.dmg, FALSE, 0); //Ry: Added inflictor, extra traces disabled, and empty team [07-31-2022]
    };
 
 void() lightning_think =
@@ -596,7 +617,7 @@ void() TeslaLightningThink =
   WriteCoord (MSG_BROADCAST, trace_endpos_x);
   WriteCoord (MSG_BROADCAST, trace_endpos_y);
   WriteCoord (MSG_BROADCAST, trace_endpos_z);
-  LightningDamage(self.origin, trace_endpos, self.lastvictim, self.owner, self.dmg, FALSE); //Ry: Also forward the tesla as inflictor
+  LightningDamage(self.origin, trace_endpos, self.lastvictim, self.owner, self.dmg, FALSE, 0); //Ry: Added inflictor, extra traces disabled, and empty team [07-31-2022]
   self.nextthink = time + 0.1;
 };
 
@@ -693,18 +714,19 @@ targets enemies in vicinity and fires at them
 */
 void() trap_tesla_coil =
 {
+  local float sk;
   precache_sound ("misc/tesla.wav");
   precache_sound ("hipweap/mjolhit.wav");   // lightning sound
   if (self.wait == 0)
     self.wait = 2;
   if (self.dmg == 0)
-    if (cvar("skill") <= 0)
-      self.dmg = 2;
-    else //Ry: Damage is now capped to what it would be on Normal (Hits 5 times, for 35 damage total)
-      self.dmg = 7;
-      //self.dmg = 2 + (5*cvar("skill"));
-    else
-      self.dmg = 12;
+  {
+    sk = cvar("skill");
+    //Ry: Damage is now capped to what it would be on Hard (Hits 5 times, for 60 damage total)
+    if (sk > 2 || copper_nightmare) //Ry: On Copper Nightmare, always Hard skill damage
+      sk = 2;
+    self.dmg = 2 + ( 5 * sk );
+  }
   if (self.duration == 0)
     self.duration = -1;
   if (self.distance == 0)

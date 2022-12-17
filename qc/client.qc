@@ -9,10 +9,9 @@ void (vector org, entity death_owner) spawn_tdeath;
 
 void() PlayerDie; //Ry: Moved this up here
 
-void(entity temp_player) horde_set_keys; // yoder sept24
-void() GibMonster;
-float() HordeGetPlayersAlive;
-
+#ifdef GAME_ROGUE
+  void(entity targ, entity attacker) dmatch_score;
+#endif
 
 
 //======================
@@ -41,34 +40,57 @@ void() changelevel_warpsetup_think = //Ry: Set up Target so exit trigger(s) can 
   }
 }
 
-//Ry: Checks if enemy players or monsters are visible from a given spawn point, based on Remaster's "PlayerVisibleToSpawnPoint"
-float(entity point) ThreatVisibleToSpawnPoint =
+float(entity point, entity target) ThreatCanSeeSpawnPoint =
 {
-	local vector spot1, spot2;
+  local vector spot1, spot2;
+  if ( (target.health > 0) && (target.deadflag == 0) && ((target.team == 0) || (target.team != self.team)) )
+  {
+    spot1 = point.origin + default_view_ofs;
+    spot2 = target.origin;
+    if (target.flags & FL_CLIENT)
+      spot2 = spot2 + target.view_ofs;
+    traceline(spot1, spot2, 1, point);
+    if ((trace_fraction >= 1))
+    {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+//Ry: Checks if enemy players or monsters are visible from a given spawn point, based on Remaster's "PlayerVisibleToSpawnPoint"
+float(entity point) AnyThreatsVisibleToSpawnPoint =
+{
 	local entity ent;
 
-  ent = nextent(world);
-  while (ent != world) //Ry: Check against monsters as well, and ignore team members (which include charmed monsters)
+  ent = find(world,classname,"player");
+  while (ent != world)
   {
-    if ( (ent.flags & (FL_CLIENT|FL_MONSTER)) )
+    if (ent.important)
     {
-      if ( (ent.health > 0) && (ent.deadflag == 0) && ((ent.team == 0) || (ent.team != self.team)) )
-      {
-        spot1 = point.origin + default_view_ofs;
-        spot2 = ent.origin;
-        if (ent.flags & FL_CLIENT)
-          spot2 = spot2 + ent.view_ofs;
-        traceline(spot1, spot2, 1, point);
-        if ((trace_fraction >= 1))
-        {
-          return (TRUE);
-        }
-      }
+      if (ThreatCanSeeSpawnPoint(point,ent))
+        return TRUE;
     }
-    ent = nextent(ent);
+    ent = find(ent,classname,"player");
   }
-  
-	return (FALSE);
+  ent = find(world,category,"monster");
+  while (ent != world)
+  {
+    if (ThreatCanSeeSpawnPoint(point,ent))
+      return TRUE;
+    ent = find(ent,classname,"monster");
+  }
+  #ifdef GAME_HIPNOTIC
+    ent = find(world,category,"charmed_monster");
+    while (ent != world)
+    {
+      if (ThreatCanSeeSpawnPoint(point,ent))
+        return TRUE;
+      ent = find(ent,classname,"charmed_monster");
+    }
+  #endif
+
+	return FALSE;
 };
 
 //Ry: Separated out from Remaster's SelectSpawnPoint so it can be used elsewhere
@@ -92,7 +114,7 @@ float(entity spot, float clearance, float checkplayersvisible) IsSpawnPointClear
   }
   if (deathmatch && clear && checkplayersvisible)
   {
-    if (ThreatVisibleToSpawnPoint(spot))
+    if (AnyThreatsVisibleToSpawnPoint(spot))
     {
       return FALSE;
     }
@@ -124,6 +146,8 @@ Use mangle instead of angle, so you can set pitch or roll as well as yaw.  'pitc
 */
 void() info_intermission =
 {
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
+    return;
 };
 
 void() SetChangeParms =
@@ -131,8 +155,7 @@ void() SetChangeParms =
   if (deathmatch) //Ry: Shouldn't carry over inventory in Deathmatch, in the case that map rotation is used
   {
     SetNewParms ();
-    parm10 = self.mapsfinished+1;
-    parm11 = self.playerprobe;
+    parm16 = self.mapsfinished+1;
     return;
   }
   
@@ -142,57 +165,104 @@ void() SetChangeParms =
     parm1 = self.items - (self.items & (IT_KEY1 | IT_KEY2 | IT_INVISIBILITY | IT_INVULNERABILITY | IT_SUIT | IT_QUAD ) );
     if (self.items & IT_SUPER_SHOTGUN)
       parm8 = IT_SUPER_SHOTGUN;
-    parm4 = self.ammo_shells;
-    parm5 = self.ammo_nails;
-    parm6 = self.ammo_rockets;
-    parm7 = self.ammo_cells;
-    parm10 = self.mapsfinished+1;
-    parm11 = self.playerprobe;
+    parm4 = self.AMMO_SHELLS;
+    parm5 = self.AMMO_NAILS;
+    parm6 = self.AMMO_ROCKETS;
+    parm7 = self.AMMO_CELLS;
+    #ifdef GAME_ROGUE
+      parm10 = self.items2 - (self.items2 & (IT2_ANTIGRAV | IT2_SHIELD | IT2_SUPERHEALTH));
+      parm11 = self.ammo_lava_nails;
+      parm12 = self.ammo_multi_rockets;
+      parm13 = self.ammo_plasma;
+    #endif
+    parm16 = self.mapsfinished+1;
     return;
 	}
 
-//JIM
-// remove items
-	self.items = self.items - (self.items &
-   (IT_KEY1 | IT_KEY2 | IT_INVISIBILITY | IT_INVULNERABILITY | IT_SUIT | IT_QUAD ) );
-//MED
-   self.items2 = self.items2 - (self.items2 &
-   (HIP_IT_WETSUIT | HIP_IT_EMPATHY_SHIELDS ) );
-//MED
-   self.gravity = 1.0;
+  //JIM
+  // remove items
+	self.items = self.items - (self.items & (IT_KEY1 | IT_KEY2 | IT_INVISIBILITY | IT_INVULNERABILITY | IT_SUIT | IT_QUAD ) );
+  #ifdef GAME_HIPNOTIC
+    //MED
+    self.items2 = self.items2 - (self.items2 & (HIP_IT_WETSUIT | HIP_IT_EMPATHY_SHIELDS ) );
+  #endif
+  #ifdef GAME_ROGUE
+    self.items2 = self.items2 - (self.items2 & (IT2_ANTIGRAV | IT2_SHIELD | IT2_SUPERHEALTH));
+  #endif
+  //MED
+  self.gravity = 1.0;
 
 // cap super health
-	if (self.health > 100)
-		self.health = 100;
-	if (self.health < 50)
-		self.health = 50;
+  if (copper_nightmare && (skill >= 3)) //Ry: Copper Nightmare stuff [07-14-2022]
+  {
+    if (self.health > 50)
+      self.health = 50;
+    if (self.health < 25)
+      self.health = 25;
+  }
+  else
+  {
+    if (self.health > 100)
+      self.health = 100;
+    if (self.health < 50)
+      self.health = 50;
+  }
 	parm1 = self.items;
 	parm2 = self.health;
 	parm3 = self.armorvalue;
-	if (self.ammo_shells < 25)
+	if (self.AMMO_SHELLS < 25)
 		parm4 = 25;
 	else
-		parm4 = self.ammo_shells;
-	parm5 = self.ammo_nails;
-	parm6 = self.ammo_rockets;
-	parm7 = self.ammo_cells;
+		parm4 = self.AMMO_SHELLS;
+	parm5 = self.AMMO_NAILS;
+	parm6 = self.AMMO_ROCKETS;
+	parm7 = self.AMMO_CELLS;
 	parm8 = self.weapon;
 	parm9 = self.armortype * 100;
-  parm10 = self.mapsfinished+1;
-  parm11 = self.playerprobe;
+  #ifdef GAME_ROGUE
+		parm10 = self.items2;
+		parm11 = self.ammo_lava_nails;
+		parm12 = self.ammo_multi_rockets;
+		parm13 = self.ammo_plasma;
+    parm14 = self.steam; // save team setting
+  #endif
+  parm16 = self.mapsfinished+1;
 };
 
 void() SetNewParms =
 {
-	parm1 = IT_SHOTGUN | IT_AXE;
-	parm2 = 100;
+  #ifdef GAME_ROGUE
+  if (grappleenabled)
+    parm1 = IT_SHOTGUN | IT_AXE | IT_GRAPPLE;
+  else
+  #endif
+    parm1 = IT_SHOTGUN | IT_AXE;
+  if (copper_nightmare && (skill >= 3)) //Ry: Copper Nightmare stuff [07-14-2022]
+    parm2 = 50;
+  else
+    parm2 = 100;
 	parm3 = 0;
 	parm4 = 25;
 	parm5 = 0;
 	parm6 = 0;
 	parm7 = 0;
-	parm8 = 1;
+	parm8 = IT_SHOTGUN;
 	parm9 = 0;
+  #ifdef GAME_ROGUE
+    parm10 = 0;
+    if (deathmatch && teamplay >= TEAM_CTF)
+    {
+      parm3 = 50;
+      parm9 = 30;
+      parm10 = IT2_ARMOR1;
+    }
+		parm11 = 0;
+		parm12 = 0;
+		parm13 = 0;
+    //ZOID--
+    parm14 = -1; 		// CTF: reset current team selection
+    //--ZOID
+  #endif
 };
 
 void() DecodeLevelParms =
@@ -218,20 +288,38 @@ void() DecodeLevelParms =
       SetNewParms ();
     if (world.model == "maps/end.bsp")
       SetNewParms ();
+    
+    if (world.model == "maps/r1m1.bsp") //Ry: Dissolution episode starts [08-30-2022]
+      SetNewParms ();
+    if (world.model == "maps/r2m1.bsp")
+      SetNewParms ();
   }
 
 	self.items = parm1;
 	self.health = parm2;
 	self.armorvalue = parm3;
-	self.ammo_shells = parm4;
-	self.ammo_nails = parm5;
-	self.ammo_rockets = parm6;
-	self.ammo_cells = parm7;
+	self.AMMO_SHELLS = parm4;
+	self.AMMO_NAILS = parm5;
+	self.AMMO_ROCKETS = parm6;
+	self.AMMO_CELLS = parm7;
 	self.weapon = parm8;
+  
 	self.armortype = parm9 * 0.01;
-  self.mapsfinished = parm10;
-  if (!self.playerprobe)
-    self.playerprobe = parm11;
+  #ifdef GAME_ROGUE
+    if (self.weapon == IT_GRAPPLE && !grappleenabled)
+      self.weapon = IT_AXE;
+    self.items2 = parm10;
+    self.ammo_lava_nails = parm11;
+    self.ammo_multi_rockets = parm12;
+    self.ammo_plasma = parm13;
+    //ZOID--
+    if (TeamColorIsLegal(parm14)) {
+      self.steam = parm14;
+      TeamSetSkin();
+    }
+    //--ZOID
+  #endif
+  self.mapsfinished = parm16;
 };
 
 /*
@@ -287,10 +375,20 @@ void() GotoNextMap =
 
 void() finale_transition = //Ry: Remaster functions for exiting to menu or Start map
 {
+  #ifdef GAME_HIPNOTIC
   if ( !coop && (world.model == "maps/hipend.bsp") )
+  #elifdef GAME_ROGUE
+  if ( !coop && (world.model == "maps/r2m8.bsp") )
+  #else
+  if ( !coop && (world.model == "maps/end.bsp") )
+  #endif
   {
-    localcmd("menu_credits\n");
-    localcmd("disconnect\n");
+    #ifdef ENGINE_KEX
+      localcmd("menu_credits\n");
+      localcmd("disconnect\n");
+    #else
+      localcmd("menu_main\n");
+    #endif
   }
   else
   {
@@ -298,23 +396,24 @@ void() finale_transition = //Ry: Remaster functions for exiting to menu or Start
   }
 };
 
-void() finale_check =
-{
-  if (finaleFinished())
+#ifdef ENGINE_KEX
+  void() finale_check =
   {
-    intermission_exittime = time + 5; //Ry: After the text finishes, there's a 5 second delay before player can input to exit
-  }
-  else
-  {
-    self.nextthink = (time + 0.1);
-  }
-};
-
+    if (finaleFinished())
+    {
+      intermission_exittime = time + 5; //Ry: After the text finishes, there's a 5 second delay before player can input to exit
+    }
+    else
+    {
+      self.nextthink = (time + 0.1);
+    }
+  };
+#endif
 
 void() ExitIntermission =
 {
 // skip any text in deathmatch
-	if (deathmatch)
+	if (deathmatch || horde_ent) //Ry: Also skip text in Horde mode [08-04-2022]
 	{
 		GotoNextMap ();
 		return;
@@ -336,12 +435,20 @@ void() ExitIntermission =
 			if (!cvar("registered"))
 			{
 				WriteByte (MSG_ALL, SVC_FINALE);
-				WriteString (MSG_ALL, "As the corpse of the monstrous entity\nChthon sinks back into the lava whence\nit rose, you grip the Rune of Earth\nMagic tightly. Now that you have\nconquered the Dimension of the Doomed,\nrealm of Earth Magic, you are ready to\ncomplete your task in the other three\nhaunted lands of Quake. Or are you? If\nyou don't register Quake, you'll never\nknow what awaits you in the Realm of\nBlack Magic, the Netherworld, and the\nElder World!");
+        #ifdef ENGINE_KEX
+          WriteString (MSG_ALL, "$qc_finale_e1_shareware");
+        #else
+          WriteString (MSG_ALL, "As the corpse of the monstrous entity\nChthon sinks back into the lava whence\nit rose, you grip the Rune of Earth\nMagic tightly. Now that you have\nconquered the Dimension of the Doomed,\nrealm of Earth Magic, you are ready to\ncomplete your task in the other three\nhaunted lands of Quake. Or are you? If\nyou don't register Quake, you'll never\nknow what awaits you in the Realm of\nBlack Magic, the Netherworld, and the\nElder World!");
+        #endif
 			}
 			else
 			{
 				WriteByte (MSG_ALL, SVC_FINALE);
-				WriteString (MSG_ALL, "As the corpse of the monstrous entity\nChthon sinks back into the lava whence\nit rose, you grip the Rune of Earth\nMagic tightly. Now that you have\nconquered the Dimension of the Doomed,\nrealm of Earth Magic, you are ready to\ncomplete your task. A Rune of magic\npower lies at the end of each haunted\nland of Quake. Go forth, seek the\ntotality of the four Runes!");
+        #ifdef ENGINE_KEX
+          WriteString (MSG_ALL, "$qc_finale_e1");
+        #else
+          WriteString (MSG_ALL, "As the corpse of the monstrous entity\nChthon sinks back into the lava whence\nit rose, you grip the Rune of Earth\nMagic tightly. Now that you have\nconquered the Dimension of the Doomed,\nrealm of Earth Magic, you are ready to\ncomplete your task. A Rune of magic\npower lies at the end of each haunted\nland of Quake. Go forth, seek the\ntotality of the four Runes!");
+        #endif
 			}
 			return;
 		}
@@ -352,7 +459,11 @@ void() ExitIntermission =
 			WriteByte (MSG_ALL, 3);
 
 			WriteByte (MSG_ALL, SVC_FINALE);
-			WriteString (MSG_ALL, "The Rune of Black Magic throbs evilly in\nyour hand and whispers dark thoughts\ninto your brain. You learn the inmost\nlore of the Hell-Mother; Shub-Niggurath!\nYou now know that she is behind all the\nterrible plotting which has led to so\nmuch death and horror. But she is not\ninviolate! Armed with this Rune, you\nrealize that once all four Runes are\ncombined, the gate to Shub-Niggurath's\nPit will open, and you can face the\nWitch-Goddess herself in her frightful\notherworld cathedral.");
+      #ifdef ENGINE_KEX
+        WriteString (MSG_ALL, "$qc_finale_e2");
+      #else
+        WriteString (MSG_ALL, "The Rune of Black Magic throbs evilly in\nyour hand and whispers dark thoughts\ninto your brain. You learn the inmost\nlore of the Hell-Mother; Shub-Niggurath!\nYou now know that she is behind all the\nterrible plotting which has led to so\nmuch death and horror. But she is not\ninviolate! Armed with this Rune, you\nrealize that once all four Runes are\ncombined, the gate to Shub-Niggurath's\nPit will open, and you can face the\nWitch-Goddess herself in her frightful\notherworld cathedral.");
+      #endif
 			return;
 		}
 		else if (world.model == "maps/e3m6.bsp")
@@ -362,7 +473,11 @@ void() ExitIntermission =
 			WriteByte (MSG_ALL, 3);
 
 			WriteByte (MSG_ALL, SVC_FINALE);
-			WriteString (MSG_ALL, "The charred viscera of diabolic horrors\nbubble viscously as you seize the Rune\nof Hell Magic. Its heat scorches your\nhand, and its terrible secrets blight\nyour mind. Gathering the shreds of your\ncourage, you shake the devil's shackles\nfrom your soul, and become ever more\nhard and determined to destroy the\nhideous creatures whose mere existence\nthreatens the souls and psyches of all\nthe population of Earth.");
+      #ifdef ENGINE_KEX
+        WriteString (MSG_ALL, "$qc_finale_e3");
+      #else
+        WriteString (MSG_ALL, "The charred viscera of diabolic horrors\nbubble viscously as you seize the Rune\nof Hell Magic. Its heat scorches your\nhand, and its terrible secrets blight\nyour mind. Gathering the shreds of your\ncourage, you shake the devil's shackles\nfrom your soul, and become ever more\nhard and determined to destroy the\nhideous creatures whose mere existence\nthreatens the souls and psyches of all\nthe population of Earth.");
+      #endif
 			return;
 		}
 		else if (world.model == "maps/e4m7.bsp")
@@ -372,17 +487,22 @@ void() ExitIntermission =
 			WriteByte (MSG_ALL, 3);
 
 			WriteByte (MSG_ALL, SVC_FINALE);
-			WriteString (MSG_ALL, "Despite the awful might of the Elder\nWorld, you have achieved the Rune of\nElder Magic, capstone of all types of\narcane wisdom. Beyond good and evil,\nbeyond life and death, the Rune\npulsates, heavy with import. Patient and\npotent, the Elder Being Shub-Niggurath\nweaves her dire plans to clear off all\nlife from the Earth, and bring her own\nfoul offspring to our world! For all the\ndwellers in these nightmare dimensions\nare her descendants! Once all Runes of\nmagic power are united, the energy\nbehind them will blast open the Gateway\nto Shub-Niggurath, and you can travel\nthere to foil the Hell-Mother's plots\nin person.");
+      #ifdef ENGINE_KEX
+        WriteString (MSG_ALL, "$qc_finale_e4");
+      #else
+        WriteString (MSG_ALL, "Despite the awful might of the Elder\nWorld, you have achieved the Rune of\nElder Magic, capstone of all types of\narcane wisdom. Beyond good and evil,\nbeyond life and death, the Rune\npulsates, heavy with import. Patient and\npotent, the Elder Being Shub-Niggurath\nweaves her dire plans to clear off all\nlife from the Earth, and bring her own\nfoul offspring to our world! For all the\ndwellers in these nightmare dimensions\nare her descendants! Once all Runes of\nmagic power are united, the energy\nbehind them will blast open the Gateway\nto Shub-Niggurath, and you can travel\nthere to foil the Hell-Mother's plots\nin person.");
+      #endif
 			return;
 		}
 
-//HIPNOTIC
+    #ifdef GAME_HIPNOTIC
+      //HIPNOTIC
       if (world.model == "maps/hip1m4.bsp")
       {
-			WriteByte (MSG_ALL, SVC_CDTRACK);
-         WriteByte (MSG_ALL, 6);
-			WriteByte (MSG_ALL, 3);
-			WriteByte (MSG_ALL, SVC_FINALE);
+        WriteByte (MSG_ALL, SVC_CDTRACK);
+        WriteByte (MSG_ALL, 6);
+        WriteByte (MSG_ALL, 3);
+        WriteByte (MSG_ALL, SVC_FINALE);
 /*
          **************************************
          Deep within the bowels of the
@@ -403,12 +523,16 @@ void() ExitIntermission =
          knowing Hell would be a better fate
          than experiencing the reign of Quake.
 */
-         WriteString (MSG_ALL, "Deep within the bowels of the\nResearch Facility, you discover the\npassage that the followers of Quake\nhave used to enter our world.\nThe bastards used some type of\ngigantic teleporter to overload\none of our own slipgates!  As long as\nthis portal exists, Earth will never\nbe safe from Quake's cruel minions." );
-         //WriteString (MSG_ALL, "If you can find the source of the\nportal's power, you can shut it\ndown--possibly forever!  With only a\nmoment's consideration for your own\nsafety, you re-enter the dark domain,\nknowing Hell would be a better fate\nthan experiencing the reign of Quake." );
-         return;
-		}
-		else if (world.model == "maps/hip2m5.bsp")
-		{
+        #ifdef ENGINE_KEX
+          WriteString (MSG_ALL, "$qc_finale_hip1");
+        #else
+          WriteString (MSG_ALL, "Deep within the bowels of the\nResearch Facility, you discover the\npassage that the followers of Quake\nhave used to enter our world.\nThe bastards used some type of\ngigantic teleporter to overload\none of our own slipgates!  As long as\nthis portal exists, Earth will never\nbe safe from Quake's cruel minions." );
+          //WriteString (MSG_ALL, "If you can find the source of the\nportal's power, you can shut it\ndown--possibly forever!  With only a\nmoment's consideration for your own\nsafety, you re-enter the dark domain,\nknowing Hell would be a better fate\nthan experiencing the reign of Quake." );
+        #endif        
+        return;
+      }
+      else if (world.model == "maps/hip2m5.bsp")
+      {
 /*
          **************************************
          After destroying the power generator,
@@ -433,15 +557,19 @@ void() ExitIntermission =
          reality, but in a time and place
          unknown to you.
 */
-         WriteByte (MSG_ALL, SVC_CDTRACK);
-         WriteByte (MSG_ALL, 6);
-			WriteByte (MSG_ALL, 3);
+        WriteByte (MSG_ALL, SVC_CDTRACK);
+        WriteByte (MSG_ALL, 6);
+        WriteByte (MSG_ALL, 3);
 
-			WriteByte (MSG_ALL, SVC_FINALE);
-         WriteString (MSG_ALL, "After destroying the power generator,\nyou pass beyond the gate of Mortum's\nKeep.  A wave of nausea suddenly flows\nover you and you find yourself cast\nout into a liquid void.  You float\nlifelessly, yet aware, in a lavender\nsea of energy." );
-         //WriteString (MSG_ALL, "After what seems like an eternity,\nyou feel the presence of a diabolical\nintelligence.  You are held helpless\nfor a moment as your mind is open to\nthat of Armagon--Quake's General and\nmaster of this realm.  Recognizing\nyou as the one who foiled his\nattempts to conquer Earth, a hellish\nhowl fills your mind and blots out\nall consciousness.  When you awake,\nyou find yourself on the shores of\nreality, but in a time and place\nunknown to you." );
-         return;
-		}
+        WriteByte (MSG_ALL, SVC_FINALE);
+        #ifdef ENGINE_KEX
+          WriteString (MSG_ALL, "$qc_finale_hip2");
+        #else
+          WriteString (MSG_ALL, "After destroying the power generator,\nyou pass beyond the gate of Mortum's\nKeep.  A wave of nausea suddenly flows\nover you and you find yourself cast\nout into a liquid void.  You float\nlifelessly, yet aware, in a lavender\nsea of energy." );
+          //WriteString (MSG_ALL, "After what seems like an eternity,\nyou feel the presence of a diabolical\nintelligence.  You are held helpless\nfor a moment as your mind is open to\nthat of Armagon--Quake's General and\nmaster of this realm.  Recognizing\nyou as the one who foiled his\nattempts to conquer Earth, a hellish\nhowl fills your mind and blots out\nall consciousness.  When you awake,\nyou find yourself on the shores of\nreality, but in a time and place\nunknown to you." );
+        #endif        
+        return;
+      }
       else if (world.model == "maps/hipend.bsp")
       {
 /*
@@ -470,27 +598,45 @@ void() ExitIntermission =
 
          Only time will tell...
 */
-         WriteByte (MSG_ALL, SVC_CDTRACK);
-         WriteByte (MSG_ALL, 2);
-			WriteByte (MSG_ALL, 3);
+        WriteByte (MSG_ALL, SVC_CDTRACK);
+        WriteByte (MSG_ALL, 2);
+        WriteByte (MSG_ALL, 3);
 
-			WriteByte (MSG_ALL, SVC_FINALE);
-         WriteString (MSG_ALL, "After the last echoes of Armagon's\ndeath yell fade away, you breathe a\nheavy sigh of relief.  With the loss\nof his magic, Armagon's fortress\nbegins to collapse.  The rift he\ncreated to send his grisly troops\nthrough time slowly closes and seals\nitself forever.  In the chaos that\nensues, a wall collapses, revealing\none remaining time portal.  With your\nchances to escape rapidly growing\nslim, you race for the portal,\nmindless of your destination.  In a\nflash of light, you find yourself\nback at Command HQ, safe and sound." );
-         //WriteString (MSG_ALL, "Congratulations!  You are victorious!\nThe minions of Quake have once again\nfallen before your mighty hand.\nIs this the last you will see of\nQuake's hellions?\n\nOnly time will tell..." );
-         //intermission_exittime = time + 10000000;  // never allow exit
-      if (campaign) //Ry: Armagon clear achievements
-      {
-        WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-        WriteString(MSG_ALL, "ACH_COMPLETE_HIPEND");
-        if ((skill == 3))
-        {
-          WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-          WriteString(MSG_ALL, "ACH_COMPLETE_HIPEND_NIGHTMARE");
-        }
+        WriteByte (MSG_ALL, SVC_FINALE);
+        #ifdef ENGINE_KEX
+          WriteString (MSG_ALL, "$qc_finale_hipend");
+          if (campaign) //Ry: Armagon clear achievements
+          {
+            WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+            WriteString(MSG_ALL, "ACH_COMPLETE_HIPEND");
+            if ((skill == 3))
+            {
+              WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+              WriteString(MSG_ALL, "ACH_COMPLETE_HIPEND_NIGHTMARE");
+            }
+          }
+        #else
+          WriteString (MSG_ALL, "After the last echoes of Armagon's\ndeath yell fade away, you breathe a\nheavy sigh of relief.  With the loss\nof his magic, Armagon's fortress\nbegins to collapse.  The rift he\ncreated to send his grisly troops\nthrough time slowly closes and seals\nitself forever.  In the chaos that\nensues, a wall collapses, revealing\none remaining time portal.  With your\nchances to escape rapidly growing\nslim, you race for the portal,\nmindless of your destination.  In a\nflash of light, you find yourself\nback at Command HQ, safe and sound." );
+          //WriteString (MSG_ALL, "Congratulations!  You are victorious!\nThe minions of Quake have once again\nfallen before your mighty hand.\nIs this the last you will see of\nQuake's hellions?\n\nOnly time will tell..." );
+        #endif
+        return;
       }
-			return;
-		}
-      GotoNextMap();
+    #endif
+    
+    #ifdef GAME_ROGUE
+      if (world.model == "maps/r1m7.bsp")
+      {
+        WriteByte (MSG_ALL, SVC_FINALE);
+        #ifdef ENGINE_KEX
+          WriteString (MSG_ALL, "$qc_finale_r1");
+        #else
+          WriteString (MSG_ALL, "Victory! The Overlord's mangled\nremains are the evidence.  His evil\nWrath army?  Cast out to wander\naimlessly throughout time.\n\nAs the Slipgate fog surrounds you,\nthoughts rage into your consciousness:\nHas Quake's oppressive reign ended?\nIs it Salvation, or Damnation, which\nwaits beyond the Vortex?\n\nAnother thought, not quite your own,\nrazors through the haze.  \"Forgiveness\ncan yet be granted; Our Master remains\nto absolve your sins against his Chosen.\nFall down upon your knees-pray for\nQuake's mercy.\"");
+        #endif
+        return;
+      }
+    #endif
+    
+    GotoNextMap();
 	}
 
 	if (intermission_running == 3)
@@ -501,41 +647,63 @@ void() ExitIntermission =
 			return;
 		}
 
+    #ifdef GAME_ID1
+    if ( (serverflags&15) == 15 )
+    #else
     //Ry: Just assume the player has all 4 Runes (and don't display the message during *every* Armagon episode ending after clearing ID1)
-		if (world.model == "maps/e4m7.bsp") //( (serverflags&15) == 15)
+    if (world.model == "maps/e4m7.bsp")
+    #endif
 		{
 			WriteByte (MSG_ALL, SVC_FINALE);
-			WriteString (MSG_ALL, "Now, you have all four Runes. You sense\ntremendous invisible forces moving to\nunseal ancient barriers. Shub-Niggurath\nhad hoped to use the Runes Herself to\nclear off the Earth, but now instead,\nyou will use them to enter her home and\nconfront her as an avatar of avenging\nEarth-life. If you defeat her, you will\nbe remembered forever as the savior of\nthe planet. If she conquers, it will be\nas if you had never been born.");
+      #ifdef ENGINE_KEX
+        WriteString (MSG_ALL, "$qc_finale_all_runes");
+      #else
+        WriteString (MSG_ALL, "Now, you have all four Runes. You sense\ntremendous invisible forces moving to\nunseal ancient barriers. Shub-Niggurath\nhad hoped to use the Runes Herself to\nclear off the Earth, but now instead,\nyou will use them to enter her home and\nconfront her as an avatar of avenging\nEarth-life. If you defeat her, you will\nbe remembered forever as the savior of\nthe planet. If she conquers, it will be\nas if you had never been born.");
+      #endif
 			return;
 		}
-
-//HIPNOTIC
-    if (world.model == "maps/hip1m4.bsp")
-    {
-      WriteByte (MSG_ALL, SVC_FINALE);
-      WriteString (MSG_ALL, "If you can find the source of the\nportal's power, you can shut it\ndown--possibly forever!  With only a\nmoment's consideration for your own\nsafety, you re-enter the dark domain,\nknowing Hell would be a better fate\nthan experiencing the reign of Quake." );
-      return;
-		}
-		else if (world.model == "maps/hip2m5.bsp")
-		{
-      WriteByte (MSG_ALL, SVC_FINALE);
-      WriteString (MSG_ALL, "After what seems like an eternity,\nyou feel the presence of a diabolical\nintelligence.  You are held helpless\nfor a moment as your mind is open to\nthat of Armagon--Quake's General and\nmaster of this realm.  Recognizing\nyou as the one who foiled his\nattempt to conquer Earth, a hellish\nhowl fills your mind and blots out\nall consciousness.  When you awake,\nyou find yourself on the shores of\nreality, but in a time and place\nunknown to you." );
-      return;
-		}
-    else if (world.model == "maps/hipend.bsp")
-    {
-      WriteByte (MSG_ALL, SVC_FINALE);
-      WriteString (MSG_ALL, "Congratulations!  You are victorious!\nThe minions of Quake have once again\nfallen before your mighty hand.\nIs this the last you will see of\nQuake's hellions?\n\nOnly time will tell..." );
-      intermission_exittime = time + 10000000; //Ry: Block exiting until the outro text finishes
-      local entity timer = spawn();
-      timer.nextthink = (time + 1);
-      timer.think = finale_check;
-			return;
-		}
+    #ifdef GAME_HIPNOTIC
+      //HIPNOTIC
+      if (world.model == "maps/hip1m4.bsp")
+      {
+        WriteByte (MSG_ALL, SVC_FINALE);
+        #ifdef ENGINE_KEX
+          WriteString (MSG_ALL, "$qc_finale_hip1m4");
+        #else
+          WriteString (MSG_ALL, "If you can find the source of the\nportal's power, you can shut it\ndown--possibly forever!  With only a\nmoment's consideration for your own\nsafety, you re-enter the dark domain,\nknowing Hell would be a better fate\nthan experiencing the reign of Quake." );
+        #endif
+        return;
+      }
+      else if (world.model == "maps/hip2m5.bsp")
+      {
+        WriteByte (MSG_ALL, SVC_FINALE);
+        #ifdef ENGINE_KEX
+          WriteString (MSG_ALL, "$qc_finale_hip2m5");
+        #else
+          WriteString (MSG_ALL, "After what seems like an eternity,\nyou feel the presence of a diabolical\nintelligence.  You are held helpless\nfor a moment as your mind is open to\nthat of Armagon--Quake's General and\nmaster of this realm.  Recognizing\nyou as the one who foiled his\nattempt to conquer Earth, a hellish\nhowl fills your mind and blots out\nall consciousness.  When you awake,\nyou find yourself on the shores of\nreality, but in a time and place\nunknown to you." );
+        #endif
+        return;
+      }
+      else if (world.model == "maps/hipend.bsp")
+      {
+        WriteByte (MSG_ALL, SVC_FINALE);
+        #ifdef ENGINE_KEX
+          WriteString (MSG_ALL, "$qc_finale_hipend2");
+          intermission_exittime = time + 10000000; //Ry: Block exiting until the outro text finishes
+          local entity timer = spawn();
+          timer.nextthink = (time + 1);
+          timer.think = finale_check;
+        #else
+          WriteString (MSG_ALL, "Congratulations!  You are victorious!\nThe minions of Quake have once again\nfallen before your mighty hand.\nIs this the last you will see of\nQuake's hellions?\n\nOnly time will tell..." );
+          intermission_exittime = time + 25; //Ry: Roughly 5 seconds after the text finishes, can click to go back to menu [09-16-2022]
+        #endif
+        return;
+      }
+    #endif
   }
   
   //Ry: Now player can click to advance past the ending text scroll [06-28-2022]
-  if ( (intermission_running > 3) && ((world.model == "maps/end.bsp") || (world.model == "maps/hipend.bsp")) )
+  if ( (intermission_running > 3) && ((world.model == "maps/end.bsp") || (world.model == "maps/hipend.bsp") || (world.model == "maps/r2m8.bsp")) )
   {
     finale_transition();
     return;
@@ -553,10 +721,15 @@ When the player presses attack or jump, change to the next level
 */
 void() IntermissionThink =
 {
+  #ifdef GAME_ROGUE
+  if (!cutscene_running)
+  #endif
+    PlayerEvaluateSpectator(); //Ry: Can switch between intermission cameras with Jump [08-11-2022]
+
 	if (time < intermission_exittime)
 		return;
 
-	if (!self.button0 && !self.button1 && !self.button2)
+	if (!self.button0 && !self.button1) //Ry: No longer check Jump [08-11-2022]
 		return;
 
 	ExitIntermission ();
@@ -575,11 +748,12 @@ void() execute_changelevel =
 		intermission_exittime = time + 2;
 
 	WriteByte (MSG_ALL, SVC_CDTRACK);
-   WriteByte (MSG_ALL, 9);
+  WriteByte (MSG_ALL, 9);
 	WriteByte (MSG_ALL, 3);
 
 	pos = FindIntermission ();
-  
+
+  #ifdef ENGINE_KEX
   if ( (!deathmatch) && (skill == 3) ) //Ry: Achievements for specific level challenges in Remaster ID1, now requiring all players to participate
   {
     if ( (ach_weaponfired == FALSE) && (world.model == "maps/e1m1.bsp") )
@@ -593,10 +767,12 @@ void() execute_changelevel =
       WriteString(MSG_ALL, "ACH_PAINLESS_MAZE");
     }
   }
+  #endif
 
 	other = find (world, classname, "player");
 	while (other != world)
 	{
+    other.goalentity = pos; //Ry: Record the intermission spot [08-11-2022]
 		other.view_ofs = '0 0 0';
 		other.angles = other.v_angle = pos.mangle;
 		other.fixangle = TRUE;		// turn this way immediately
@@ -605,6 +781,7 @@ void() execute_changelevel =
 		other.solid = SOLID_NOT;
 		other.movetype = MOVETYPE_NONE;
 		other.modelindex = 0;
+    other.flags |= FL_NOTARGET; //Ry: Set NoTarget as to not tick off monsters [08-11-2022]
 		setorigin (other, pos.origin);
 		other = find (other, classname, "player");
 	}
@@ -614,86 +791,116 @@ void() execute_changelevel =
   if (!deathmatch) //Ry: Don't trigger these in Deathmatch
   {
 
-    if (campaign && (world.model == "maps/hip1m4.bsp")) //Ry: Remaster episode clear achievements
-    {
-      WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-      WriteString(MSG_ALL, "ACH_COMPLETE_HIP1M4");
-    }
-    else if (campaign && (world.model == "maps/hip2m5.bsp"))
-    {
-      WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-      WriteString(MSG_ALL, "ACH_COMPLETE_HIP2M5");
-    }
-    else if (world.model == "maps/e1m7.bsp") //Ry: Play ID1 maps in order since there's Hipnotic Start map
-    {
-      nextmap = "e2m1";
-      if (campaign)
+    #ifdef ENGINE_KEX
+      if (world.model == "maps/e1m7.bsp") //Ry: Play ID1 maps in order since there's Hipnotic Start map
       {
-        WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-        WriteString(MSG_ALL, "ACH_COMPLETE_E1M7");
+        #ifndef GAME_ID1
+          nextmap = "e2m1";
+        #endif
+        if (campaign)
+        {
+          WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+          WriteString(MSG_ALL, "ACH_COMPLETE_E1M7");
+        }
       }
-    }
-    else if (world.model == "maps/e2m6.bsp")
-    {
-      nextmap = "e3m1";
-      if (campaign)
+      else if (world.model == "maps/e2m6.bsp")
       {
-        WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-        WriteString(MSG_ALL, "ACH_COMPLETE_E2M6");
+        #ifndef GAME_ID1
+          nextmap = "e3m1";
+        #endif
+        if (campaign)
+        {
+          WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+          WriteString(MSG_ALL, "ACH_COMPLETE_E2M6");
+        }
       }
-    }
-    else if (world.model == "maps/e3m6.bsp")
-    {
-      nextmap = "e4m1";
+      else if (world.model == "maps/e3m6.bsp")
       {
-				WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-				WriteString(MSG_ALL, "ACH_COMPLETE_E3M6");
+        #ifndef GAME_ID1
+          nextmap = "e4m1";
+        #endif
+        if (campaign)
+        {
+          WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+          WriteString(MSG_ALL, "ACH_COMPLETE_E3M6");
+        }
       }
-    }
-    else if (world.model == "maps/e4m7.bsp")
-    {
-      nextmap = "end";
+      else if (world.model == "maps/e4m7.bsp")
       {
-        WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-        WriteString(MSG_ALL, "ACH_COMPLETE_E4M7");
+        #ifndef GAME_ID1
+          nextmap = "end";
+        #endif
+        if (campaign)
+        {
+          WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+          WriteString(MSG_ALL, "ACH_COMPLETE_E4M7");
+        }
       }
-    }
+      #ifdef GAME_HIPNOTIC
+        else if (campaign && (world.model == "maps/hip1m4.bsp")) //Ry: Remaster episode clear achievements
+        {
+          WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+          WriteString(MSG_ALL, "ACH_COMPLETE_HIP1M4");
+        }
+        else if (campaign && (world.model == "maps/hip2m5.bsp"))
+        {
+          WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+          WriteString(MSG_ALL, "ACH_COMPLETE_HIP2M5");
+        }
+      #endif
+      #ifdef GAME_ROGUE
+        else if (campaign && (world.model == "maps/r1m7.bsp"))
+        {
+          WriteByte (MSG_ALL, SVC_ACHIEVEMENT);
+          WriteString(MSG_ALL, "ACH_COMPLETE_R1M7");
+        }
+      #endif
 
-    if ((world.model == "maps/hip1m2.bsp") && (nextmap == "hip1m5")) //Ry: Remaster secret level achievements
-    {
-      WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-      WriteString(MSG_ALL, "ACH_FIND_HIP1M5");
-    }
-    else if ((world.model == "maps/hip2m1.bsp") && (nextmap == "hip2m6"))
-    {
-      WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-      WriteString(MSG_ALL, "ACH_FIND_HIP2M6");
-    }
-    else if ((world.model == "maps/hip3m3.bsp") && (nextmap == "hipdm1"))
-    {
-      WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-      WriteString(MSG_ALL, "ACH_FIND_HIPDM1");
-    }
-    else if ((world.model == "maps/e1m4.bsp") && (nextmap == "e1m8")) //Ry: ID1
-    {
-      WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-      WriteString(MSG_ALL, "ACH_FIND_E1M8");
-    }
-    else if ((world.model == "maps/e2m3.bsp") && (nextmap == "e2m7"))
-    {
-      WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-      WriteString(MSG_ALL, "ACH_FIND_E2M7");
-    }
-    else if ((world.model == "maps/e3m4.bsp") && (nextmap == "e3m7"))
-    {
-      WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-      WriteString(MSG_ALL, "ACH_FIND_E3M7");
-    }
-    else if ((world.model == "maps/e4m5.bsp") && (nextmap == "e4m8"))
-    {
-      WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-      WriteString(MSG_ALL, "ACH_FIND_E4M8");
-    }
+      if ((world.model == "maps/hip1m2.bsp") && (nextmap == "hip1m5")) //Ry: Remaster secret level achievements
+      {
+        WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+        WriteString(MSG_ALL, "ACH_FIND_HIP1M5");
+      }
+      else if ((world.model == "maps/hip2m1.bsp") && (nextmap == "hip2m6"))
+      {
+        WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+        WriteString(MSG_ALL, "ACH_FIND_HIP2M6");
+      }
+      else if ((world.model == "maps/hip3m3.bsp") && (nextmap == "hipdm1"))
+      {
+        WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+        WriteString(MSG_ALL, "ACH_FIND_HIPDM1");
+      }
+      else if ((world.model == "maps/e1m4.bsp") && (nextmap == "e1m8")) //Ry: ID1
+      {
+        WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+        WriteString(MSG_ALL, "ACH_FIND_E1M8");
+      }
+      else if ((world.model == "maps/e2m3.bsp") && (nextmap == "e2m7"))
+      {
+        WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+        WriteString(MSG_ALL, "ACH_FIND_E2M7");
+      }
+      else if ((world.model == "maps/e3m4.bsp") && (nextmap == "e3m7"))
+      {
+        WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+        WriteString(MSG_ALL, "ACH_FIND_E3M7");
+      }
+      else if ((world.model == "maps/e4m5.bsp") && (nextmap == "e4m8"))
+      {
+        WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+        WriteString(MSG_ALL, "ACH_FIND_E4M8");
+      }
+    #elifndef GAME_ID1
+      if (world.model == "maps/e1m7.bsp")
+        nextmap = "e2m1";
+      else if (world.model == "maps/e2m6.bsp")
+        nextmap = "e3m1";
+      else if (world.model == "maps/e3m6.bsp")
+        nextmap = "e4m1";
+      else if (world.model == "maps/e4m7.bsp")
+        nextmap = "end";
+    #endif
     
     // Yoder merge Horde sept24 2021
     if (horde_ent)
@@ -729,14 +936,17 @@ void() changelevel_touch =
 
 	if (other.classname != "player")
 		return;
+  
+	if (coop && (other.flags & FL_ISBOT)) //Ry: Don't allow bots to exit in Co-op/Horde [08-12-2022]
+		return;
 
-   if ((cvar("noexit") == 1) || ((cvar("noexit") == 2) && (mapname != "start")))
+  if ((cvar("noexit") == 1) || ((cvar("noexit") == 2) && (mapname != "start")))
 	{
 		T_Damage (other, self, self, 50000);
 		return;
 	}
 
-   if (coop || deathmatch)
+  if (coop || deathmatch)
 	{
 		bprint (other.netname);
 		bprint (" exited the level\n");
@@ -765,13 +975,16 @@ When the player touches this, he gets sent to the map listed in the "map" variab
 */
 void() trigger_changelevel =
 {
+	if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
+		return;
+
 	if (!self.map)
 		objerror ("changelevel trigger doesn't have map"); //Ry: Spelling correction
 
 	InitTrigger ();
 	self.touch = changelevel_touch;
   
-  if (deathmatch && (cvar("temp5") & RY_FL_EXITWARP) ) //Ry: Set up exit warp in DM if desired (Exit warps to map start)
+  if (deathmatch && (cvar(SETTINGS_CVAR) & RY_FL_EXITWARP) ) //Ry: Set up exit warp in DM if desired (Exit warps to map start)
   {
     self.think = changelevel_warpsetup_think;
     self.nextthink = time + 0.3;
@@ -799,14 +1012,22 @@ void() respawn =
 		CopyToBodyQue (self);
 		// get the spawn parms as they were at level start
 		//setspawnparms (self);
-    
+
     //Ry: Keep weapons on respawn, but reset health/armor and retain only a small amount of the ammo you had
     SetNewParms ();
     parm1 = self.items - (self.items & (IT_KEY1 | IT_KEY2 | IT_INVISIBILITY | IT_INVULNERABILITY | IT_SUIT | IT_QUAD ) );
     if (self.items & IT_SUPER_SHOTGUN)
       parm8 = IT_SUPER_SHOTGUN;
     SetSpawnAmmo();
-    
+
+    if (horde_ent) //Ry: Ensure the player has the key flags set properly in Horde mode [08-01-2022]
+    {
+      if (keys_silver > 0)
+        parm1 |= IT_KEY1;
+      if (keys_gold > 0)
+        parm1 |= IT_KEY2;
+    }
+
 		// respawn
 		PutClientInServer ();
 	}
@@ -818,6 +1039,10 @@ void() respawn =
 		SetNewParms ();
 		// respawn
 		PutClientInServer ();
+    #ifdef GAME_ROGUE
+      // set the skin correctly.
+      TeamSetSkin();
+    #endif
 	}
 	else
 	{	// restart the entire server
@@ -833,8 +1058,13 @@ ClientKill
 Player entered the suicide command
 ============
 */
-void() ClientKill =
+
+//Ry: Can now use this to force a respawn on the player without a penalty [09-19-2022]
+void(float Penalize) ClientKill =
 {
+  #ifdef GAME_ROGUE
+    local entity	vSphere;
+  #endif
   if (self.view_ofs != '0 0 0') //Ry: Don't allow suiciding while in intermission camera
   {
     if (horde) // horde mode behavior
@@ -842,13 +1072,42 @@ void() ClientKill =
       PlayerDie();
       self.health = 0;
     }
-    else if ( coop || debugspawns || (time >= (self.lastspawntime + 10)) ) //Ry: Since suiciding now always drops a backpack in DM, make sure it can't be spammed (unless debugging)
+    else if ( !deathmatch || debugspawns || !Penalize || (time >= (self.lastspawntime + 10)) ) //Ry: Since suiciding now always drops a backpack in DM, make sure it can't be spammed (unless debugging)
     {
+      #ifdef GAME_ROGUE
+        // ZOID--
+        TeamDropFlagOfPlayer(self);
+        DropRune(); //Ry: Drop runes on suicide as well [09-03-2022]
+        // --ZOID
+
+        if ( tag_token_owner == self)
+        {
+          self.health = 0;
+          self.solid = SOLID_NOT;
+          tag_token_drop();
+        }
+
+        if ( self.items2 & IT2_V_SPHERE)
+        {
+          vSphere = find ( world, classname, "Vengeance");
+          while (vSphere)
+          {
+            if ( vSphere.owner == self )
+            {
+              remove (vSphere);
+            }
+            vSphere = find(vSphere, classname, "Vengeance");
+          }
+        }
+      #endif
       ach_damagetaken = TRUE; //Ry: Count this as damage
-      bprint (self.netname);
-      bprint (" suicides\n");
+      if (Penalize)
+      {
+        bprint (self.netname);
+        bprint (" suicides\n");
+        self.frags = self.frags - 2;	// extra penalty
+      }
       set_suicide_frame ();
-      self.frags = self.frags - 2;	// extra penalty
       
       //Ry: Drop powerups and backpack
       DropPowerups();
@@ -877,6 +1136,7 @@ entity(float forceSpawn) SelectSpawnPoint = //Ry: Retrofitted from Remaster's sp
 	local float totalspots;
 	local entity spots;
   local float earliesttime = time; //Ry: For Co-op spawns
+  local string spotclass;
 
 	numspots = 0;
 	totalspots = 0;
@@ -971,8 +1231,24 @@ entity(float forceSpawn) SelectSpawnPoint = //Ry: Retrofitted from Remaster's sp
 	}
 	else if (deathmatch)
 	{
+    spotclass = "info_player_deathmatch";
+    #ifdef GAME_ROGUE
+      if (teamplay >= TEAM_CTF && !self.ctf_killed)
+      {
+        if (self.steam == TEAM1)
+          spotclass = "info_player_team1";
+        else if (self.steam == TEAM2)
+          spotclass = "info_player_team2";
+        spot = find(world, classname, spotclass);
+        if (spot == world)
+        {
+          self.ctf_killed = 1;
+          spotclass = "info_player_deathmatch";
+        }
+      }
+    #endif
     spots = world;
-    spot = find(world, classname, "info_player_deathmatch");
+    spot = find(world, classname, spotclass);
     while (spot)
     {
       totalspots = totalspots + 1;
@@ -986,12 +1262,12 @@ entity(float forceSpawn) SelectSpawnPoint = //Ry: Retrofitted from Remaster's sp
           numspots = numspots + 1;
         }
       }
-      spot = find(spot, classname, "info_player_deathmatch");
+      spot = find(spot, classname, spotclass);
     }
     totalspots = totalspots - 1;
     if ((numspots == 0))
     {
-      spot = find(world, classname, "info_player_deathmatch");
+      spot = find(world, classname, spotclass);
       while (spot)
       {
         if (time >= spot.lastspawntime + 1 )
@@ -1003,7 +1279,7 @@ entity(float forceSpawn) SelectSpawnPoint = //Ry: Retrofitted from Remaster's sp
             numspots = numspots + 1;
           }
         }
-        spot = find(spot, classname, "info_player_deathmatch");
+        spot = find(spot, classname, spotclass);
       }
     }
     if (!numspots)
@@ -1013,11 +1289,11 @@ entity(float forceSpawn) SelectSpawnPoint = //Ry: Retrofitted from Remaster's sp
         return (world);
       }
       totalspots = rint((random() * totalspots));
-      spot = find(world, classname, "info_player_deathmatch");
+      spot = find(world, classname, spotclass);
       while ((totalspots > 0))
       {
         totalspots = totalspots - 1;
-        spot = find(spot, classname, "info_player_deathmatch");
+        spot = find(spot, classname, spotclass);
       }
       return (spot);
     }
@@ -1056,19 +1332,32 @@ called each time a player is spawned
 */
 
 void() DecodeLevelParms;
+#ifdef GAME_ROGUE
+  void() player_touch;
+#endif
 
 void() PutClientInServer =
 {
 	local	entity spot;
   self.classname = "player";
 
-	self.health = 100;
+  if (copper_nightmare && (skill >= 3) && !deathmatch) //Ry: Copper Nightmare stuff [07-14-2022]
+  {
+    self.max_health = 50;
+    self.health = 50;
+  }
+  else
+  {
+    self.max_health = 100;
+    self.health = 100;
+  }
+  self.gib_health = -40; //Ry: Health to gib set here now [08-08-2022]
+  self.important = TRUE; //Ry: The property for reverse-telefragging monsters is on this now [08-08-2022]
 	self.takedamage = DAMAGE_AIM;
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_WALK;
 	self.show_hostile = 0;
-	self.max_health = 100;
-	self.flags = FL_CLIENT;
+  self.flags = FL_CLIENT;
 	self.air_finished = time + 12;
 	self.dmg = 2;   		// initial water damage
 	self.super_damage_finished = 0;
@@ -1077,15 +1366,37 @@ void() PutClientInServer =
 	self.invincible_finished = 0;
 	self.effects = 0;
 	self.invincible_time = 0;
-	//JIM
-	self.wetsuit_finished = 0;
-  //MED
-  self.empathy_finished = 0;
-  //MED
-  self.items2 = 0;
+  #ifdef GAME_HIPNOTIC
+    //JIM
+    self.wetsuit_finished = 0;
+    //MED
+    self.empathy_finished = 0;
+    //MED
+    self.items2 = 0;
+    self.gremstate = GREM_DEFAULT; //Ry: Reset gorging eligibility
+    self.proxyimmunetime = time + 1; //Ry: Have Proxy Bombs ignore spawning players for a bit
+  #endif
+  #ifdef GAME_ROGUE
+    self.lavagunfired = FALSE;
+    self.shield_finished = 0;
+    self.antigrav_finished = 0;
+    self.items2 = self.items2 - (self.items2 & (IT2_ANTIGRAV | IT2_SHIELD | IT2_SUPERHEALTH));
+      
+    //ZOID--
+    self.ctf_lastreturnedflag = -10;
+    self.ctf_lastfraggedcarrier = -10;
+    self.ctf_flagsince = -10;
+    self.ctf_lasthurtcarrier = -10;
+    //--ZOID
+    
+    //Grapple stuff
+    self.hookstatus = HOOK_READY;
+  #endif
   self.gravity = 1.0;
-  self.gremstate = GREM_DEFAULT; //Ry: Reset gorging eligibility
-  self.proxyimmunetime = time + 1; //Ry: Have Proxy Bombs ignore spawning players for a bit
+  
+  #ifndef ENGINE_WINQUAKE
+    self.alpha = 0; //Ry: Alpha is set when changing intermission cameras [08-12-2022]
+  #endif
 
   self.lastspawntime = time; //Ry: Record when the player spawns
 
@@ -1123,6 +1434,15 @@ void() PutClientInServer =
 
 	DecodeLevelParms ();
   
+  #ifdef GAME_ROGUE
+    //Ry: Hold off on putting the player in until they select a team
+    if (self.teamselecttime)
+    {
+      PlayerEnterSpectatorMode();
+      return;
+    }
+  #endif
+  
   if (self.firstspawn) //Ry: Give the player the weapons every other player started the map with in Co-op
   {
     if (coop)
@@ -1131,17 +1451,27 @@ void() PutClientInServer =
       if ((self.weapon == IT_SHOTGUN) && (mapstartweapons & IT_SUPER_SHOTGUN) && (!(self.items & IT_SUPER_SHOTGUN)))
         self.weapon = IT_SUPER_SHOTGUN;
       self.items = self.items | mapstartweapons;
-      mapstartweapons = self.items - (self.items & (IT_KEY1 | IT_KEY2 | IT_INVISIBILITY | IT_INVULNERABILITY | IT_SUIT | IT_QUAD | IT_SHELLS | IT_NAILS | IT_ROCKETS | IT_CELLS | IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3 ) );
+      mapstartweapons = self.items - (self.items & (IT_KEY1 | IT_KEY2 | IT_INVISIBILITY | IT_INVULNERABILITY | IT_SUIT | IT_QUAD | IT_SHELLS | IT_NAILS | IT_ROCKETS | IT_CELLS) );
+      #ifndef GAME_ROGUE
+        mapstartweapons = self.items - (self.items & (IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3) );
+      #endif
       for (e = find(world, classname, "player") ; e ; e = find(e, classname, "player") ) //Ry: Ensure that player's items are shared with other players
         e.items = e.items | mapstartweapons;
-      if ( !hipnoticmap || (hipnoticmap == 2) )
-        hip_weaponconverttime = time + 1;
+      #ifdef GAME_HIPNOTIC
+        if ( !missionpackmap || (missionpackmap == 2) )
+          replacetime_weapons = time + 1;
+      #endif
     }
     else if (!deathmatch) //Ry: Just record the weapons the player has in singleplayer, for if ID1 maps are played
     {
-      mapstartweapons = self.items - (self.items & (IT_KEY1 | IT_KEY2 | IT_INVISIBILITY | IT_INVULNERABILITY | IT_SUIT | IT_QUAD | IT_SHELLS | IT_NAILS | IT_ROCKETS | IT_CELLS | IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3 ) );
-      if ( !hipnoticmap )
-        hip_weaponconverttime = time + 0.3;
+      mapstartweapons = self.items - (self.items & (IT_KEY1 | IT_KEY2 | IT_INVISIBILITY | IT_INVULNERABILITY | IT_SUIT | IT_QUAD | IT_SHELLS | IT_NAILS | IT_ROCKETS | IT_CELLS) );
+      #ifndef GAME_ROGUE
+        mapstartweapons = self.items - (self.items & (IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3) );
+      #endif
+      #ifdef GAME_HIPNOTIC
+        if ( !missionpackmap )
+          replacetime_weapons = time + 0.3;
+      #endif
     }
   }
   self.firstspawn = FALSE;
@@ -1155,72 +1485,34 @@ void() PutClientInServer =
 	self.deadflag = DEAD_NO;
 // paustime is set by teleporters to keep the player from moving a while
 	self.pausetime = 0;
+  self.goalentity = world; //Ry: Reset spectator mode [08-11-2022]
 
-  if (self.desiredspawnpoint) //Ry: Spawn point was forced; For sure spawn on it
-  {
-    spot = self.desiredspawnpoint;
-    self.desiredspawnpoint = entity_null;
-  }
-  else
-    spot = SelectSpawnPoint(FALSE); //Ry: Moved this down here just so joining players are fully defined before the following
+  spot = SelectSpawnPoint(FALSE); //Ry: Moved this down here just so joining players are fully defined before the following
 	if ((spot == world)) //Ry: Remaster deferred spawning, slightly modified
 	{
-    if (!(self.flags & FL_NOTARGET)) //Ry: Add NoTarget so monsters aren't alarmed
-      self.flags = self.flags + FL_NOTARGET;
-		self.takedamage = DAMAGE_NO;
-		self.solid = SOLID_NOT;
-		self.movetype = MOVETYPE_NONE;
-		self.deadflag = DEAD_DEAD;
-		setmodel(self, "");
-    setsize (self, VEC_HULL_MIN, VEC_HULL_MAX ); //Ry: Set size so the telefrag trigger is also appropriately sized
-		self.velocity = VEC_ORIGIN;
-		if ((self.spawn_deferred == 0))
+		if ((self.spawn_deferred == 0)) //Ry: First set deferred spawning
 		{
       FilteredCenterPrint(self,CPRINT_WORLD,"Please wait..."); //Ry: Actually tell the player something instead of looking like a bug
       self.spawn_deferred = (time + 5);
+      PlayerEnterSpectatorMode(); //Ry: Now a global function for this [08-11-2022]
+      return;
 		}
-    else if (time >= self.spawn_deferred)
+    else if (time < self.spawn_deferred) //Ry: Still waiting
     {
-      spot = SelectSpawnPoint(TRUE);    //Ry: The telefrag at the end doesn't resolve in time (player gets warped back to where they died due to the enemy player's collision)
-      spawn_tdeath (spot.origin, self); // So store the spawn point and put the player on it as soon as it's clear
-      self.spawn_deferred = time + 0.2;
-      self.desiredspawnpoint = spot;
-      if (debugspawns)
-      {
-        dprint("Player ");
-        dprint(self.netname);
-        dprint(" desires spawn point ");
-        dprint(ftos(spot.cnt));
-        dprint("\n");
-      }
+      return;
     }
-    
-    self.view_ofs = '0 0 1';
-    spot = FindIntermission();
-    self.v_angle = spot.mangle;
-    self.angles = spot.mangle;
-    self.fixangle = TRUE;
-    self.origin = spot.origin;
-    self.weaponmodel = "";
-    self.weaponframe = 0;
-    self.weapon = IT_AXE; //Ry: This originally used 0, but that crashed for me. Apparently Axe works fine visually.
-
-		return;
+    else //Ry: K I L L
+    {
+      spot = SelectSpawnPoint(TRUE);
+    }
 	}
-  
-  if (debugspawns && spot.cnt) //Ry: Spawn point debugging
-  {
-    dprint("Placing player ");
-    dprint(self.netname);
-    dprint(" on spawn point ");
-    dprint(ftos(spot.cnt));
-    dprint("\n");
-  }
   
   spot.lastspawntime = time;
 	self.spawn_deferred = 0;
 
+
 	self.origin = spot.origin + '0 0 1';
+  self.oldorigin = self.origin; //Ry: Set this to be the same as Origin to prevent warping back [08-11-2022]
 	self.angles = spot.angles;
 	self.fixangle = TRUE;		// turn this way immediately
   
@@ -1231,10 +1523,16 @@ void() PutClientInServer =
   // Clear out velocity so you're not launched into the air
   // when you respawn.
   self.velocity = '0 0 0';
+  
+  #ifdef GAME_ROGUE
+    self.touch = player_touch;
+  #endif
 
 // oh, this is a hack!
-  setmodel (self, "progs/playham.mdl");
-  modelindex_hammer = self.modelindex;
+  #ifdef GAME_HIPNOTIC
+    setmodel (self, "progs/playham.mdl");
+    modelindex_hammer = self.modelindex;
+  #endif
 
   setmodel (self, "progs/eyes.mdl");
 	modelindex_eyes = self.modelindex;
@@ -1303,6 +1601,9 @@ void() info_player_deathmatch =
 {
   if (deathmatch) //Ry: Set up for being detected by Proxy Bombs in Deathmatch
   {
+    #ifdef GAME_ROGUE
+      SpawnRunes();
+    #endif
     self.mins = VEC_HULL_MIN;
     self.maxs = VEC_HULL_MAX;
     self.solid = SOLID_TRIGGER;
@@ -1314,6 +1615,8 @@ potential spawning position for coop games
 */
 void() info_player_coop =
 {
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: Can have Horde-only spawns [08-01-2022]
+		return;
   if (coop) //Ry: Set up for being detected by Proxy Bombs in Co-op
   {
     self.mins = VEC_HULL_MIN;
@@ -1338,42 +1641,48 @@ void() NextLevel =
 {
 	local entity o;
 
-//HIPNOTIC
-//Commented out so that timelimit and fraglimit work on start map
-   /*
+  //HIPNOTIC
+  //Commented out so that timelimit and fraglimit work on start map
+  #ifndef GAME_HIPNOTIC
 	if (mapname == "start")
 	{
-		if (!cvar("registered"))
-		{
-			mapname = "e1m1";
-		}
-		else if (!(serverflags & 1))
-		{
-			mapname = "e1m1";
-         serverflags = serverflags | 1;
-		}
-		else if (!(serverflags & 2))
-		{
-			mapname = "e2m1";
-         serverflags = serverflags | 2;
-		}
-		else if (!(serverflags & 4))
-		{
-			mapname = "e3m1";
-         serverflags = serverflags | 4;
-		}
-		else if (!(serverflags & 8))
-		{
-			mapname = "e4m1";
-         serverflags = serverflags - 7;
-		}
+    #ifdef GAME_ID1
+      if (!cvar("registered"))
+      {
+        mapname = "e1m1";
+      }
+      else if (!(serverflags & 1))
+      {
+        mapname = "e1m1";
+           serverflags = serverflags | 1;
+      }
+      else if (!(serverflags & 2))
+      {
+        mapname = "e2m1";
+           serverflags = serverflags | 2;
+      }
+      else if (!(serverflags & 4))
+      {
+        mapname = "e3m1";
+           serverflags = serverflags | 4;
+      }
+      else if (!(serverflags & 8))
+      {
+        mapname = "e4m1";
+           serverflags = serverflags - 7;
+      }
+    #endif
 
+    #ifdef GAME_ROGUE
+      // PGM 03/02/97 - make it always go to rogue level1 when in our progs
+      mapname = "r1m1";
+    #endif
 		o = spawn();
 		o.map = mapname;
 	}
 	else
 	{
-*/
+  #endif
 		// find a trigger changelevel
 		o = find(world, classname, "trigger_changelevel");
 
@@ -1384,7 +1693,9 @@ void() NextLevel =
 			o = spawn();
 			o.map = mapname;
 		}
-//   }
+  #ifndef GAME_HIPNOTIC
+  }
+  #endif
 
 	nextmap = o.map;
 	gameover = TRUE;
@@ -1405,8 +1716,8 @@ Exit deathmatch games upon conditions
 */
 void() CheckRules =
 {
-	local	float		timelimit;
-	local	float		fraglimit;
+	local	float timelimit;
+	local	float fraglimit;
 
 	if (gameover)	// someone else quit the game already
 		return;
@@ -1416,15 +1727,31 @@ void() CheckRules =
 
 	if (timelimit && time >= timelimit)
 	{
-		NextLevel ();
+		NextLevel();
 		return;
 	}
 
-	if (fraglimit && self.frags >= fraglimit)
-	{
-		NextLevel ();
-		return;
-	}
+  #ifdef GAME_ROGUE
+  if (deathmatch && teamplay >= TEAM_CTF) //Ry: Have CTF be based on captures
+  {
+    if (fraglimit && (teamscr1 >= fraglimit || teamscr2 >= fraglimit || teamscr3 >= fraglimit))
+    {
+      TeamEndScore();
+      NextLevel();
+      return;
+    }
+  }
+  else
+  #endif
+    if (fraglimit && self.frags >= fraglimit)
+    {
+      NextLevel();
+      return;
+    }
+    
+  #ifdef GAME_ROGUE
+    TeamCheckUpdate();
+  #endif
 };
 
 //============================================================================
@@ -1444,17 +1771,6 @@ void() PlayerDeathThink =
 			self.velocity = forward * normalize(self.velocity);
 	}
 
-  if (self.desiredspawnpoint) //Ry: Waste no time if a spawn point is already desired (A telefrag trigger should already be on that spot)
-  {
-    if ( IsSpawnPointClear(self.desiredspawnpoint,1,FALSE) )
-      respawn();
-    else if (time >= self.spawn_deferred) //Ry: Keep trying the telefrag trigger if something went wrong
-    {
-      spawn_tdeath (self.desiredspawnpoint.origin, self);
-      self.spawn_deferred = time + 0.2;
-    }
-    return;
-  }
 	if (self.spawn_deferred) //Ry: Remaster spawn stuff
 	{
 		spot = SelectSpawnPoint(FALSE);
@@ -1462,6 +1778,15 @@ void() PlayerDeathThink =
 		{
 			respawn();
 		}
+    else //Ry: Show a countdown via the player's HP [08-12-2022]
+    {
+      forward = ceil(self.spawn_deferred - time);
+      if (forward < 1)
+        forward = 1;
+      if (self.health != forward)
+        self.health = forward;
+      PlayerEvaluateSpectator(); //Ry: Allow changing intermission spot [08-12-2022]
+    }
 		return;
 	}
 
@@ -1474,6 +1799,40 @@ void() PlayerDeathThink =
 		return;
 	}
 
+  if (horde_ent)
+  {
+    if (self.flags & FL_ISBOT) //Ry: Bots aren't allowed to advance
+      return;
+    if (!self.goalentity) //Ry: Start spectating
+    {
+      if (self.button2)
+        if (PlayerEnterSpectatorMode())
+        {
+          self.lip = 1;
+          //Ry: Reset ammo to spawn limits
+          SetSpawnAmmo();
+          self.AMMO_SHELLS = parm4;
+          self.AMMO_NAILS = parm5;
+          self.AMMO_ROCKETS = parm6;
+          self.AMMO_CELLS = parm7;
+          #ifdef GAME_ROGUE
+            self.ammo_lava_nails = parm11;
+            self.ammo_multi_rockets = parm12;
+            self.ammo_plasma = parm13;
+          #endif
+          //Ry: world.qc does this message, but this makes sure it's immediately in place when you change over
+          if (teamwipetime)
+            FilteredCenterPrint(self,CPRINT_CHOICE,"GAME OVER\n\nAll players have fallen...");
+        }
+    }
+    else //Ry: Switch camera spots
+    {
+      PlayerEvaluateSpectator();
+    }
+    if (self.button2)
+      return;
+  }
+
 // wait for any button down
 	if (!self.button2 && !self.button1 && !self.button0)
 		return;
@@ -1485,7 +1844,7 @@ void() PlayerDeathThink =
 	// Yoder Sept24, 2021
 	if (horde_ent)
 	{
-		if ( !(self.flags & FL_ISBOT) && ((coop && HordeGetPlayersAlive() <= 0) || (!coop)) ) //Ry: Bots aren't allowed to advance
+		if ( (coop && HordeGetPlayersAlive() <= 0) || (!coop) )
 		{
 			horde_respawn_all();
 		}
@@ -1502,6 +1861,12 @@ void() PlayerJump =
 
 	if (self.flags & FL_WATERJUMP)
 		return;
+  
+  #ifdef GAME_ROGUE
+    //Ry: Don't jump while hooked [09-17-2022]
+    if (self.hookstatus > HOOK_RELEASED)
+      return;
+  #endif
 
 	if (self.waterlevel >= 2)
 	{
@@ -1511,14 +1876,18 @@ void() PlayerJump =
 		if (self.waterlevel < 3)
     {
 			upspeed *= 0.5; // match vanilla swim values at the surface so we don't launch out of the water any higher
-      if (self.wetsuit_finished > time) //Ry: Account for wetsuit
-        upspeed *= 1.25;
+      #ifdef GAME_HIPNOTIC
+        if (self.wetsuit_finished > time) //Ry: Account for wetsuit
+          upspeed *= 1.25;
+      #endif
     }
 		else
     {
 			upspeed *= 0.7;	// match moveup from SV_WaterMove
-      if (self.wetsuit_finished > time) //Ry: Account for wetsuit
-        upspeed *= 1.5;
+      #ifdef GAME_HIPNOTIC
+        if (self.wetsuit_finished > time) //Ry: Account for wetsuit
+          upspeed *= 1.5;
+      #endif
     }
 
 		if (self.watertype == CONTENT_LAVA)
@@ -1577,6 +1946,8 @@ void() WaterMove =
 	if (self.movetype == MOVETYPE_NOCLIP)
 		return;
 	if (self.health < 0)
+		return;
+	if (self.deadflag) //Ry: Check deadflag too, in case of spectator [09-24-2022]
 		return;
 
 	if (self.waterlevel != 3)
@@ -1701,72 +2072,184 @@ void() PlayerPreThink =
     {
       self.deadflag = DEAD_NO;
       SetSpawnAmmo();
-      self.ammo_shells = parm4;
-      self.ammo_nails = parm5;
-      self.ammo_rockets = parm6;
-      self.ammo_cells = parm7;
+      self.AMMO_SHELLS = parm4;
+      self.AMMO_NAILS = parm5;
+      self.AMMO_ROCKETS = parm6;
+      self.AMMO_CELLS = parm7;
+      #ifdef GAME_ROGUE
+        self.ammo_lava_nails = parm11;
+        self.ammo_multi_rockets = parm12;
+        self.ammo_plasma = parm13;
+      #endif
     }
-    earthquake_prethink();
+    #ifdef GAME_HIPNOTIC
+      earthquake_prethink();
+    #endif
     IntermissionThink ();   // otherwise a button could be missed between
 		return;					// the think tics
 	}
+
+  #ifdef GAME_ROGUE
+    if (deathmatch && self.teamselecttime) //Ry: CTF team selection [09-05-2022]
+    {
+      if (time < self.teamselecttime)
+      {
+        if (self.flags & FL_ISBOT) //Ry: Have bots wait for players to select their teams
+        {
+          local entity pl;
+          pl = find(world,classname,"player");
+          while (pl)
+          {
+            if (pl.important && !(pl.flags & FL_ISBOT) && pl.steam <= 0)
+              break;
+            pl = find(pl,classname,"player");
+          }
+          if (!pl)
+          {
+            self.steam = -50;
+            TeamCheckTeam();
+          }
+        }
+        else
+        {
+          if (self.motd_count)
+            CheckMOTD();
+          else if (self.motd_time && time >= self.motd_time)
+            MOTD_ChooseTeam();
+          if (self.impulse == 103 || (self.button2)) // automatic
+          {
+            self.steam = -50;
+            TeamCheckTeam();
+          }
+          else
+          {
+            if (self.impulse == 1 || self.impulse == 101 ) // red
+              self.team = self.steam = TEAM1;
+            else if (self.impulse == 2 || self.impulse == 102) // blue
+              self.team = self.steam = TEAM2;
+            else if ((teamplay == TEAM_CTF_ALT) && (self.impulse == 3 || self.impulse == 104)) // grey
+              self.team = self.steam = TEAM3;
+            if (self.steam)
+            {
+              bprint(self.netname);
+              bprint(" joined the ");
+              bprint(GetCTFTeam(self.steam));
+              bprint(" team!\n");
+            }
+          }
+        }
+        self.impulse = 0;
+        if (self.steam > 0)
+        {
+          if (PromptSupported())
+            clearprompt(self);
+          self.ctf_flags |= CTF_FLAG_STUFF_COLOR;
+          TeamCheckLock();
+          self.teamselecttime = 0;
+          PutClientInServer();
+        }
+      }
+      else //Ry: Player has spent too long selecting a team
+      {
+        if (PromptSupported())
+          clearprompt(self);
+        self.teamselecttime = 0;
+        TeamCheckLock();
+        PutClientInServer();
+      }
+      if (!self.teamselecttime && !(self.flags & FL_ISBOT))
+      {
+        //Ry: Clear regular MOTD if it was used        self.motd_count = 0;
+        self.motd_time = 0;
+        self.lastcenterprinttype = CPRINT_NONE;
+        self.lastcenterprinttime = 0;
+        centerprint(self,"");
+
+      }
+      return;
+    }
+  #endif
 
 	if (self.view_ofs == '0 0 0')
 		return;		// intermission or finale
   
   self.deathtype = ""; //Ry: Ensure these are reset between frames
   self.axhitme = 0;
+  
+  #ifdef ENGINE_KEX
+    if (self.currentdummymodel)
+    {
+      draw_line(self.currentdummymodel.pickorigin,self.currentdummymodel.pickorigin+self.currentdummymodel.effectiveorigin,COLOR_BLUE,0.05,FALSE);
+      draw_bounds(self.currentdummymodel.origin+self.currentdummymodel.mins,self.currentdummymodel.origin+self.currentdummymodel.maxs,COLOR_YELLOW,0.05,FALSE);
+    }
+  #endif
 
-//JIM
-   // Kill player on Edge of Oblivion
-   if ( ( self.origin_z < -1300 ) && (world.model == "maps/hipdm1.bsp") &&
-      ( self.health > 0 ) )
-      {
+  #ifdef GAME_HIPNOTIC
+    //JIM
+    // Kill player on Edge of Oblivion
+    if ( ( self.origin_z < -1300 ) && (world.model == "maps/hipdm1.bsp") && ( self.health > 0 ) )
+    {
       self.deathtype = "falling";
 
       if (self.invincible_finished >= time)
-         {
-         self.invincible_finished = 0;
-         self.items = self.items - (self.items & IT_INVULNERABILITY);
-         self.invincible_time = 0;
-			self.invincible_finished = 0;
-         self.effects = self.effects - (self.effects & EF_PENTALIGHT);
-         }
-      T_Damage( self, self, world, self.health + 1000 );
+      {
+        self.invincible_finished = 0;
+        self.items = self.items - (self.items & IT_INVULNERABILITY);
+        self.invincible_time = 0;
+        self.invincible_finished = 0;
+        SetLightEffect(self,SET_EF_PENTA,FALSE);
       }
+      T_Damage( self, self, world, self.health + 1000 );
+    }
 
-	//JIM
-//   if (!deathmatch)
-//      {
-      earthquake_prethink();
-//      }
+    //JIM
+    earthquake_prethink();
+  #endif
+  #ifdef GAME_ROGUE
+    HandleAntiGravBelt(); //Ry: New handler for Anti-Grav Belt's gravity [09-10-2022]
+
+    if (earthquake_active && !deathmatch) //Ry: Not in Deathmatch, please [09-03-2022]
+    {
+      if ( self.flags & FL_ONGROUND )
+      { //Ry: Removed horizontal movement [09-03-2022]
+        self.velocity_z = self.velocity_z + 
+                  (random() * earthquake_intensity * 2) -
+                  earthquake_intensity;
+      }
+    }
+  #endif
 
 	makevectors (self.v_angle);
-  
+
   if (self.health <= 0 && !self.deadflag) //Ry: If player is put to 0 or lower health via unexpected means, allow them to respawn
   {
     self.nextthink = -1;
     self.deadflag = DEAD_DEAD;
   }
-  
+
   if (!self.deadflag && self.justrespawned && !self.button0) //Ry: Allow player to shoot again after releasing fire after respawning
     self.justrespawned = FALSE;
   
   if (!(self.flags & FL_ISBOT) && (coop || deathmatch))
   { //Ry: Remove Frag and Probe messages after an amount of time
-    if ( ((self.lastcenterprinttype == CPRINT_FRAG) && (time >= self.lastcenterprinttime + 3)) || ((self.lastcenterprinttype == CPRINT_NAME) && (time >= self.lastcenterprinttime + 1)) )
+    if ( (((self.lastcenterprinttype == CPRINT_FRAG) || (self.lastcenterprinttype == CPRINT_GAMEMODE)) && (time >= self.lastcenterprinttime + 3))
+      || ((self.lastcenterprinttype == CPRINT_NAME) && (time >= self.lastcenterprinttime + 1)) )
     {
       self.lastcenterprinttype = CPRINT_NONE;
       self.lastcenterprinttime = 0;
       centerprint(self,"");
     }
-    if ( self.playerprobe && ((self.lastcenterprinttype <= CPRINT_NAME) || (time >= self.lastcenterprinttime + 5)) ) //Ry: Player Probe
+    if ( (self.lastcenterprinttype <= CPRINT_NAME) || (time >= self.lastcenterprinttime + 5) ) //Ry: Player Probe
     {
       local vector org = self.origin+self.view_ofs;
       traceline (org, org + v_forward*2048, FALSE, self);
       if (trace_fraction < 1)
       {
-        if ( (trace_ent != self) && ( (trace_ent.classname == "player") || ((deathmatch || (coop && trace_ent.charmed)) && (trace_ent.flags & FL_MONSTER)) ) && (!trace_ent.invisible_finished || coop) ) //Ry: Valid target, and target is not invisible (DM)
+        #ifdef GAME_HIPNOTIC //Ry: Valid target, and target is not invisible (DM)
+        if ( (trace_ent != self) && ( (trace_ent.classname == "player") || ((deathmatch || (coop && trace_ent.charmed)) && (trace_ent.flags & FL_MONSTER)) ) && (!trace_ent.invisible_finished || coop) )
+        #else
+        if ( (trace_ent != self) && ((trace_ent.classname == "player") || (deathmatch && (trace_ent.flags & FL_MONSTER))) && (!trace_ent.invisible_finished || coop) )
+        #endif
         {
           if ( (self.lastprobedplayer != trace_ent) || (time >= self.lastprobetime + 0.5) )
           {
@@ -1778,10 +2261,17 @@ void() PlayerPreThink =
               else
                 targname = "Player";
             }
-            if ( coop || (self.team > 0 && self.team == trace_ent.team) )
-              FilteredCenterPrint(self,CPRINT_NAME,"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n[Ally]\n",targname);
-            else
-              FilteredCenterPrint(self,CPRINT_NAME,"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n[Enemy]\n",targname);
+            #ifdef ENGINE_KEX
+              if ( coop || (self.team > 0 && self.team == trace_ent.team) )
+                FilteredCenterPrint(self,CPRINT_NAME,"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n[Ally]\n{}",targname);
+              else
+                FilteredCenterPrint(self,CPRINT_NAME,"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n[Enemy]\n{}",targname);
+            #else
+              if ( coop || (self.team > 0 && self.team == trace_ent.team) )
+                FilteredCenterPrint(self,CPRINT_NAME,"\n\n\n\n\n\n\n\n\n\n\n\n\n\n[Ally]\n",targname);
+              else
+                FilteredCenterPrint(self,CPRINT_NAME,"\n\n\n\n\n\n\n\n\n\n\n\n\n\n[Enemy]\n",targname);
+            #endif
             self.lastprobetime = time;
           }
           self.lastprobedplayer = trace_ent;
@@ -1795,49 +2285,59 @@ void() PlayerPreThink =
       }
     }
   }
+  
+  #ifdef GAME_ROGUE
+    //ZOID--
+    // TeamCheckLock performs all necessary teamlock checking, and performs all
+    // actions needed.
+    TeamCheckLock();
+    //--ZOID
+  #endif
 
   CheckMOTD(); //Ry: Copied from Rogue, since a MOTD would be nice
 	CheckRules ();
 	WaterMove ();
 
-	//JIM
-	//WETSUIT
-	if (self.wetsuit_finished > time)
-  {
-    if (self.waterlevel==2)
+  #ifdef GAME_HIPNOTIC
+    //JIM
+    //WETSUIT
+    if (self.wetsuit_finished > time)
     {
-      self.velocity = self.velocity * 1.25;
-    }
-    if (self.waterlevel==3)
-    {
-      self.velocity = self.velocity * 1.5;
-    }
-    if (self.waterlevel >= 2)
-    {
-      // play scuba sound
-      if (self.swim_flag < time)
+      if (self.waterlevel==2)
       {
-        self.swim_flag = time + 7;
-        sound (self, CHAN_BODY, "misc/wetsuit.wav", 1, ATTN_NORM);
+        self.velocity = self.velocity * 1.25;
       }
-      //MED 01/17/97
-      else
+      if (self.waterlevel==3)
       {
-        if (fabs(self.swim_flag - time - 6)<0.04)
+        self.velocity = self.velocity * 1.5;
+      }
+      if (self.waterlevel >= 2)
+      {
+        // play scuba sound
+        if (self.swim_flag < time)
         {
-          DeathBubbles(1);
+          self.swim_flag = time + 7;
+          sound (self, CHAN_BODY, "misc/wetsuit.wav", 1, ATTN_NORM);
         }
-        else if (fabs(self.swim_flag - time - 5.5)<0.04)
+        //MED 01/17/97
+        else
         {
-          DeathBubbles(1);
-        }
-        else if (fabs(self.swim_flag - time - 5)<0.04)
-        {
-          DeathBubbles(1);
+          if (fabs(self.swim_flag - time - 6)<0.04)
+          {
+            DeathBubbles(1);
+          }
+          else if (fabs(self.swim_flag - time - 5.5)<0.04)
+          {
+            DeathBubbles(1);
+          }
+          else if (fabs(self.swim_flag - time - 5)<0.04)
+          {
+            DeathBubbles(1);
+          }
         }
       }
     }
-  }
+  #endif
 
 	if (self.waterlevel == 2)
 		CheckWaterJump ();
@@ -1861,8 +2361,50 @@ void() PlayerPreThink =
 // teleporters can force a non-moving pause time
 	if (time < self.pausetime)
 		self.velocity = '0 0 0';
+  
+  #ifdef GAME_ROGUE
+    if (self.items2 & IT2_ANTIGRAV)
+    {
+      if ( time > self.AGping )
+      {
+        sound ( self, CHAN_AUTO, "belt/use.wav", 0.4, ATTN_NORM);
+        self.AGping = time + 3;
+        if(self.AGping >= (self.antigrav_finished - 3))
+          self.AGping = self.antigrav_finished + 3;
+      }
+    }
 
-   if(time > self.attack_finished && self.currentammo == 0 && self.weapon != IT_AXE && self.weapon != IT_MJOLNIR)
+    RuneApplyElder(self); // regeneration rune 
+
+    // Track the grapple
+    if (self.hookstatus > HOOK_READY)
+    {
+      if (self.hookstatus == HOOK_RELEASED) //Ry: Track when the player releases the button [09-09-2022]
+      {
+        if (!self.button0 || (self.weapon != IT_GRAPPLE))
+          self.hookstatus = HOOK_READY;
+      }
+      //Ry: Break hook if the weapon is either put away or fire is released before attaching
+      else if (self.hookstatus == HOOK_ATTACHED || ((self.weapon == IT_GRAPPLE) && self.button0))
+        GrappleService();
+      else
+      {
+        local entity stemp = self; //Ry: Make sure self is restored [09-09-2022]
+        self = self.hook;
+        GrappleReset();
+        self = stemp;
+      }
+    }
+  #endif
+
+  if(time > self.attack_finished && self.currentammo == 0 && self.weapon != IT_AXE
+  #ifdef GAME_HIPNOTIC
+    && self.weapon != IT_MJOLNIR
+  #endif
+  #ifdef GAME_ROGUE
+    && self.weapon != IT_GRAPPLE
+  #endif
+    )
 	{
 		self.weapon = W_BestWeapon ();
 		W_SetCurrentAmmo ();
@@ -1914,17 +2456,29 @@ void() CheckPowerups =
 			self.items = self.items - IT_INVISIBILITY;
 			self.invisible_finished = 0;
 			self.invisible_time = 0;
+      #ifdef GAME_ROGUE
+        //Ry: Restore CTF skin when the Ring runs out [09-05-2022]
+        self.modelindex = modelindex_player;
+        TeamSetSkin();
+      #endif
 		}
+    #ifdef GAME_ROGUE
+    //Ry: Reset skin back to default since eyes don't have other skins [09-05-2022]
+    else if (self.skin != 0)
+      self.skin = 0;
+    #endif
 
 	// use the eyes
 		self.frame = 0;
 		self.modelindex = modelindex_eyes;
 	}
-//MED 12/04/96 added mjolnir stuff
-   else if (self.weapon == IT_MJOLNIR)
+  #ifdef GAME_HIPNOTIC
+    //MED 12/04/96 added mjolnir stuff
+    else if (self.weapon == IT_MJOLNIR)
       self.modelindex = modelindex_hammer;   // don't use eyes
-   else
-		self.modelindex = modelindex_player;	// don't use eyes
+  #endif
+  else
+    self.modelindex = modelindex_player;	// don't use eyes
 
 // invincibility
 	if (self.invincible_finished)
@@ -1953,10 +2507,7 @@ void() CheckPowerups =
 			self.invincible_time = 0;
 			self.invincible_finished = 0;
 		}
-		if (self.invincible_finished > time)
-			self.effects = self.effects | EF_PENTALIGHT;
-		else
-			self.effects = self.effects - (self.effects & EF_PENTALIGHT);
+    SetLightEffect(self,SET_EF_PENTA,(self.invincible_finished > time));
 	}
 
 // super damage
@@ -1988,10 +2539,7 @@ void() CheckPowerups =
 			self.super_damage_finished = 0;
 			self.super_time = 0;
 		}
-		if (self.super_damage_finished > time)
-			self.effects = self.effects | EF_QUADLIGHT;
-		else
-			self.effects = self.effects - (self.effects & EF_QUADLIGHT);
+    SetLightEffect(self,SET_EF_QUAD,(self.super_damage_finished > time));
 	}
 
 // suit
@@ -2025,74 +2573,129 @@ void() CheckPowerups =
 		}
 	}
 
-//JIM
-// wetsuit
-	if (self.wetsuit_finished)
-	{
-	self.air_finished = time + 12;		// don't drown
+  #ifdef GAME_HIPNOTIC
+    //JIM
+    // wetsuit
+    if (self.wetsuit_finished)
+    {
+      self.air_finished = time + 12;		// don't drown
 
-	// sound and screen flash when items starts to run out
-	if (self.wetsuit_finished < time + 3)
-		{
-			if (self.wetsuit_time == 1)
-			{
-				sprint (self, "Air supply in Wetsuit is running out\n");
-				stuffcmd (self, "bf\n");
-				sound (self, CHAN_AUTO, "items/suit2.wav", 1, ATTN_NORM);
-				self.wetsuit_time = time + 1;
-			}
+      // sound and screen flash when items starts to run out
+      if (self.wetsuit_finished < time + 3)
+      {
+        if (self.wetsuit_time == 1)
+        {
+          sprint (self, "Air supply in Wetsuit is running out\n");
+          stuffcmd (self, "bf\n");
+          sound (self, CHAN_AUTO, "items/suit2.wav", 1, ATTN_NORM);
+          self.wetsuit_time = time + 1;
+        }
 
-			if (self.wetsuit_time < time)
-			{
-				self.wetsuit_time = time + 1;
-				stuffcmd (self, "bf\n");
-			}
-		}
+        if (self.wetsuit_time < time)
+        {
+          self.wetsuit_time = time + 1;
+          stuffcmd (self, "bf\n");
+        }
+      }
 
-		if (self.wetsuit_finished < time)
-		{	// just stopped
-//MED
-         self.items2 = self.items2 - HIP_IT_WETSUIT;
-			self.wetsuit_time = 0;
-			self.wetsuit_finished = 0;
-		}
-	}
+      if (self.wetsuit_finished < time)
+      {	// just stopped
+        //MED
+        self.items2 = self.items2 - HIP_IT_WETSUIT;
+        self.wetsuit_time = 0;
+        self.wetsuit_finished = 0;
+      }
+    }
 
-//MED
-// empathy shields
-   if (self.empathy_finished)
-	{
+    //MED
+    // empathy shields
+    if (self.empathy_finished)
+    {
       // sound and screen flash when items starts to run out
       if (self.empathy_finished < time + 3)
-		{
-         if (self.empathy_time == 1)
-			{
-            sprint (self, "Empathy Shields are running out\n");
-				stuffcmd (self, "bf\n");
-				sound (self, CHAN_AUTO, "items/suit2.wav", 1, ATTN_NORM);
-            self.empathy_time = time + 1;
-			}
+      {
+        if (self.empathy_time == 1)
+        {
+          sprint (self, "Empathy Shields are running out\n");
+          stuffcmd (self, "bf\n");
+          sound (self, CHAN_AUTO, "items/suit2.wav", 1, ATTN_NORM);
+          self.empathy_time = time + 1;
+        }
 
-         if (self.empathy_time < time)
-			{
-            self.empathy_time = time + 1;
-				stuffcmd (self, "bf\n");
-			}
-		}
+        if (self.empathy_time < time)
+        {
+          self.empathy_time = time + 1;
+          stuffcmd (self, "bf\n");
+        }
+      }
 
       if (self.empathy_finished < time)
-		{	// just stopped
-//MED
-         self.items2 = self.items2 - HIP_IT_EMPATHY_SHIELDS;
-         self.empathy_time = 0;
-         self.empathy_finished = 0;
-		}
-//MED
+      {	// just stopped
+        //MED
+        self.items2 = self.items2 - HIP_IT_EMPATHY_SHIELDS;
+        self.empathy_time = 0;
+        self.empathy_finished = 0;
+      }
+      //MED
       if (self.empathy_finished > time)
-			self.effects = self.effects | EF_DIMLIGHT;
-		else
-			self.effects = self.effects - (self.effects & EF_DIMLIGHT);
-   }
+        self.effects = self.effects | EF_DIMLIGHT;
+      else
+        self.effects = self.effects - (self.effects & EF_DIMLIGHT);
+     }
+  #endif
+  
+  #ifdef GAME_ROGUE
+    if(self.shield_finished)
+    {
+      if ( self.shield_finished < time + 3)
+      {
+        if (self.shield_time == 1)
+        {
+          sprint (self, "Power Shield is failing\n");
+          sound (self, CHAN_AUTO, "shield/fadeout.wav", 1, ATTN_NORM);
+          self.shield_time = 0;
+        }
+        if (self.shield_time < time)
+        {
+          self.shield_time = time + 1;
+          stuffcmd (self, "bf\n");
+        }
+      }
+      
+      if ( self.shield_finished < time)
+      {
+        //sprint (self, "Shield Lost.\n");
+        self.shield_finished = 0;
+        self.items2 = self.items2 - IT2_SHIELD;
+      }
+    }
+
+    if(self.antigrav_finished)
+    {
+      if ( self.antigrav_finished < time + 3)
+      {
+        if (self.antigrav_time == 1)
+        {
+          sprint (self, "Anti-Grav Belt is failing\n");
+          self.antigrav_time = 0;
+          sound (self, CHAN_AUTO, "belt/fadeout.wav", 1, ATTN_NORM);
+        }
+        if (self.antigrav_time < time)
+        {
+          self.antigrav_time = time + 1;
+          stuffcmd (self, "bf\n");
+        }
+      }
+      
+      if ( self.antigrav_finished < time)
+      {
+        //sprint (self, "Antigrav Lost.\n");
+        self.antigrav_finished = 0;
+        self.items2 = self.items2 - IT2_ANTIGRAV;
+        self.gravity = 1.0;
+      }
+    }
+  #endif
 };
 
 
@@ -2103,33 +2706,84 @@ PlayerPostThink
 Called every frame after physics are run
 ================
 */
+#ifdef GAME_ROGUE
+  void() track_camera;
+  //void(entity playerEnt) move_camera;
+  //void() xpackEnding;
+#endif
+
 void() PlayerPostThink =
 {
+  #ifdef GAME_ROGUE
+    if (cutscene_running)
+      track_camera();
+  #endif
+
 	if (self.view_ofs == '0 0 0')
+  {
+    #ifdef GAME_HIPNOTIC
+      earthquake_postthink();
+    #endif
+    return;     // intermission or finale
+  }
+
+  #ifdef GAME_HIPNOTIC
+    //JIM
+    //WETSUIT
+    if (self.wetsuit_finished > time)
+    {
+      if (self.waterlevel==2)
       {
-      earthquake_postthink();
-      return;     // intermission or finale
+        self.velocity = self.velocity * 0.8;
       }
-
-	//JIM
-	//WETSUIT
-	if (self.wetsuit_finished > time)
-		{
-		if (self.waterlevel==2)
-			{
-			self.velocity = self.velocity * 0.8;
-			}
-		if (self.waterlevel==3)
-			{
-			self.velocity = self.velocity * 0.66;
-			}
+      if (self.waterlevel==3)
+      {
+        self.velocity = self.velocity * 0.66;
       }
+    }
 
-	//JIM
-//   if (!deathmatch)
-//      {
-      earthquake_postthink();
-//      }
+    //JIM
+    earthquake_postthink();
+  #endif
+  
+  #ifdef GAME_ROGUE
+    //Ry: Check for change team impulse, even while dead
+    if (teamplay >= TEAM_CTF && teamplay <= TEAM_CTF_ALT)
+    {
+      if (self.impulse == 100)
+      {
+        if (!self.teamselecttime)
+        {
+          if (time > self.teamchangecooldown)
+          {
+            if (self.desireteamchangetime)
+            {
+              self.desireteamchangetime = 0;
+              sprint(self, "Team change cancelled\n");
+            }
+            else if (!TryChangeTeam(self))
+            {
+              sprint(self, "Waiting for another player to swap teams with...\n");
+              self.desireteamchangetime = time;
+            }
+          }
+          else
+            sprint(self,"Please wait a bit before changing teams again\n");
+        }
+        self.impulse = 0;
+      }
+      else if (self.desireteamchangetime)
+      {
+        if (time > (self.desireteamchangetime + 10))
+        {
+          self.desireteamchangetime = 0;
+          sprint(self, "Could not find another player to swap with; Please try again\n");
+        }
+        else
+          TryChangeTeam(self);
+      }
+    }
+  #endif
 
 	if (self.deadflag)
 		return;
@@ -2143,7 +2797,12 @@ void() PlayerPostThink =
 	{
 		if (self.watertype == CONTENT_WATER)
 			sound (self, CHAN_BODY, "player/h2ojump.wav", 1, ATTN_NORM);
-		else if (self.jump_flag < -650)
+		else if (self.jump_flag < -650
+    #ifdef GAME_ROGUE
+      //Ry: No fall damage if hook is attached, or if using the Anti-Grav Belt [09-10-2022]
+      && (self.hookstatus < HOOK_ATTACHED) && !self.antigrav_finished
+    #endif
+      )
 		{
       self.deathtype = "falling"; //Ry: Moved this up here, before damage is called
 			T_Damage (self, world, world, 5);
@@ -2163,37 +2822,45 @@ void() PlayerPostThink =
   if (coop)
     RecordSafeVect();
 
-  //Ry: Handle Megahealth rotting here [06-30-2022]
-  if (self.megarot_count && time >= self.megarot_time)
-  {
-    if (self.health > self.max_health)
+  #ifdef GAME_ROGUE
+  if (!RuneHasElder(self)) //Ry: Don't rot when possessing the Elder rune
+  #endif
+    //Ry: Handle Megahealth rotting here [06-30-2022]
+    if (self.megarot_count && time >= self.megarot_time)
     {
-      self.health -= self.megarot_count;
-      self.megarot_time = time + 1;
-      if (self.health <= self.max_health)
+      if (self.health > self.max_health)
       {
-        self.health = self.max_health;
+        self.health -= self.megarot_count;
+        self.megarot_time = time + 1;
+        if (self.health <= self.max_health)
+        {
+          self.health = self.max_health;
+          self.megarot_count = 0;
+          self.megarot_time = 0;
+        }
+      }
+      else
+      {
         self.megarot_count = 0;
         self.megarot_time = 0;
       }
     }
-    else
-    {
-      self.megarot_count = 0;
-      self.megarot_time = 0;
-    }
-  }
   
 	// AY 11 Nov 2021, check killspree end
 	if ((self.killspree > 0) && (time > self.killtime))
 	{
 		dprint("killspree ended.\n");
 		
-		//score = (self.killspree + (self.killspree - 1) -1) * 5; // previously was "attacker.killspree - 1"
 		if (self.killspree > 1)
 		{
 			local float score = ceil((self.killspree * self.killspree)/2);
-			sprint(self, "$qc_horde_streak_ended", ftos(score));
+      #ifdef ENGINE_KEX
+        sprint(self, "$qc_horde_streak_ended", ftos(score));
+      #else
+        sprint(self, "Streak ended! Bonus points awarded: ");
+        sprint(self, ftos(score));
+        sprint(self, "\n");
+      #endif
 			self.frags += score;
 		}
 		
@@ -2224,8 +2891,32 @@ void() ClientConnect =
     bprint (self.netname);
     bprint (" entered the game\n");
   }
-  
-  SetMOTD(); //Ry: Show the MOTD when the player joins
+
+  #ifdef GAME_ROGUE
+  //ZOID--
+  self.ctf_killed = 0;
+
+  if (deathmatch && (teamplay >= TEAM_CTF))
+  {
+    #ifdef ENGINE_KEX
+      SendCTFScoresUpdate(self);
+    #endif
+    if (gameconfig & GAMECFG_AUTO_TEAM)
+    {
+      self.steam = -50;
+      TeamCheckTeam();
+      SetMOTD();
+    }
+    else
+    {
+      TeamSetColor(self,0,0);
+      self.teamselecttime = time + 15;
+      self.motd_time = time + 0.1;
+    }
+  }
+  else
+  #endif
+    SetMOTD(); //Ry: Show the MOTD when the player joins
 
   self.firstspawn = TRUE; //Ry: For giving weapons in Co-op
 
@@ -2251,23 +2942,22 @@ void() ClientDisconnect =
 
   if (coop && self.health <= 0) //Ry: A backpack should already be dropped if they're dead, so reduce ammo to spawn ammo before dropping another
   {
-    if (self.ammo_shells > 25)
-      self.ammo_shells = 25;
-    if (self.ammo_nails > 30)
-      self.ammo_nails = 30;
-    if (self.ammo_rockets > 5)
-      self.ammo_rockets = 5;
-    if (self.ammo_cells > 15)
-      self.ammo_cells = 15;
+    if (self.AMMO_SHELLS > 25)
+      self.AMMO_SHELLS = 25;
+    if (self.AMMO_NAILS > 30)
+      self.AMMO_NAILS = 30;
+    if (self.AMMO_ROCKETS > 5)
+      self.AMMO_ROCKETS = 5;
+    if (self.AMMO_CELLS > 15)
+      self.AMMO_CELLS = 15;
   }
   DropPowerups(); //Ry: Drop powerups and backpack when disconnecting
   DropBackpack(TRUE);
   
   self.mapsfinished = 0; //Ry: Reset map count on this player slot
-  self.playerprobe = FALSE; //Ry: Reset player name display
   
-  self.spawn_deferred = 0; //Ry: Reset these just in case
-  self.desiredspawnpoint = entity_null;
+  self.spawn_deferred = 0; //Ry: Reset this just in case
+  self.important = FALSE; //Ry: Detect a disconnected player with this [08-12-2022]
   
   if (self.playerindex) //Ry: Free up the index the player was using
   {
@@ -2281,26 +2971,28 @@ void() ClientDisconnect =
       local entity e;
       
       //Ry: Remove this ID from all items
-      for (e = find(world, enttype, "item") ; e ; e = find(e, enttype, "item") )
+      for (e = find(world, category, "item") ; e ; e = find(e, category, "item") )
       {
         if (e.pickers & self.playerindex)
           e.pickers = e.pickers - (e.pickers & self.playerindex);
-        UpdateItemVisibility(e,e.alpha);
+        if (e.oneperplayer)
+          #ifndef ENGINE_WINQUAKE
+            UpdateItemVisibility(e,e.alpha);
+          #else
+            UpdateItemVisibility(e,1);
+          #endif
       }
     }
     else if (deathmatch) //Ry: Unset team, just in case
       self.team = 0;
     
     self.playerindex = 0; //Ry: Unset to ensure the player entity doesn't retain the ID when its reused for the next client
-    
   }
-	
-	// yoder oct13, horde fix for dc-ing players
-	if(cvar("horde"))
-	{
-		dprint("horde mode, player disconnect\n");
-		self.health = 0;
-	}
+
+  //Ry: Set these so monsters stop attacking this player [09-24-2022]
+  self.health = 0;
+  self.deadflag = DEAD_DEAD;
+  self.takedamage = DAMAGE_NO;
 
 	// let everyone else know
   if (self.flags & FL_ISBOT) //Ry: Bots now have a different disconnect message
@@ -2317,6 +3009,19 @@ void() ClientDisconnect =
 	bprint (ftos(self.frags));
 	bprint (" frags\n");
 	sound (self, CHAN_BODY, "player/tornoff2.wav", 1, ATTN_NONE);
+
+  #ifdef GAME_ROGUE
+    sphere_remove(self);
+    if ( tag_token_owner == self)
+      tag_token_drop();
+    
+    //ZOID--
+      TeamDropFlagOfPlayer(self);
+    self.steam = -50;
+    self.team = 0;
+    //--ZOID
+  #endif
+
 	set_suicide_frame ();
 };
 
@@ -2333,26 +3038,55 @@ void(entity targ, entity attacker) ClientObituary =
 	local	string deathstring, deathstring2;
 	rnum = random();
 
-   if (targ.classname == "player")
+  if (targ.classname == "player")
 	{
-		if (attacker.classname == "teledeath")
+    #ifdef GAME_ROGUE
+      // ZOID--
+      TeamResetCarrier(targ);
+      // --ZOID
+    #endif
+		if (attacker.classname == "teledeath" || attacker.classname == "teledeath_fast")
 		{
 			bprint (targ.netname);
 			bprint (" was telefragged by ");
-			bprint (attacker.owner.netname);
-			bprint ("\n");
+      #ifdef GAME_HIPNOTIC
+      if (attacker.owner.charmer) //Ry: A charmed monster performed the telefrag [08-09-2022]
+      {
+        if (targ == attacker.owner.charmer) //Ry: Own monster
+        {
+          bprint ("their own monster\n");
+          targ.frags = targ.frags - 1;
+        }
+        else //Ry: Someone else's monster
+        {
+          bprint (attacker.owner.charmer.netname);
+          bprint ("'s ");
+          bprint (attacker.owner.netname);
+          bprint ("\n");
+          ClientAwardFrag(targ,attacker.owner.charmer,attacker.owner,1);
+        }
+      }
+      else
+      {
+      #endif
+        bprint (attacker.owner.netname);
+        bprint ("\n");
+        if (attacker.owner.flags & FL_CLIENT)
+          ClientAwardFrag(targ,attacker.owner,attacker.owner,1); //Ry: PvP frags are now added in this function
+      #ifdef GAME_HIPNOTIC
+      }
+      #endif
 
-      ClientAwardFrag(targ,attacker.owner,attacker.owner,1); //Ry: PvP frags are now added in this function
 			return;
 		}
 
 		if (attacker.classname == "teledeath2")
 		{
-			bprint ("Satan's power deflects ");
-			bprint (targ.netname);
-			bprint ("'s telefrag\n");
+      bprint ("Satan's power deflects ");
+      bprint (targ.netname);
+      bprint ("'s telefrag\n");
 
-			targ.frags = targ.frags - 1;
+      targ.frags = targ.frags - 1;
 			return;
 		}
 
@@ -2363,14 +3097,16 @@ void(entity targ, entity attacker) ClientObituary =
 				// killed self
 				attacker.frags = attacker.frags - 1;
 				bprint (targ.netname);
-        
-        if (targ.dmg_inflictor.classname == "trap_gods_wrath") //Ry: Death message for trap_gods_wrath wasn't showing up before, since the player who initiated it does the damage
-        {
-          bprint (" ");
-          bprint (targ.dmg_inflictor.deathtype);
-          bprint ("\n");
-          return;
-        }
+
+        #ifdef GAME_HIPNOTIC
+          if (targ.dmg_inflictor.classname == "trap_gods_wrath") //Ry: Death message for trap_gods_wrath wasn't showing up before, since the player who initiated it does the damage
+          {
+            bprint (" ");
+            bprint (targ.dmg_inflictor.deathtype);
+            bprint ("\n");
+            return;
+          }
+        #endif
 
         if (targ.dmg_inflictor.classname == "grenade" || targ.dmg_inflictor.classname == "proximity_grenade") //Ry: Actually check for what projectile killed the player
         {  
@@ -2385,14 +3121,16 @@ void(entity targ, entity attacker) ClientObituary =
             bprint (" checks if their weapon is loaded\n");
           return;
         }
-        if (targ.dmg_inflictor.classname == "hiplaser") //Ry: Armagon exclusive
-        {  
-          if (rnum > 0.4 )
-            bprint (" radiates themself\n");
-          else
-            bprint (" tried to dance with lasers\n");
-          return;
-        }
+        #ifdef GAME_HIPNOTIC
+          if (targ.dmg_inflictor.classname == "hiplaser") //Ry: Armagon exclusive
+          {  
+            if (rnum > 0.4 )
+              bprint (" radiates themself\n");
+            else
+              bprint (" tried to dance with lasers\n");
+            return;
+          }
+        #endif
 
 				if ( targ.deathtype == "discharge" ) //Ry: Now uses deathtype instead
 				{
@@ -2404,72 +3142,117 @@ void(entity targ, entity attacker) ClientObituary =
             bprint (" discharges into the water\n");
 					return;
 				}
+        #ifdef GAME_ROGUE
+          if (targ.dmg_inflictor.classname == "MultiRocket")  //Ry: Dissolution exclusives
+          {  
+            bprint (" blew themself away\n");
+            return;
+          }
+          if (targ.dmg_inflictor.classname == "MiniGrenade") 
+          {  
+            if (rnum > 0.4 )
+              bprint (" got too close to their own fireworks\n");
+            else
+              bprint (" tries to put the pieces back together\n");
+            return;
+          }
+          if (targ.dmg_inflictor.classname == "plasma")
+          {  
+            bprint (" fused with the floor\n");
+            return;
+          }
+          //ZOID--  //Ry: This shouldn't come up any more
+          //gibbed for changing teams
+          else if (teamplay && (targ.team != targ.steam))
+            bprint(" tried to change teams\n");
+          //--ZOID
+        #endif
 //JIM
         else if (rnum > 0.4 )
 					bprint (" becomes bored with life\n");
 				else
 					bprint (" checks if their weapon is loaded\n");
         
-        //if (targ.dmg_inflictor.classname) //Ry: For debugging
-        //{  
-        //  bprint (targ.dmg_inflictor.classname);
-        //  bprint ("\n");
-        //}
-        
 				return;
 			}
-         else if ( (teamplay == 2) && (targ.team > 0)&&(targ.team == attacker.team) )
+      #ifdef GAME_ROGUE
+      //Ry: Account for CTF Teamplay modes [09-18-2022]
+      else if ( ((teamplay == TEAM_NORMAL_DAMAGE) || (teamplay >= TEAM_CTF)) && (targ.team > 0) && (targ.team == attacker.team) )
+      #else
+      else if ( (teamplay == 2) && (targ.team > 0) && (targ.team == attacker.team) )
+      #endif
+      {
+        if (rnum < 0.25)
+          deathstring = " mows down a teammate\n";
+        else if (rnum < 0.50)
+          deathstring = " checks their glasses\n";
+        else if (rnum < 0.75)
+          deathstring = " helps the other team\n"; //Ry: Tweaked this message a bit [09-18-2022]
+        else
+          deathstring = " loses another friend\n";
+        bprint (attacker.netname);
+        bprint (deathstring);
+        attacker.frags = attacker.frags - 1;
+        return;
+      }
+      else
 			{
-				if (rnum < 0.25)
-					deathstring = " mows down a teammate\n";
-				else if (rnum < 0.50)
-					deathstring = " checks their glasses\n";
-				else if (rnum < 0.75)
-					deathstring = " gets a frag for the other team\n";
-				else
-					deathstring = " loses another friend\n";
-				bprint (attacker.netname);
-				bprint (deathstring);
-				attacker.frags = attacker.frags - 1;
-				return;
-			}
-         else
-			{
-        ClientAwardFrag(targ,attacker,attacker,1); //Ry: PvP frags are now added in this function
-//MED 01/19/97
-            if (empathyused == 1)
-               {
-               bprint (targ.netname);
-               if (random()<0.5)
-                  bprint (" shares ");
-               else
-                  bprint (" feels ");
-               bprint (attacker.netname);
-               bprint ("'s pain\n");
-               return;
-               }
+        #ifdef GAME_ROGUE
+          if (dmatchtag)
+            dmatch_score (targ, attacker);
+          else
+          {
+            ClientAwardFrag(targ,attacker,attacker,1);
+            #ifdef CTF_ASSISTS
+              //ZOID--
+              TeamAssists(targ, attacker);
+              //--ZOID
+            #endif
+          }
+        #else
+          ClientAwardFrag(targ,attacker,attacker,1); //Ry: PvP frags are now added in this function
+        #endif
 
-//MED 11/18/96
-            if (targ.dmg_inflictor.classname == "proximity_grenade")
-               {
-               bprint (targ.netname);
-               if (random()<0.5)
-                  bprint (" got too friendly with ");
-               else
-                  bprint (" did the rhumba with ");
-               bprint (attacker.netname);
-               bprint ("'s bomb\n");
-               return;
-               }
-               
+        #ifdef GAME_HIPNOTIC
+          //MED 01/19/97
+          if (empathyused == 1)
+          {
+            bprint (targ.netname);
+            if (random()<0.5)
+              bprint (" shares ");
+            else
+              bprint (" feels ");
+            bprint (attacker.netname);
+            bprint ("'s pain\n");
+            return;
+          }
+
+          //MED 11/18/96
+          if (targ.dmg_inflictor.classname == "proximity_grenade")
+          {
+            bprint (targ.netname);
+            if (random()<0.5)
+              bprint (" got too friendly with ");
+            else
+              bprint (" did the rhumba with ");
+            bprint (attacker.netname);
+            bprint ("'s bomb\n");
+            return;
+          }
+        #endif
+
         deathstring = " was killed by "; //Ry: Fallback text just in case
         deathstring2 = "\n";
         
-        if (targ.dmg_inflictor.classname == "grenade") //Ry: Actually check for what projectile killed the player (Proxy bomb handled just above)
+        #ifdef GAME_ROGUE
+          if (targ.dmg_inflictor.classname == "grenade" || targ.dmg_inflictor.classname == "MultiGrenade")
+        #else
+          if (targ.dmg_inflictor.classname == "grenade") //Ry: Actually check for what projectile killed the player (Proxy bomb handled just above)
+        #endif
         {  
           deathstring = " eats ";
           deathstring2 = "'s pineapple\n";
-          if (targ.health < -40)
+          if (targ.health < targ.gib_health) //Ry: Compare to the saved var for these now [08-08-2022]
           {
             deathstring = " was gibbed by ";
             deathstring2 = "'s grenade\n";
@@ -2477,7 +3260,7 @@ void(entity targ, entity attacker) ClientObituary =
         }
         else if (targ.dmg_inflictor.classname == "missile")
         {  
-          if (attacker.super_damage_finished && (targ.health < -40)) //Ry: Remaster Quad Rocket messages (minus 1)
+          if (attacker.super_damage_finished && (targ.health < targ.gib_health)) //Ry: Remaster Quad Rocket messages (minus 1)
           {
             if (rnum< 0.5)
               deathstring = " was brutalized by ";
@@ -2487,7 +3270,7 @@ void(entity targ, entity attacker) ClientObituary =
           }
           else
           {
-            if (targ.health < -40)
+            if (targ.health < targ.gib_health)
               deathstring = " was gibbed by ";
             else
               deathstring = " rides ";
@@ -2504,19 +3287,53 @@ void(entity targ, entity attacker) ClientObituary =
           deathstring = " was punctured by ";
           deathstring2 = "\n";
         }
-        else if (targ.dmg_inflictor.classname == "hiplaser") //Ry: Armagon exclusive
-        {  
-          if (rnum<0.5)
-            deathstring = " was toasted by ";
-          else
-            deathstring = " was radiated by ";
-          deathstring2 = "'s laser\n";
-        }
-        else if (targ.dmg_inflictor.classname == "trap_gods_wrath") //HIP2M2
-        {  
-          deathstring = " suffers for ";
-          deathstring2 = "'s sins\n";
-        }
+        #ifdef GAME_HIPNOTIC
+          else if (targ.dmg_inflictor.classname == "hiplaser") //Ry: Armagon exclusive
+          {  
+            if (rnum<0.5)
+              deathstring = " was toasted by ";
+            else
+              deathstring = " was radiated by ";
+            deathstring2 = "'s laser\n";
+          }
+          else if (targ.dmg_inflictor.classname == "trap_gods_wrath") //HIP2M2
+          {  
+            deathstring = " suffers for ";
+            deathstring2 = "'s sins\n";
+          }
+        #endif
+        #ifdef GAME_ROGUE
+          else if (targ.dmg_inflictor.classname == "hook") //Ry: Dissolution exclusives
+          {
+            deathstring = " was grappled by ";
+          }
+          else if (targ.dmg_inflictor.classname == "lava_spike") //Ry: Used for both Lava Nailguns
+          {
+            deathstring = " was burned by ";
+          }
+          else if (targ.dmg_inflictor.classname == "MultiRocket" && attacker.super_damage_finished && (targ.health < -40)) //Ry: New, based on the remaster quad rocket messages
+          {
+            deathstring = " was annihilated by ";
+            deathstring2 = "'s quad barrage\n";
+          }
+          else if (targ.dmg_inflictor.classname == "MultiRocket" || targ.dmg_inflictor.classname == "MiniGrenade")
+          {
+            deathstring = " was blasted to bits by ";
+          }
+          else if (targ.dmg_inflictor.classname == "plasma")
+          {
+            deathstring = " was fused by ";
+          }
+          else if (targ.dmg_inflictor.classname == "power_shield")
+          {
+            deathstring = " was smashed by ";
+          }
+          else if (targ.dmg_inflictor.classname == "Vengeance")
+          {
+            deathstring = " was purged by ";
+            deathstring2 = "'s Vengeance Sphere\n";
+          }
+        #endif
         else //Ry: Weapons you absolutely must have out to deal damage with
         {
           //if (targ.dmg_inflictor.classname) //Ry: For Debugging
@@ -2544,42 +3361,46 @@ void(entity targ, entity attacker) ClientObituary =
           {
             deathstring = " accepts ";
             if (attacker.deathtype == "discharge") //Ry: Use deathtype for this
-            {
               deathstring2 = "'s discharge\n";
-              if (attacker.invincible_finished || attacker.wetsuit_finished) //Ry: Discharge achievement stuff
-              {
-                msg_entity = attacker;
-                WriteByte(MSG_ONE, SVC_ACHIEVEMENT);
-                WriteString(MSG_ONE, "ACH_SURVIVE_DISCHARGE");
-              }
-            }
             else
               deathstring2 = "'s shaft\n";
           }
-  //MED
-          if (rnum == IT_MJOLNIR)
-          {
-            if (attacker.deathtype == "discharge") //Ry: Message for discharging with Mjolnir (also use deathtype)
+          
+          #ifdef GAME_HIPNOTIC
+            //MED
+            if (rnum == IT_MJOLNIR)
+            {
+              if (attacker.deathtype == "discharge") //Ry: Message for discharging with Mjolnir (also use deathtype)
+              {
+                deathstring = " accepts ";
+                deathstring2 = "'s discharge\n";
+              }
+              else
+              {
+                deathstring = " was slammed by ";
+                deathstring2 = "'s hammer\n";
+              }
+            }
+          #endif
+          #ifdef GAME_ROGUE
+            if (rnum == IT_PLASMA_GUN && (attacker.deathtype == "discharge")) //Ry: Discharge message for Plasma Gun
             {
               deathstring = " accepts ";
               deathstring2 = "'s discharge\n";
-              if (attacker.invincible_finished || attacker.wetsuit_finished) //Ry: Discharge achievement stuff
-              {
-                msg_entity = attacker;
-                WriteByte(MSG_ONE, SVC_ACHIEVEMENT);
-                WriteString(MSG_ONE, "ACH_SURVIVE_DISCHARGE");
-              }
+              #ifdef ENGINE_KEX
+                if (attacker.invincible_finished) //Ry: Discharge achievement stuff
+                {
+                  msg_entity = attacker;
+                  WriteByte(MSG_ONE, SVC_ACHIEVEMENT);
+                  WriteString(MSG_ONE, "ACH_SURVIVE_DISCHARGE");
+                }
+              #endif
             }
-            else
-            {
-              deathstring = " was slammed by ";
-              deathstring2 = "'s hammer\n";
-            }
-          }
+          #endif
           
         }
       
-            bprint (targ.netname);
+        bprint (targ.netname);
 				bprint (deathstring);
 				bprint (attacker.netname);
 				bprint (deathstring2);
@@ -2587,8 +3408,13 @@ void(entity targ, entity attacker) ClientObituary =
 			return;
 		}
     
-    else if (time <= (targ.lastdamagetime + 3) && (targ.lastdamager.classname == "player" || targ.lastdamager.charmer) ) // Ry: Killed by non-player in Deathmatch while having been recently damaged by a player
+    #ifdef GAME_HIPNOTIC // Ry: Killed by non-player in Deathmatch while having been recently damaged by a player
+    else if (time <= (targ.lastdamagetime + 3) && (targ.lastdamager.classname == "player" || targ.lastdamager.charmer) )
+    #else
+    else if (time <= (targ.lastdamagetime + 3) && (targ.lastdamager.classname == "player"))
+    #endif
     {
+      #ifdef GAME_HIPNOTIC
       if (targ.lastdamager.charmer) //Ry: Killed by a charmed monster
       {
         if (targ == targ.lastdamager.charmer) //Ry: Killed by own monster
@@ -2711,7 +3537,11 @@ void(entity targ, entity attacker) ClientObituary =
       }
       else
       {
+      #endif
         ClientAwardFrag(targ,targ.lastdamager,targ.lastdamager,1); //Ry: PvP frags are now added in this function
+        #if defined(GAME_ROGUE) && defined(CTF_ASSISTS)
+          TeamAssists(targ, targ.lastdamager);
+        #endif
       
         bprint (targ.netname);
         //Ry: Player died to another player in liquid; Now uses deathtype as well
@@ -2772,7 +3602,9 @@ void(entity targ, entity attacker) ClientObituary =
         bprint (targ.lastdamager.netname);
         bprint ("\n");
         return;
+      #ifdef GAME_HIPNOTIC
       }
+      #endif
     }
       
 		else
@@ -2784,6 +3616,7 @@ void(entity targ, entity attacker) ClientObituary =
 //JIM
           if ( attacker.deathtype ) //Ry: The Remaster translations have problems (like missing newlines), and I wasn't using the translation strings anyways
           {
+            #ifdef GAME_HIPNOTIC
             if (attacker.deathtype == "$qc_spin_blade") //HIP3M4
               bprint (" was mangled by a Spin Blade");
             else if (attacker.deathtype == "$qc_boulder") //HIP1M3
@@ -2796,9 +3629,12 @@ void(entity targ, entity attacker) ClientObituary =
               bprint (" was munched by the turbines");
             else //Original logic
             {
+            #endif
               bprint ( " " );
               bprint ( attacker.deathtype );
+            #ifdef GAME_HIPNOTIC
             }
+            #endif
             bprint( "\n" );
             return;
           }
@@ -2841,8 +3677,6 @@ void(entity targ, entity attacker) ClientObituary =
 					bprint (" was eviscerated by a Fiend\n");
 				if (attacker.classname == "monster_dog")
 					bprint (" was mauled by a Rottweiler\n");
-				if (attacker.classname == "monster_dragon")
-					bprint (" was fried by a Dragon\n");
 				if (attacker.classname == "monster_enforcer")
 					bprint (" was blasted by an Enforcer\n");
 				if (attacker.classname == "monster_fish")
@@ -2853,8 +3687,6 @@ void(entity targ, entity attacker) ClientObituary =
 					bprint (" was slashed by a Knight\n");
 				if (attacker.classname == "monster_ogre")
 					bprint (" was destroyed by an Ogre\n");
-				if (attacker.classname == "monster_oldone")
-					bprint (" became one with Shub-Niggurath\n");
 				if (attacker.classname == "monster_shalrath")
 					bprint (" was exploded by a Vore\n");
 				if (attacker.classname == "monster_shambler")
@@ -2867,18 +3699,45 @@ void(entity targ, entity attacker) ClientObituary =
 					bprint (" was scragged by a Scrag\n");
 				if (attacker.classname == "monster_zombie")
 					bprint (" joins the Zombies\n");
-//MED
-            if (attacker.classname == "monster_gremlin")
-               bprint (" was outsmarted by a Gremlin\n");
-//MED
-            if (attacker.classname == "monster_scourge")
-               bprint (" was stung by a Centroid\n");
-//MED
-            if (attacker.classname == "monster_armagon")
-               bprint (" was outgunned by Armagon\n");
+        #ifdef GAME_HIPNOTIC
+          //MED
+          if (attacker.classname == "monster_gremlin")
+            bprint (" was outsmarted by a Gremlin\n");
+          //MED
+          if (attacker.classname == "monster_scourge")
+            bprint (" was stung by a Centroid\n");
+          //MED
+          if (attacker.classname == "monster_armagon")
+            bprint (" was outgunned by Armagon\n");
+        #endif
+        #ifdef GAME_ROGUE
+          if (attacker.classname == "monster_eel")
+            bprint (" was electrified by an Eel\n");
+          if (attacker.classname == "monster_wrath")
+            bprint (" was disintegrated by a Wrath\n");
+          if (attacker.classname == "monster_super_wrath")
+            bprint (" was obliterated by an Overlord\n");
+          if (attacker.classname == "monster_sword")
+            bprint (" was slit open by a Phantom Swordsman\n");
+          if (attacker.classname == "monster_lava_man")
+            bprint (" fries in Hephaestus' fury\n");
+          if (attacker.classname == "monster_morph")
+            bprint (" was crushed by a Guardian\n");
+          if (attacker.classname == "monster_mummy")
+            bprint (" was Mummified\n");
+          if (attacker.classname == "monster_dragon")
+            bprint (" was annihilated by the Dragon\n");
+          if (attacker.classname == "monster_dragon_dead")
+            bprint (" was squashed by the Dragon\n");
+        #endif
 
 				return;
 			}
+      if (attacker.classname == "monster_oldone") //Ry: Shub isn't flagged as a monster, so do this here [09-16-2022]
+      {
+        bprint (" became one with Shub-Niggurath\n");
+        return;
+      }
 			if (attacker.classname == "explo_box")
 			{
 				bprint (" blew up\n");
@@ -2909,8 +3768,32 @@ void(entity targ, entity attacker) ClientObituary =
 				bprint (" tried to leave\n");
 				return;
 			}
+      
+      #ifdef GAME_ROGUE
+        if (attacker.classname == "ltrail_start" || 
+          attacker.classname == "ltrail_relay")
+        {
+          bprint (" rode the lightning\n");
+          return;
+        }
+        if (attacker.classname == "pendulum")
+        {
+          bprint (" was cleaved in two\n");
+          return;
+        }
+        if (attacker.classname == "buzzsaw")
+        {
+          bprint (" was sliced to pieces\n");
+          return;
+        }
+        if (attacker.classname == "plasma")
+        {
+          bprint ( " was turned to plasma\n");
+          return;
+        }
+      #endif
 
-         bprint (" died\n");
+      bprint (" died\n");
 		}
 	}
 };

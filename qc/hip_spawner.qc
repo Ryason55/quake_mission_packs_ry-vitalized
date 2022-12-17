@@ -54,7 +54,7 @@ void() waitforspawneedeath_think = //Ry: Wait for the last spawnee to die before
 
 void() spawn_touch = //Ry: Delay spawn if a player is touching the spawner (only Horn-related ones)
 {
-  if (other.flags & FL_CLIENT)
+  if (other.important) //Ry: Use this var now [08-09-2022]
   {
     self.delay = time + 0.1;
   }
@@ -62,22 +62,44 @@ void() spawn_touch = //Ry: Delay spawn if a player is touching the spawner (only
 
 void() spawn_firstthink = //Ry: To be called after everything is initialized
 {
-  dprint("Spawner for ");
-  dprint(self.spawnmaster.classname);
+  //dprint("Spawner for ");
+  //dprint(self.spawnmaster.classname);
   
+  local float count = 0;
+  local entity ent = find(world, target, self.targetname);
   
-  local entity ent = find(world, target, self.targetname); //Ry: If a horn targets this spawner, set it up as a touchfield to prevent the spawn if a player is in the area, and decrement monster count
-  if (ent.classname == "item_hornofconjuring")
+  if (self.spawnmaster.flags & FL_MONSTER)
   {
-    dprint(", which will be charmed");
-    self.charmed = TRUE;
-    self.solid = SOLID_TRIGGER;
-    setsize (self, self.spawnmaster.mins - '4 4 4', self.spawnmaster.maxs + '4 4 4');
-    self.touch = spawn_touch;
-    if (!self.spawnmulti)
-      total_monsters = total_monsters - 1;
+    ent = find(world,target,self.targetname);
+    while (ent)
+    {
+      if (ent.classname == "item_hornofconjuring") //Ry: If a Horn uses this, set it up as a touchfield
+      {
+        //dprint(", which will be charmed");
+        self.charmed = TRUE;
+        self.solid = SOLID_TRIGGER;
+        setsize(self, self.spawnmaster.mins - '4 4 4', self.spawnmaster.maxs + '4 4 4');
+        setorigin(self,self.spawnmaster.origin);
+        self.touch = spawn_touch;
+        if (!self.spawnmulti)
+          total_monsters = total_monsters - 1;
+        count = 0;
+        break;
+      }
+      else if (self.spawnmulti) //Ry: Increment monster count for each one-time trigger [08-28-2022]
+      {
+        if ((ent.classname == "trigger_once") || (ent.flags & FL_MONSTER))
+          count += 1;
+      }
+      ent = find(ent,target,self.targetname);
+    }
+    if (self.spawnmulti && (count > 0))
+    {
+      self.spawnmulti = 1 + count;
+      total_monsters += count;
+    }
   }
-  dprint("\n");
+  //dprint("\n");
    
   AutoSpawnSetup(); //Ry: Set up auto-spawner
 }
@@ -105,7 +127,7 @@ void(entity tempself, void() spawnfunc, string spawnclass) spawn_storemonster = 
   self.spawnsolidtype = self.solid;
   self.solid = SOLID_NOT;
   self.spawnmovetype = self.movetype; //Ry: Track movetype now
-  if (tempself.static) //Ry: No Gravity
+  if (tempself.static || self.think == flymonster_start_go) //Ry: No Gravity, or will be a flying monster (Scrag) [11-16-2022]
     self.movetype = MOVETYPE_NONE;
   //save off think func and
   //get rid of his thinking
@@ -181,7 +203,7 @@ void() spawn_use =
     SUB_UseTargets();
   }
 
-  if ((self.spawnmulti == 1) || (self.charmed))
+  if ((self.spawnmulti >= 1) || (self.charmed))
   {
     // spawn the new entity
     spawnentity = spawn();
@@ -212,7 +234,7 @@ void() spawn_use =
 
   if (self.spawnmaster.conjoinedentity) //Ry: For Armagon
   {
-    if ((self.spawnmulti == 1) || (self.charmed))
+    if ((self.spawnmulti >= 1) || (self.charmed))
     {
       // spawn the new entity
       spawnentity2 = spawn();
@@ -269,16 +291,35 @@ void() spawn_use =
   {
     if (self.spawnmulti && !self.charmed)
     {
-      total_monsters = total_monsters + 1;
-      WriteByte (MSG_BROADCAST, SVC_UPDATESTAT);
-      WriteByte (MSG_BROADCAST, STAT_TOTALMONSTERS);
-      WriteLong (MSG_BROADCAST, total_monsters);
+      if (self.spawnmulti > 1) //Ry: Only add to the monster count if we go over the expected amount
+        self.spawnmulti -= 1;
+      else
+      {
+        total_monsters = total_monsters + 1;
+        WriteByte (MSG_ALL, SVC_UPDATESTAT); //Ry: Why was this not reliable messages before? [08-12-2022]
+        WriteByte (MSG_ALL, STAT_TOTALMONSTERS);
+        WriteLong (MSG_ALL, total_monsters);
+      }
     }
     // spawn the telefrag effect
     spawn_tdeath_fast(spawnentity.origin, spawnentity); //Ry: Actually spawn the telefrag effect (It was originally commented out)
-    if (self.charmed && !deathmatch) //Ry: Disable the visual charmed effect in DM
+    if (self.charmed)
     {
-      spawnentity.effects = spawnentity.effects | EF_DIMLIGHT;
+      spawnentity.category = "charmed_monster"; //Ry: To make searching easier [08-22-2022]
+      spawnentity.important = TRUE; //Ry: Mark charmed monsters with this so they won't be telefragged by monsters, and will block other charmed spawns [08-09-2022]
+      if (!deathmatch) //Ry: Disable the visual charmed effect in DM
+        SetLightEffect(spawnentity,SET_EF_DIM,TRUE);
+      else if (teamplay) //Ry: Team-colored glow [08-09-2022]
+      {
+        if (self.charmer.team == TEAM_RED)
+          SetLightEffect(spawnentity,SET_EF_PENTA,TRUE);
+        else if (self.charmer.team == TEAM_BLUE)
+          SetLightEffect(spawnentity,SET_EF_QUAD,TRUE);
+      }
+      #ifdef ENGINE_KEX
+        if (spawnentity.allowPathFind == USEPATH_ALLOW) //Ry: If charmed monster is able to use pathing, set them to always use it [08-01-2022]
+          spawnentity.allowPathFind = USEPATH_ALWAYS;
+      #endif
     }
     if (self.spawnhostile && !self.charmed && activator && activator.health > 0 && activator.team > 0) //Ry: Setting for spawning hostile
     {
@@ -323,7 +364,7 @@ Think of it like setting up a normal entity.
 
 void() func_spawn =
 {
-	if (!EntityValidForMode(FALSE,TRUE)) //Ry: New function to handle func_spawn and horde mode
+	if (!EntityValidForMode(ENTTYPE_GAMEPLAY)) //Ry: New function to handle func_spawn and horde mode
 	{
 		remove(self);
 		return;
@@ -333,7 +374,7 @@ void() func_spawn =
   local float tempskill;
   local float temptotal_monsters;
 
-  hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
+  missionpackmap = TRUE; //Ry: Map has Hipnotic entity
 
   if (self.autospawndelay) //Ry: Precache sounds for new auto spawner
   {
@@ -411,15 +452,15 @@ void() func_spawn =
   }
 
   self = tempself;
+  
+  initspawner = FALSE;
+  skill = tempskill; //Ry: Put skill back
 
   // make sure monster count is correct
-  if ( self.spawnmulti || !(monster.flags & FL_MONSTER) )
+  if (self.spawnmulti || !(monster.flags & FL_MONSTER)) //Ry: Multi-spawner, or not a monsters
     total_monsters = temptotal_monsters;
   else
     total_monsters = temptotal_monsters + 1;
-
-  initspawner = FALSE;
-  skill = tempskill; //Ry: Put skill back
   
   self.movetype = MOVETYPE_NONE;
 	self.modelindex = 0;

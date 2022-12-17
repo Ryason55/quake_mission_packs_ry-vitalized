@@ -1,28 +1,65 @@
 ../progs.dat
 
-//Ry: Which game is being compiled (For future use)
+//Ry: Which game is being compiled; No game assumes ID1 (not entirely accounted for)
 #define GAME_HIPNOTIC
-//#define GAME_DISSOLUTION
+//#define GAME_ROGUE
 
-//Ry: Which engine is being compiled for (Again for future use)
+//Ry: Which engine is being compiled for; No engine assumes source ports like QuakeSpasm
 #define ENGINE_KEX
 //#define ENGINE_WINQUAKE
+
+#define CTF_ASSISTS
+
+//Ry: Only compile for one
+#if !defined(GAME_HIPNOTIC) && !defined(GAME_ROGUE)
+  #define GAME_ID1
+#elif defined(GAME_HIPNOTIC) && defined(GAME_ROGUE)
+  #undef GAME_ROGUE
+#endif
+
+//Ry: Dissolution uses different variable names for the basic ammo types
+#ifdef GAME_ROGUE
+  #define AMMO_SHELLS ammo_shells1
+  #define AMMO_NAILS ammo_nails1
+  #define AMMO_ROCKETS ammo_rockets1
+  #define AMMO_CELLS ammo_cells1
+#else
+  #define AMMO_SHELLS ammo_shells
+  #define AMMO_NAILS ammo_nails
+  #define AMMO_ROCKETS ammo_rockets
+  #define AMMO_CELLS ammo_cells
+#endif
 
 defs.qc
 #ifdef GAME_HIPNOTIC
   hip_defs.qc   //JIM
 #endif
+#ifdef GAME_ROGUE
+  rogue_defs.qc
+#endif
 ry_defs.qc //Ry: My stuff, separated out
+#ifdef GAME_ROGUE
+  rogue_teamplay.qc		// ZOID - teamplay stuff
+  rogue_runes.qc
+#endif
 motd.qc //Ry: Copied from Rogue
 subs.qc
 ry_subs.qc //Ry: My stuff, separated out
 ry_funcs.qc //Ry: My stuff, separated out
-maps.qc //Ry: From QuakeEnhancedQC
+#ifdef ENGINE_KEX
+  maps.qc //Ry: From QuakeEnhancedQC
+#endif
 fight.qc
 ai.qc
 combat.qc
 items.qc
+#ifdef GAME_ROGUE
+  rogue_grapple.qc		// ZOID - grappling hook
+#endif
 weapons.qc
+#ifdef GAME_HIPNOTIC
+  hip_weapons.qc //Ry: Separated out
+#endif
 world.qc
 client.qc
 player.qc
@@ -75,6 +112,35 @@ monsters/shub.qc  // registered
   monsters/hip_spikemine.qc
   monsters/hip_centroid.qc
   monsters/hip_decoy.qc
+#endif
+
+#ifdef GAME_ROGUE
+  rogue_ai.qc
+  rogue_items.qc
+  rogue_plats.qc
+  rogue_misc.qc
+  rogue_elevator.qc
+  rogue_pendulum.qc
+  rogue_lightning.qc
+  rogue_shield.qc
+  rogue_weapon_lava.qc
+  rogue_weapon_multi.qc
+  rogue_random.qc
+  rogue_earthquake.qc
+  rogue_vengeancesphere.qc
+  rogue_buzzsaw.qc
+  rogue_deathmatch.qc
+  rogue_ending.qc
+
+  monsters/rogue_eel.qc
+  monsters/rogue_phantomswordsman.qc
+  monsters/rogue_wrath.qc
+  monsters/rogue_dragon.qc
+  monsters/rogue_overlord.qc
+  monsters/rogue_hephaestus.qc
+  monsters/rogue_guardian.qc
+  monsters/rogue_mummy.qc
+  monsters/rogue_timemachine.qc
 #endif
 
 horde.qc //Ry: Remaster Horde mode handler

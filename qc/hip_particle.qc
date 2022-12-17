@@ -184,7 +184,7 @@ USE_COUNT when the activator is a func_counter, the field will only
 
 void() func_particlefield =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
   if ( !self.color )
@@ -298,7 +298,7 @@ START_OFF wall doesn't block until triggered.
 
 void() func_togglewall =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
   self.classname = "togglewall";

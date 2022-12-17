@@ -121,7 +121,10 @@ void() light_torch_small_walltorch =
 {
 	precache_model ("progs/flame.mdl");
 	setmodel (self, "progs/flame.mdl");
-	FireAmbient ();
+  #ifdef GAME_ROGUE
+  if (!(self.spawnflags & 1))
+  #endif
+    FireAmbient ();
 	makestatic (self);
 };
 
@@ -212,12 +215,11 @@ void() fire_touch =
 //============================================================================
 
 
+//Ry: Remaster behavior, which fixes problems with doing radius damage on the same frame
 void() barrel_explode =
 {
-	self.takedamage = DAMAGE_NO;
-	self.classname = "explo_box";
 	// did say self.owner
-	T_RadiusDamage (self, self, 160, world);
+	T_RadiusDamage (self, self.enemy, 160, world);
 	sound (self, CHAN_VOICE, "weapons/r_exp3.wav", 1, ATTN_NORM);
 	particle (self.origin, '0 0 0', 75, 255);
 
@@ -225,6 +227,13 @@ void() barrel_explode =
 	BecomeExplosion ();
 };
 
+void() barrel_detonate =
+{
+	self.classname = "explo_box";
+	self.takedamage = DAMAGE_NO;
+	self.think = barrel_explode;
+	self.nextthink = time + 0.1; //Ry: Tweaked a bit
+}
 
 
 /*QUAKED misc_explobox (0 .5 .8) (0 0 0) (32 32 64)
@@ -235,28 +244,30 @@ void() misc_explobox =
 {
 	local float	oldz;
 
+	if(!self.mdl) //Ry: Remaster's setup [09-26-2022]
+		self.mdl = "maps/b_explob.bsp";
+
 	self.solid = SOLID_BBOX;
 	self.movetype = MOVETYPE_NONE;
-	precache_model ("maps/b_explob.bsp");
-	setmodel (self, "maps/b_explob.bsp");
-	precache_sound ("weapons/r_exp3.wav");
+	precache_model(self.mdl);
+	setmodel(self,self.mdl);
+	precache_sound("weapons/r_exp3.wav");
 	self.health = 20;
-	self.th_die = barrel_explode;
+	self.th_die = barrel_detonate;
 	self.takedamage = DAMAGE_AIM;
+  self.netname = "exploding barrel";
 
 	self.origin_z = self.origin_z + 2;
 	oldz = self.origin_z;
 	droptofloor(0, 0);
 	if (oldz - self.origin_z > 250)
 	{
-		dprint ("item fell out of level at ");
+		dprint ("explobox fell out of level at ");
 		dprint (vtos(self.origin));
 		dprint ("\n");
 		remove(self);
 	}
 };
-
-
 
 
 /*QUAKED misc_explobox2 (0 .5 .8) (0 0 0) (32 32 64)
@@ -265,49 +276,50 @@ Smaller exploding box, REGISTERED ONLY
 
 void() misc_explobox2 =
 {
-	local float	oldz;
-
-	self.solid = SOLID_BBOX;
-	self.movetype = MOVETYPE_NONE;
-	precache_model2 ("maps/b_exbox2.bsp");
-	setmodel (self, "maps/b_exbox2.bsp");
-	precache_sound ("weapons/r_exp3.wav");
-	self.health = 20;
-	self.th_die = barrel_explode;
-	self.takedamage = DAMAGE_AIM;
-
-	self.origin_z = self.origin_z + 2;
-	oldz = self.origin_z;
-	droptofloor(0, 0);
-	if (oldz - self.origin_z > 250)
-	{
-		dprint ("item fell out of level at ");
-		dprint (vtos(self.origin));
-		dprint ("\n");
-		remove(self);
-	}
+  self.mdl = "maps/b_exbox2.bsp";
+  misc_explobox();
 };
 
 //============================================================================
 
+float SPAWNFLAG_SUPERSPIKE = 1;
+float SPAWNFLAG_LASER = 2;
+#ifdef GAME_HIPNOTIC
+  float SPAWNFLAG_LAVABALL = 4;
+  float SPAWNFLAG_ROCKET = 8;
+  float SPAWNFLAG_SILENT = 16;
+#elifdef GAME_ROGUE
+  float SPAWNFLAG_LAVASPIKE = 4;
+  float SPAWNFLAG_SUPERLAVA = 8;
+  float SPAWNFLAG_LAVASKILL = 16;
+  float SPAWNFLAG_FIREBALL = 32;
 
+  void(vector org, vector dir) launch_lava_spike;
+  void(vector org, vector dir) launch_fireball;
+#endif
+ 
 void(vector org, vector vec) LaunchLaser;
 
 //MED 11/09/96 added lava ball and rocket
 void() spikeshooter_use =
 {
-   local entity lavaball;
+  #ifdef GAME_HIPNOTIC
+    local entity lavaball;
+  #endif
 	if (self.spawnflags & SPAWNFLAG_LASER)
 	{
-      if (!(self.spawnflags & SPAWNFLAG_SILENT))
-         sound (self, CHAN_VOICE, "enforcer/enfire.wav", 1, ATTN_NORM);
+    #ifdef GAME_HIPNOTIC
+    if (!(self.spawnflags & SPAWNFLAG_SILENT))
+    #endif
+      sound (self, CHAN_VOICE, "enforcer/enfire.wav", 1, ATTN_NORM);
 		LaunchLaser (self.origin, self.movedir);
-      newmis.spawnflags = self.spawnflags;
+    newmis.spawnflags = self.spawnflags;
 	}
-   else if (self.spawnflags & SPAWNFLAG_LAVABALL)
-   {
+  #ifdef GAME_HIPNOTIC
+    else if (self.spawnflags & SPAWNFLAG_LAVABALL)
+    {
       if (!(self.spawnflags & SPAWNFLAG_SILENT))
-         sound (self, CHAN_VOICE, "misc/spike.wav", 1, ATTN_NORM);
+        sound (self, CHAN_VOICE, "misc/spike.wav", 1, ATTN_NORM);
       lavaball = spawn();
       lavaball.movetype = MOVETYPE_FLYMISSILE;
       lavaball.solid = SOLID_BBOX;
@@ -323,24 +335,48 @@ void() spikeshooter_use =
       lavaball.avelocity = '0 0 400';
       lavaball.nextthink = time + 5;
       lavaball.think = SUB_Remove;
-   }
-   else if (self.spawnflags & SPAWNFLAG_ROCKET)
-   {
+    }
+    else if (self.spawnflags & SPAWNFLAG_ROCKET)
+    {
       if (!(self.spawnflags & SPAWNFLAG_SILENT))
-         sound (self, CHAN_VOICE, "weapons/sgun1.wav", 1, ATTN_NORM);
+        sound (self, CHAN_VOICE, "weapons/sgun1.wav", 1, ATTN_NORM);
       W_FireRocket();
       newmis.velocity = self.movedir*1000;
       newmis.angles = vectoangles(newmis.velocity);
       setorigin (newmis, self.origin + self.movedir*8);
-   }
-   else
-	{
-      if (!(self.spawnflags & SPAWNFLAG_SILENT))
-         sound (self, CHAN_VOICE, "weapons/spike2.wav", 1, ATTN_NORM);
+    }
+  #elifdef GAME_ROGUE
+    else if (self.spawnflags & SPAWNFLAG_FIREBALL)
+    {
+      launch_fireball (self.origin, self.movedir);
+    }
+    else if (self.spawnflags & (SPAWNFLAG_LAVASPIKE|SPAWNFLAG_SUPERLAVA|SPAWNFLAG_LAVASKILL))
+    {
+      sound (self, CHAN_VOICE, "weapons/spike2.wav", 1, ATTN_NORM);
+      launch_lava_spike (self.origin, self.movedir);
+      newmis.velocity = self.movedir * 500;
+      if (self.spawnflags & SPAWNFLAG_SUPERLAVA)
+        newmis.touch = superlavaspike_touch;
+      else if ((self.spawnflags & SPAWNFLAG_LAVASKILL) && (skill > 1))
+        newmis.touch = superlavaspike_touch;
+    }
+  #endif
+  else
+  {
+    #ifdef GAME_HIPNOTIC
+    if (!(self.spawnflags & SPAWNFLAG_SILENT))
+    #endif
+      sound (self, CHAN_VOICE, "weapons/spike2.wav", 1, ATTN_NORM);
 		launch_spike (self.origin, self.movedir);
 		newmis.velocity = self.movedir * 500;
-		if (self.spawnflags & SPAWNFLAG_SUPERSPIKE)
-			newmis.touch = superspike_touch;
+    if (self.spawnflags & SPAWNFLAG_SUPERSPIKE)
+    {
+      newmis.touch = superspike_touch;
+      //Ry: Give super spikes the actual model [09-26-2022]
+      newmis.classname = "super_spike";
+      setmodel (newmis, "progs/s_spike.mdl");
+      setsize (newmis, VEC_ORIGIN, VEC_ORIGIN);
+    }
 	}
 };
 
@@ -363,7 +399,7 @@ Laser is only for REGISTERED.
 //MED 11/01/96 commented out setmovedir
 void() trap_spikeshooter =
 {
-   SetMovedir ();
+  SetMovedir ();
 	self.use = spikeshooter_use;
 	if (self.spawnflags & SPAWNFLAG_LASER)
 	{
@@ -372,19 +408,46 @@ void() trap_spikeshooter =
 		precache_sound2 ("enforcer/enfire.wav");
 		precache_sound2 ("enforcer/enfstop.wav");
 	}
-   else if (self.spawnflags & SPAWNFLAG_LAVABALL)
-   {
+  #ifdef GAME_HIPNOTIC
+    else if (self.spawnflags & SPAWNFLAG_LAVABALL)
+    {
       precache_model ("progs/lavarock.mdl");
-//      self.classname = "fireball";
+    //  self.classname = "fireball";
       precache_sound2 ("misc/spike.wav");
-   }
-   else if (self.spawnflags & SPAWNFLAG_ROCKET)
-   {
+    }
+    else if (self.spawnflags & SPAWNFLAG_ROCKET)
+    {
       precache_model ("progs/missile.mdl");
       precache_sound ("weapons/sgun1.wav");
-   }
-   else
-		precache_sound ("weapons/spike2.wav");
+    }
+  #endif
+  #ifdef GAME_ROGUE
+    else if (self.spawnflags & SPAWNFLAG_LAVASPIKE)
+    {
+      precache_model2 ("progs/lspike.mdl");
+      precache_sound2 ("lavagun/snail.wav");		// lava nail gun cooldown
+      precache_sound2 ("weapons/rocket1i.wav");
+    }
+    else if (self.spawnflags & SPAWNFLAG_SUPERLAVA)
+    {
+      precache_model2 ("progs/lspike.mdl");
+      precache_sound2 ("lavagun/snail.wav");		// lava nail gun cooldown
+      precache_sound2 ("weapons/spike2.wav");
+    }
+    else if (self.spawnflags & SPAWNFLAG_LAVASKILL)
+    {
+      precache_model2 ("progs/lspike.mdl");
+      precache_sound2 ("lavagun/snail.wav");		// lava nail gun cooldown
+      precache_sound2 ("weapons/rocket1i.wav");
+      precache_sound2 ("weapons/spike2.wav");
+    }
+    else if (self.spawnflags & SPAWNFLAG_FIREBALL)
+    {
+      precache_model ("progs/fireball.mdl");
+    }
+  #endif
+  else
+    precache_sound ("weapons/spike2.wav");
 };
 
 
@@ -517,6 +580,17 @@ void() bubble_remove =
 void() bubble_bob =
 {
   local float		rnd1, rnd2, rnd3;
+  
+	// PGM fix - 02/25/97 so bubbles won't go through walls
+	rnd1 = pointcontents(self.origin);
+	if (rnd1 == CONTENT_SOLID)
+		remove(self);
+	// PGM fix - 02/25/97 so bubbles pop 2 seconds after leaving water
+	else if (rnd1 == CONTENT_EMPTY)
+	{
+		if (self.cnt < 16)
+			self.cnt = 16;
+	}
 
 	self.cnt = self.cnt + 1;
 	if (self.cnt == 4)
@@ -587,7 +661,7 @@ This is just a solid wall if not inhibitted
 */
 void() func_wall =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
   {
     remove(self);
     return;
@@ -606,7 +680,7 @@ A simple entity that looks solid but lets you walk through it.
 void() func_illusionary =
 
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
   {
     remove(self);
     return;
