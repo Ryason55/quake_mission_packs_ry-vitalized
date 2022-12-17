@@ -263,7 +263,7 @@ void() boss_awake =
 */
 void() monster_boss =
 {
-	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
+	if (!EntityValidForMode(ENTTYPE_MONSTER)) //Ry: New function to handle func_spawn and horde mode
 		return;
 
 	precache_model ("progs/boss.mdl");

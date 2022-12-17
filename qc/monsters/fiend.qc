@@ -160,7 +160,7 @@ void()	demon1_die9		=[	$death9,		demon1_die9 ]
 void() demon_die =
 {
 // check for gib
-	if (self.health < -80)
+	if ( self.health < self.gib_health ) //Ry: Compare to the saved var now [07-31-2022]
 	{
 		sound (self, CHAN_VOICE, "player/udeath.wav", 1, ATTN_NORM);
 		ThrowHead ("progs/h_demon.mdl", self.health);
@@ -186,7 +186,7 @@ void() Demon_MeleeAttack =
 */
 void() monster_demon1 =
 {
-	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
+	if (!EntityValidForMode(ENTTYPE_MONSTER)) //Ry: New function to handle func_spawn and horde mode
 		return;
 
 	precache_model ("progs/demon.mdl");
@@ -201,7 +201,9 @@ void() monster_demon1 =
   
   self.netname = "Fiend"; //Ry: Name for Deathmatch
   
-	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+  #ifdef ENGINE_KEX
+    self.allowPathFind = USEPATH_ALLOW; //Ry: Can use Remaster pathing [08-01-2022]
+  #endif
 	self.combat_style = CS_MELEE;
 
 	self.solid = SOLID_SLIDEBOX;
@@ -211,6 +213,7 @@ void() monster_demon1 =
 
 	setsize (self, VEC_HULL2_MIN, VEC_HULL2_MAX);
 	self.health = 300;
+  self.gib_health = -80; //Ry: Var for gib health [07-31-2022]
 
 	self.th_stand = demon1_stand1;
 	self.th_walk = demon1_walk1;

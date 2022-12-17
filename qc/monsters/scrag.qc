@@ -202,7 +202,7 @@ void() Wiz_FastFire =
 		vec = normalize(dst - self.origin);
 		sound (self, CHAN_WEAPON, "wizard/wattack.wav", 1, ATTN_NORM);
 		launch_spike (self.origin, vec);
-		newmis.velocity = vec*600;
+		newmis.velocity = vec*ProjectileSpeed(self,600);
 		newmis.owner = self.owner;
 		newmis.classname = "wizspike";
 		setmodel (newmis, "progs/w_spike.mdl");
@@ -227,7 +227,7 @@ void() Wiz_StartFast =
 	setsize (missile, '0 0 0', '0 0 0');		
 	setorigin (missile, self.origin + '0 0 30' + v_forward*14 + v_right*14);
 	missile.enemy = self.enemy;
-	missile.nextthink = time + 0.8;
+	missile.nextthink = AttackRecoil(self,0.8);
 	missile.think = Wiz_FastFire;
 	missile.movedir = v_right;
 
@@ -237,7 +237,7 @@ void() Wiz_StartFast =
 	setsize (missile, '0 0 0', '0 0 0');		
 	setorigin (missile, self.origin + '0 0 30' + v_forward*14 + v_right* -14);
 	missile.enemy = self.enemy;
-	missile.nextthink = time + 0.3;
+	missile.nextthink = AttackRecoil(self,0.3);
 	missile.think = Wiz_FastFire;
 	missile.movedir = VEC_ORIGIN - v_right;
 };
@@ -348,7 +348,7 @@ void()	wiz_death8	=[	$death8,		wiz_death8	]
 void() wiz_die =
 {
 // check for gib
-	if (self.health < -40)
+	if ( self.health < self.gib_health ) //Ry: Compare to the saved var now [07-31-2022]
 	{
 		sound (self, CHAN_VOICE, "player/udeath.wav", 1, ATTN_NORM);
 		ThrowHead ("progs/h_wizard.mdl", self.health);
@@ -381,7 +381,7 @@ void() Wiz_Missile =
 */
 void() monster_wizard =
 {
-	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
+	if (!EntityValidForMode(ENTTYPE_MONSTER)) //Ry: New function to handle func_spawn and horde mode
 		return;
 
 	precache_model ("progs/wizard.mdl");
@@ -405,6 +405,7 @@ void() monster_wizard =
 
 	setsize (self, '-16 -16 -24', '16 16 40');
 	self.health = 80;
+  self.gib_health = -40; //Ry: Var for gib health [07-31-2022]
 
 	self.th_stand = wiz_stand1;
 	self.th_walk = wiz_walk1;

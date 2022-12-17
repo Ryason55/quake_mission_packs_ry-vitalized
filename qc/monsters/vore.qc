@@ -61,7 +61,11 @@ void() shal_attack1     =[      $attack1,       shal_attack2    ] {
 sound (self, CHAN_VOICE, "shalrath/attack.wav", 1, ATTN_NORM);
 ai_face();
 };
-void() shal_attack2     =[      $attack2,       shal_attack3    ] {ai_face(); self.busy = TRUE;};
+void() shal_attack2     =[      $attack2,       shal_attack3    ]
+{
+  self.busy = TRUE; //Ry: No interruption by other players
+  ai_face();
+};
 void() shal_attack3     =[      $attack3,       shal_attack4    ] {ai_face();};
 void() shal_attack4     =[      $attack4,       shal_attack5    ] {ai_face();};
 void() shal_attack5     =[      $attack5,       shal_attack6    ] {ai_face();};
@@ -98,8 +102,6 @@ void(entity attacker, float damage) shalrath_pain =
 {
 	if (self.pain_finished > time)
 		return;
-  
-  self.busy = FALSE;
 
 	sound (self, CHAN_VOICE, "shalrath/pain.wav", 1, ATTN_NORM);
 	shal_pain1();
@@ -109,7 +111,7 @@ void(entity attacker, float damage) shalrath_pain =
 void() shalrath_die =
 {
 // check for gib
-	if (self.health < -90)
+	if ( self.health < self.gib_health ) //Ry: Compare to the saved var now [07-31-2022]
 	{
 		sound (self, CHAN_VOICE, "player/udeath.wav", 1, ATTN_NORM);
 		ThrowHead ("progs/h_shal.mdl", self.health);
@@ -182,7 +184,7 @@ void() ShalMissile =
 	missile.enemy = self.enemy;
 	missile.touch = ShalMissileTouch;
   
-  if (skill >= 3)
+  if (skill >= 3 && !copper_nightmare) //Ry: Same speed always in Copper Nightmare [07-14-2022]
     missile.invincible_time = time + ((dist/350) + 7); //Ry: Time to reach foe if they stood still, plus some
   else
     missile.invincible_time = time + ((dist/250) + 5);
@@ -195,7 +197,7 @@ void() ShalHome =
 	vtemp = self.enemy.origin + '0 0 10';
 	if ((self.enemy.health < 1) && (time < self.invincible_time)) //Ry: If foe dies, drop out of the air
     self.invincible_time = time;
-	if (skill >= 3)
+	if (skill >= 3 && !copper_nightmare) //Ry: Same speed always in Copper Nightmare [07-14-2022]
     speed = 350;
 	else
     speed = 250;
@@ -236,7 +238,7 @@ void() ShalMissileTouch =
 */
 void() monster_shalrath =
 {
-	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
+	if (!EntityValidForMode(ENTTYPE_MONSTER)) //Ry: New function to handle func_spawn and horde mode
 		return;
 
 	precache_model2 ("progs/shalrath.mdl");
@@ -250,9 +252,24 @@ void() monster_shalrath =
 	precache_sound2 ("shalrath/pain.wav");
 	precache_sound2 ("shalrath/sight.wav");
   
+  #ifdef GAME_ROGUE
+    //Ry: Precache Wrath in case of replacement in ID1
+    precache_model ("progs/wrath.mdl");
+    precache_model ("progs/w_ball.mdl");
+    precache_model ("progs/wrthgib1.mdl");
+    precache_model ("progs/wrthgib2.mdl");
+    precache_model ("progs/wrthgib3.mdl");
+    precache_sound ("wrath/wsee.wav");
+    precache_sound ("wrath/watt.wav");
+    precache_sound ("wrath/wpain.wav");
+    precache_sound ("wrath/wdthc.wav");
+  #endif
+  
   self.netname = "Vore"; //Ry: Name for Deathmatch
   
-	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+  #ifdef ENGINE_KEX
+    self.allowPathFind = USEPATH_ALLOW; //Ry: Can use Remaster pathing [08-01-2022]
+  #endif
 	self.combat_style = CS_RANGED;
 
 	self.solid = SOLID_SLIDEBOX;
@@ -261,6 +278,7 @@ void() monster_shalrath =
 	setmodel (self, "progs/shalrath.mdl");
 	setsize (self, VEC_HULL2_MIN, VEC_HULL2_MAX);
 	self.health = 400;
+  self.gib_health = -90; //Ry: Var for gib health [07-31-2022]
 
 	self.th_stand = shal_stand;
 	self.th_walk = shal_walk1;

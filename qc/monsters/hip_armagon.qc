@@ -40,40 +40,105 @@ $frame tranl1.asc tranl2.asc
 $frame ldie1.asc ldie2.asc ldie3.asc ldie4.asc ldie5.asc ldie6.asc
 $frame ldie7.asc ldie8.asc ldie9.asc ldie10.asc ldie11.asc ldie12.asc
 
+
+//======================
+//  New Subs by Ryason
+//======================
+
+//Ry: Anything caught underneath a falling Armagon will be crushed
+void() armagon_touch =
+{
+  if ( (other.flags & (FL_MONSTER|FL_CLIENT)) && (other.health > 0) && (other.classname != self.classname) )
+  {
+    if ((other.origin_z + other.maxs_z) <= (self.origin_z + self.mins_z))
+    {
+      self.deathtype = "was crushed by Armagon";
+      T_Damage (other,self,self,1000);
+      self.deathtype = string_null;
+    }
+  }
+}
+
+//Ry: See if both barrels have a clear shot at the target [08-07-2022]
+float() Armagon_ClearShotFromBarrels =
+{
+  local vector dir;
+  //local float val;
+  dir = self.enemy.origin-self.origin; //Ry: Simulate the barrel position as if Armagon is currently aiming straight at the target
+  dir_z = 0;
+  dir = normalize(dir);
+  dir = vectoangles(dir);
+  makevectors(dir);
+
+  //Ry: Left Barrel
+  dir = self.origin + '0 0 66' + v_right*(-44) + v_forward*84;
+  traceline(self.origin,dir,TRUE,self); //Ry: Make sure barrel isn't in a wall
+  if (trace_fraction < 1)
+    return FALSE;
+  traceline(dir,self.enemy.origin,TRUE,self); //Ry: See if barrel has a straight shot
+  if (trace_fraction < 1)
+    return FALSE;
+
+  //Ry: Right Barrel
+  dir = self.origin + '0 0 66' + v_right*44 + v_forward*84;
+  traceline(self.origin,dir,TRUE,self);
+  if (trace_fraction < 1)
+    return FALSE;
+  traceline(dir,self.enemy.origin,TRUE,self);
+  if (trace_fraction < 1)
+    return FALSE;
+
+  return TRUE;
+}
+
+//===================
+//  End of new subs
+//===================
+
+
 float ATTN_ARMAGON = 0.5;
 float SERVO_VOLUME = 0.5;
 
 void(float ofs, float turn) armagon_launch_missile =
-   {
-   local vector   src, vec, targ;
-   local vector   ang;
-   local entity   missile;
-   local float    dist;
+{
+  local vector   src, vec, targ;
+  local vector   ang;
+  local entity   missile;
+  local float    dist;
+  local float    speed;
 
-   ang = self.angles;
-   ang_y = ang_y + self.fixangle;
-   if (turn==1)
-      {
-      ang_y = ang_y + 165;
-      }
-   else if (turn==2)
-      {
-      ang_y = ang_y - 165;
-      }
-   makevectors(ang);
-   src = self.origin + '0 0 66' + v_right*ofs + v_forward*84;
-   targ = self.enemy.origin + self.enemy.view_ofs;
-   if (skill!=0 || deathmatch) //Ry: Prediction in DM too
-      {
-      dist = vlen(targ-src);
-      targ = targ + (self.enemy.velocity * (dist/1000));
-      }
-   vec = (targ - src);
-   vec = normalize(vec);
-   dist = vec*v_forward;
-   if (dist<self.worldtype)
-      vec=v_forward;
-   self.effects = self.effects | EF_MUZZLEFLASH;
+  ang = self.angles;
+  ang_y = ang_y + self.fixangle;
+  if (turn==1)
+  {
+    ang_y = ang_y + 165;
+  }
+  else if (turn==2)
+  {
+    ang_y = ang_y - 165;
+  }
+  makevectors(ang);
+  src = self.origin + '0 0 66' + v_right*ofs + v_forward*84;
+  targ = self.enemy.origin + self.enemy.view_ofs;
+
+  //Ry: Avoid firing missiles from within walls [08-07-2022]
+  traceline(self.origin+self.view_ofs,src,TRUE,self);
+  if (trace_fraction < 1)
+    return;
+
+  speed = ProjectileSpeed(self,1000);
+
+  if ( (skill>0) || copper_nightmare || deathmatch) //Ry: Prediction in DM too, and always predict in Copper Nightmare [07-14-2022]
+  {
+    dist = vlen(targ-src);
+    targ = targ + (self.enemy.velocity * (dist/speed));
+  }
+  vec = (targ - src);
+  vec = normalize(vec);
+  dist = vec*v_forward;
+  if (dist<self.worldtype)
+    vec=v_forward;
+  self.effects = self.effects | EF_MUZZLEFLASH;
 
 	sound (self, CHAN_WEAPON, "weapons/sgun1.wav", 1, ATTN_NORM);
 
@@ -86,8 +151,8 @@ void(float ofs, float turn) armagon_launch_missile =
 	missile.classname = "missile";
 
 // set missile speed
-   missile.velocity = vec * 1000;
-   missile.angles = vectoangles(vec);
+  missile.velocity = vec * speed;
+  missile.angles = vectoangles(vec);
 	missile.touch = T_MissileTouch;
 
 // set missile duration
@@ -96,227 +161,253 @@ void(float ofs, float turn) armagon_launch_missile =
 
 	setmodel (missile, "progs/missile.mdl");
 	setsize (missile, '0 0 0', '0 0 0');
-   setorigin (missile, src);
-   };
+  setorigin (missile, src);
+};
 
 void(float ofs) armagon_launch_laser =
-   {
-   local vector   src, vec, targ;
-   local float    dist;
-   local vector   ang;
+{
+  local vector   src, vec, targ;
+  local float    dist;
+  local vector   ang;
 
-   ang = self.angles;
-   ang_y = ang_y + self.fixangle;
-   makevectors(ang);
-   src = self.origin + '0 0 66' + v_right*ofs + v_forward*84;
-   targ = self.enemy.origin + self.enemy.view_ofs;
-   if (skill!=0 || deathmatch) //Ry: Prediction in DM too
-      {
-      dist = vlen(targ-src);
-      targ = targ + (self.enemy.velocity * (dist/1000));
-      }
-   vec = (targ - src);
-   vec = normalize(vec);
-   dist = vec*v_forward;
-   if (dist<self.worldtype)
-      vec=v_forward;
-   self.effects = self.effects | EF_MUZZLEFLASH;
+  ang = self.angles;
+  ang_y = ang_y + self.fixangle;
+  makevectors(ang);
+  src = self.origin + '0 0 66' + v_right*ofs + v_forward*84;
+  targ = self.enemy.origin + self.enemy.view_ofs;
 
-   HIP_LaunchLaser(src, vec, 0);
-   };
+  //Ry: Avoid firing lasers from within walls [08-07-2022]
+  traceline(self.origin+self.view_ofs,src,TRUE,self);
+  if (trace_fraction < 1)
+    return;
 
-void(float angdelta, float delta) armagon_turn =
-   {
-   if (fabs(angdelta)<10)
+  if ( (skill>0) || copper_nightmare || deathmatch) //Ry: Prediction in DM too, and always predict in Copper Nightmare [07-14-2022]
+  {
+    dist = vlen(targ-src);
+    targ = targ + (self.enemy.velocity * (dist/ProjectileSpeed(self,1000)));
+  }
+  vec = (targ - src);
+  vec = normalize(vec);
+  dist = vec*v_forward;
+  if (dist<self.worldtype)
+    vec=v_forward;
+  self.effects = self.effects | EF_MUZZLEFLASH;
+
+  HIP_LaunchLaser(src, vec, 0);
+};
+
+//Ry: This function now accepts a speed value (originally was 9) [08-07-2022]
+void(float angdelta, float delta, float speed) armagon_turn =
+{
+  local float val;
+  if ( fabs(angdelta) <= speed )
+    self.fixangle = delta;
+  else
+  {
+    val = ((speed/3)*2);
+    if (angdelta >= val)
+    {
+      self.fixangle = self.fixangle + speed;
+    }
+    else if (angdelta <= val)
+    {
+      self.fixangle = self.fixangle - speed;
+    }
+    else
+    {
       self.fixangle = delta;
-   else
-      {
-      if (angdelta > 5)
-         {
-         self.fixangle = self.fixangle + 9;
-         }
-      else if (angdelta < -5)
-         {
-         self.fixangle = self.fixangle - 9;
-         }
-      else
-         {
-         self.fixangle = delta;
-         }
-      }
-   };
+    }
+  }
+};
    
 void() armagon_body_think = //Ry: To make sure the body follows the legs if any vertical movement is made
-  {
-    setorigin (self, self.conjoinedentity.origin);
-    self.nextthink = time;
-  }
+{
+  setorigin (self, self.conjoinedentity.origin);
+  self.nextthink = time;
+}
    
 void() armagon_overleft1;
 void() armagon_overright1;
 
 void() armagon_think =
-   {
-   local float delta;
-   local float angdelta;
-   setorigin (self.conjoinedentity, self.origin);
-   self.conjoinedentity.angles = self.angles;
-   self.conjoinedentity.frame = self.frame;
-   self.conjoinedentity.angles_y = self.conjoinedentity.angles_y + self.fixangle;
-   enemy_yaw = vectoyaw(self.enemy.origin - self.origin);
-   self.ideal_yaw = enemy_yaw;
-   delta = self.ideal_yaw - self.angles_y;
-   self.cnt = 0;
-   if (delta > 180) delta = delta - 360;
-   if (delta < -180) delta = delta + 360;
-   if (fabs(delta) > 90)
-      {
-      delta = 0;
-      self.cnt = 1;
-      }
-   angdelta = delta-self.fixangle;
-   armagon_turn(angdelta,delta);
-//   self.nextthink = time + 0.1;
-   if (self.health <= 0) //Ry: Less than *or* equal to
-      return;
-   if (time > self.super_time)
-      {
-      local float r;
+{
+  local float delta;
+  local float angdelta;
+  //Armagon_CheckCornersOnMove(); //Ry: Check if Armagon is stuck on a corner [08-06-2022]
+  setorigin (self.conjoinedentity, self.origin);
+  self.conjoinedentity.angles = self.angles;
+  self.conjoinedentity.frame = self.frame;
+  self.conjoinedentity.angles_y = self.conjoinedentity.angles_y + self.fixangle;
 
-      self.super_time = time + 3;
-      if (random() < 0.5)
-         {
-         r = random();
-         if (r < 0.25)
-            sound (self, CHAN_VOICE, "armagon/idle1.wav", 1, ATTN_ARMAGON);
-         else if (r < 0.5)
-            sound (self, CHAN_VOICE, "armagon/idle2.wav", 1, ATTN_ARMAGON);
-         else if (r < 0.75)
-            sound (self, CHAN_VOICE, "armagon/idle3.wav", 1, ATTN_ARMAGON);
-         else
-            sound (self, CHAN_VOICE, "armagon/idle4.wav", 1, ATTN_ARMAGON);
-         }
-      }
-   };
+  //Ry: Modified this so can move towards goalentity, while looking at enemy [08-07-2022]
+  self.ideal_yaw = vectoyaw(self.goalentity.origin - self.origin);
+  enemy_yaw = vectoyaw(self.enemy.origin - self.origin);
+  delta = enemy_yaw - self.angles_y;
+
+  self.cnt = 0;
+  if (delta > 180) delta = delta - 360;
+  if (delta < -180) delta = delta + 360;
+  if (fabs(delta) > 90)
+  {
+    if (self.busy) //Ry: Keep trying to look at the target if an attack is going off [08-07-2022]
+    {
+      if (delta > 90)
+        delta = 90;
+      else if (delta < -90)
+        delta = -90;
+    }
+    else
+      delta = 0;
+    self.cnt = 1;
+  }
+  angdelta = delta-self.fixangle;
+  armagon_turn(angdelta,delta,9); //Ry: Added speed value [08-07-2022]
+  if (self.health <= 0) //Ry: Less than *or* equal to
+    return;
+  if (time > self.super_time)
+  {
+    local float r;
+
+    self.super_time = time + 3;
+    if (random() < 0.5)
+    {
+      r = random();
+      if (r < 0.25)
+        sound (self, CHAN_VOICE, "armagon/idle1.wav", 1, ATTN_ARMAGON);
+      else if (r < 0.5)
+        sound (self, CHAN_VOICE, "armagon/idle2.wav", 1, ATTN_ARMAGON);
+      else if (r < 0.75)
+        sound (self, CHAN_VOICE, "armagon/idle3.wav", 1, ATTN_ARMAGON);
+      else
+        sound (self, CHAN_VOICE, "armagon/idle4.wav", 1, ATTN_ARMAGON);
+    }
+  }
+};
 
 void() armagon_walkthink =
-   {
-   local float delta;
-   local float angdelta;
-   local entity client;
-   setorigin (self.conjoinedentity, self.origin);
-   self.conjoinedentity.angles = self.angles;
-   self.conjoinedentity.frame = self.frame;
-   self.conjoinedentity.angles_y = self.conjoinedentity.angles_y + self.fixangle;
-   ChangeYaw();
-   delta = 0;
-   self.cnt = 0;
-   if (delta > 180) delta = delta - 360;
-   if (delta < -180) delta = delta + 360;
-   if (fabs(delta) > 90)
-      {
-      delta = 0;
-      self.cnt = 1;
-      }
-   angdelta = delta-self.fixangle;
-   armagon_turn(angdelta,delta);
-   if (self.health <= 0) //Ry: Less than *or* equal to
-      return;
-   if (time > self.super_time)
-      {
-      local float r;
+{
+  local float delta;
+  local float angdelta;
+  local entity client;
+  //Armagon_CheckCornersOnMove(); //Ry: Check if Armagon is stuck on a corner [08-06-2022]
+  setorigin (self.conjoinedentity, self.origin);
+  self.conjoinedentity.angles = self.angles;
+  self.conjoinedentity.frame = self.frame;
+  self.conjoinedentity.angles_y = self.conjoinedentity.angles_y + self.fixangle;
+  ChangeYaw();
+  delta = 0;
+  self.cnt = 0;
+  if (delta > 180) delta = delta - 360;
+  if (delta < -180) delta = delta + 360;
+  if (fabs(delta) > 90)
+  {
+    delta = 0;
+    self.cnt = 1;
+  }
+  angdelta = delta-self.fixangle;
+  armagon_turn(angdelta,delta,9); //Ry: Added speed value [08-07-2022]
+  if (self.health <= 0) //Ry: Less than *or* equal to
+    return;
+  if (time > self.super_time)
+  {
+    local float r;
 
-      self.super_time = time + 3;
-      if (random() < 0.5)
-         {
-         r = random();
-         if (r < 0.25)
-            sound (self, CHAN_VOICE, "armagon/idle1.wav", 1, ATTN_ARMAGON);
-         else if (r < 0.5)
-            sound (self, CHAN_VOICE, "armagon/idle2.wav", 1, ATTN_ARMAGON);
-         else if (r < 0.75)
-            sound (self, CHAN_VOICE, "armagon/idle3.wav", 1, ATTN_ARMAGON);
-         else
-            sound (self, CHAN_VOICE, "armagon/idle4.wav", 1, ATTN_ARMAGON);
-         }
-      }
-   client = checkclient ();
-   if (!client)
-      return;  // current check entity isn't in PVS
-   if (visible(client))
-      {
-      self.enemy = client;
-      FoundTarget();
-      }
-   };
+    self.super_time = time + 3;
+    if (random() < 0.5)
+    {
+      r = random();
+      if (r < 0.25)
+        sound (self, CHAN_VOICE, "armagon/idle1.wav", 1, ATTN_ARMAGON);
+      else if (r < 0.5)
+        sound (self, CHAN_VOICE, "armagon/idle2.wav", 1, ATTN_ARMAGON);
+      else if (r < 0.75)
+        sound (self, CHAN_VOICE, "armagon/idle3.wav", 1, ATTN_ARMAGON);
+      else
+        sound (self, CHAN_VOICE, "armagon/idle4.wav", 1, ATTN_ARMAGON);
+    }
+  }
+  client = checkclient ();
+  if (!client)
+    return;  // current check entity isn't in PVS
+
+  //Ry: Ignore players using NoTarget [09-24-2022]
+  if (client.flags & FL_NOTARGET)
+    return;
+
+  if (visible(client)) //Ry: Check NoTarget too
+  {
+    self.enemy = client;
+    FoundTarget();
+  }
+};
 
 void() armagon_overleft_think =
-   {
-   local float delta;
-   local float angdelta;
+{
+  local float delta;
+  local float angdelta;
 
-   ChangeYaw();
-   walkmove (self.angles_y, 14);
-   setorigin (self.conjoinedentity, self.origin);
-   self.conjoinedentity.angles = self.angles;
-   self.conjoinedentity.frame = self.frame;
-   self.conjoinedentity.angles_y = self.conjoinedentity.angles_y + self.fixangle;
-   if (self.count == 0)
-      {
-      enemy_yaw = vectoyaw(self.enemy.origin - self.origin);
+  ChangeYaw();
+  walkmove (self.angles_y, 14);
+  setorigin (self.conjoinedentity, self.origin);
+  self.conjoinedentity.angles = self.angles;
+  self.conjoinedentity.frame = self.frame;
+  self.conjoinedentity.angles_y = self.conjoinedentity.angles_y + self.fixangle;
+  if (self.count == 0)
+  {
+    enemy_yaw = vectoyaw(self.enemy.origin - self.origin);
+    if (self.enemy == self.goalentity) //Ry: Only adjust if not using a separate goalentity [08-07-2022]
       self.ideal_yaw = enemy_yaw;
-      delta = self.ideal_yaw - self.angles_y - 165;
-      if (delta > 180) delta = delta - 360;
-      if (delta < -180) delta = delta + 360;
-      angdelta = delta-self.fixangle;
-      }
-   else if (self.count == 1)
-      {
-      armagon_launch_missile(40,1);
-      return;
-      }
-   else
-      {
-      delta = 0;
-      angdelta = delta-self.fixangle;
-      }
-   armagon_turn(angdelta,delta);
-//   self.nextthink = time + 0.1;
-   };
+    delta = enemy_yaw - self.angles_y - 165;
+    if (delta > 180) delta = delta - 360;
+    if (delta < -180) delta = delta + 360;
+    angdelta = delta-self.fixangle;
+  }
+  else if (self.count == 1)
+  {
+    armagon_launch_missile(40,1);
+    return;
+  }
+  else
+  {
+    delta = 0;
+    angdelta = delta-self.fixangle;
+  }
+  armagon_turn(angdelta,delta,15); //Ry: Increased turn speed [08-07-2022]
+};
 
 void() armagon_overright_think =
-   {
-   local float delta;
-   local float angdelta;
+{
+  local float delta;
+  local float angdelta;
 
-   ChangeYaw();
-   walkmove (self.angles_y, 14);
-   setorigin (self.conjoinedentity, self.origin);
-   self.conjoinedentity.angles = self.angles;
-   self.conjoinedentity.frame = self.frame;
-   self.conjoinedentity.angles_y = self.conjoinedentity.angles_y + self.fixangle;
-   if (self.count == 0)
-      {
-      enemy_yaw = vectoyaw(self.enemy.origin - self.origin);
+  ChangeYaw();
+  walkmove (self.angles_y, 14);
+  setorigin (self.conjoinedentity, self.origin);
+  self.conjoinedentity.angles = self.angles;
+  self.conjoinedentity.frame = self.frame;
+  self.conjoinedentity.angles_y = self.conjoinedentity.angles_y + self.fixangle;
+  if (self.count == 0)
+  {
+    enemy_yaw = vectoyaw(self.enemy.origin - self.origin);
+    if (self.enemy == self.goalentity) //Ry: Only adjust if not using a separate goalentity [08-07-2022]
       self.ideal_yaw = enemy_yaw;
-      delta = self.ideal_yaw - self.angles_y + 165;
-      if (delta > 180) delta = delta - 360;
-      if (delta < -180) delta = delta + 360;
-      angdelta = delta-self.fixangle;
-      }
-   else if (self.count == 1)
-      {
-      armagon_launch_missile(-40,2);
-      return;
-      }
-   else
-      {
-      delta = 0;
-      angdelta = delta-self.fixangle;
-      }
-   armagon_turn(angdelta,delta);
-//   self.nextthink = time + 0.1;
-   };
+    delta = enemy_yaw - self.angles_y + 165;
+    if (delta > 180) delta = delta - 360;
+    if (delta < -180) delta = delta + 360;
+    angdelta = delta-self.fixangle;
+  }
+  else if (self.count == 1)
+  {
+    armagon_launch_missile(-40,2);
+    return;
+  }
+  else
+  {
+    delta = 0;
+    angdelta = delta-self.fixangle;
+  }
+  armagon_turn(angdelta,delta,15); //Ry: Increased turn speed [08-07-2022]
+};
 
 void() armagon_stand_attack;
 
@@ -342,203 +433,210 @@ void()   armagon_stand19  =[ $lstand19.asc, armagon_stand20  ] {armagon_think();
 void()   armagon_stand20  =[ $lstand20.asc, armagon_stand1  ] {ai_stand();armagon_think();self.nextthink = time + 0.2;};
 
 void()   armagon_walk1    =[ $lwalk1.asc  , armagon_walk2    ]
-   {
-   movetogoal(14);
-   armagon_walkthink();
-   };
+{
+  movetogoal(14);
+  armagon_walkthink();
+};
 void()   armagon_walk2    =[ $lwalk2.asc  , armagon_walk3    ]
-   {
-   movetogoal(14);
-   armagon_walkthink();
-   };
+{
+  movetogoal(14);
+  armagon_walkthink();
+};
 void()   armagon_walk3    =[ $lwalk3.asc  , armagon_walk4    ]
-   {
-   sound (self, 7, "armagon/servo.wav", SERVO_VOLUME, ATTN_ARMAGON);
-   movetogoal(14);
-   armagon_walkthink();
-   };
+{
+  sound (self, 7, "armagon/servo.wav", SERVO_VOLUME, ATTN_ARMAGON);
+  movetogoal(14);
+  armagon_walkthink();
+};
 void()   armagon_walk4    =[ $lwalk4.asc  , armagon_walk5    ]
-   {
-   movetogoal(14);
-   armagon_walkthink();
-   };
+{
+  movetogoal(14);
+  armagon_walkthink();
+};
 void()   armagon_walk5    =[ $lwalk5.asc  , armagon_walk6    ]
-   {
-   sound (self, 6, "armagon/footfall.wav", 1, ATTN_ARMAGON);
-   movetogoal(14);
-   armagon_walkthink();
-   };
+{
+  sound (self, 6, "armagon/footfall.wav", 1, ATTN_ARMAGON);
+  movetogoal(14);
+  armagon_walkthink();
+};
 void()   armagon_walk6    =[ $lwalk6.asc  , armagon_walk7    ]
-   {
-   movetogoal(14);
-   armagon_walkthink();
-   };
+{
+  movetogoal(14);
+  armagon_walkthink();
+};
 void()   armagon_walk7    =[ $lwalk7.asc  , armagon_walk8    ]
-   {
-   movetogoal(14);
-   armagon_walkthink();
-   };
+{
+  movetogoal(14);
+  armagon_walkthink();
+};
 void()   armagon_walk8    =[ $lwalk8.asc  , armagon_walk9    ]
-   {
-   movetogoal(14);
-   armagon_walkthink();
-   };
+{
+  movetogoal(14);
+  armagon_walkthink();
+};
 void()   armagon_walk9    =[ $lwalk9.asc  , armagon_walk10    ]
-   {
-   sound (self, 7, "armagon/servo.wav", SERVO_VOLUME, ATTN_ARMAGON);
-   movetogoal(14);
-   armagon_walkthink();
-   };
+{
+  sound (self, 7, "armagon/servo.wav", SERVO_VOLUME, ATTN_ARMAGON);
+  movetogoal(14);
+  armagon_walkthink();
+};
 void()   armagon_walk10    =[ $lwalk10.asc  , armagon_walk11    ]
-   {
-   movetogoal(14);
-   armagon_walkthink();
-   };
+{
+  movetogoal(14);
+  armagon_walkthink();
+};
 void()   armagon_walk11    =[ $lwalk11.asc  , armagon_walk12    ]
-   {
-   sound (self, 6, "armagon/footfall.wav", 1, ATTN_ARMAGON);
-   movetogoal(14);
-   armagon_walkthink();
-   };
+{
+  sound (self, 6, "armagon/footfall.wav", 1, ATTN_ARMAGON);
+  movetogoal(14);
+  armagon_walkthink();
+};
 void()   armagon_walk12    =[ $lwalk12.asc  , armagon_walk1    ]
-   {
-   movetogoal(14);
-   armagon_walkthink();
-   };
+{
+  movetogoal(14);
+  armagon_walkthink();
+};
 
 void()   armagon_run1    =[ $lwalk1.asc  , armagon_run2    ]
-   {
-   self.busy = FALSE;
-   if (self.justrespawned) //Ry: On activation, set HP based on player count
-   {
-     local float currentdamage = 100000 - self.health;
-     local float playercount;
-     local entity curr;
-     self.justrespawned = FALSE;
-     
-     if (deathmatch)
-       self.health = 3000;
-     else
-     {
-       if (skill == 0) //Ry: Set HP for skill level
-         self.health = 2000;
-       else if (skill == 1)
-         self.health = 2500;
-       else
-         self.health = 3500;
-       for (curr = find(world, classname, "player") ; curr ; curr = find(curr, classname, "player") ) //Ry: Count players and increase health by 50% per additional player
-         if (curr.flags & FL_CLIENT)
-           playercount = playercount + 1;
-       if (playercount > 1) 
-         self.health = ceil( self.health + (self.health * ((playercount-1) * 0.5)) );
-     }
-     self.health = self.health - currentdamage; //Ry: Apply any damage that happened before activation
-     if (self.health < 1)
-       self.health = 1;
-   }
-   ChangeYaw();
-   RUN_STRAIGHT = 1;
-   ai_run(14);
-   armagon_think();
-   };
-void()   armagon_run2    =[ $lwalk2.asc  , armagon_run3    ]
-   {
-   ChangeYaw();
-   RUN_STRAIGHT = 1;
-   ai_run(14);
-   armagon_think();
-   };
-void()   armagon_run3    =[ $lwalk3.asc  , armagon_run4    ]
-   {
-   sound (self, 7, "armagon/servo.wav", SERVO_VOLUME, ATTN_ARMAGON);
-   ChangeYaw();
-   RUN_STRAIGHT = 1;
-   ai_run(14);
-   armagon_think();
-   };
-void()   armagon_run4    =[ $lwalk4.asc  , armagon_run5    ]
-   {
-   ChangeYaw();
-   RUN_STRAIGHT = 1;
-   ai_run(14);
-   armagon_think();
-   };
-void()   armagon_run5    =[ $lwalk5.asc  , armagon_run6    ]
-   {
-   sound (self, 6, "armagon/footfall.wav", 1, ATTN_ARMAGON);
-   ChangeYaw();
-   RUN_STRAIGHT = 1;
-   ai_run(14);
-   armagon_think();
-   };
-void()   armagon_run6    =[ $lwalk6.asc  , armagon_run7    ]
-   {
-   ChangeYaw();
-   RUN_STRAIGHT = 1;
-   ai_run(14);
-   armagon_think();
-   };
-void()   armagon_run7    =[ $lwalk7.asc  , armagon_run8    ]
-   {
-   ChangeYaw();
-   RUN_STRAIGHT = 1;
-   ai_run(14);
-   armagon_think();
-   };
-void()   armagon_run8    =[ $lwalk8.asc  , armagon_run9    ]
-   {
-   ChangeYaw();
-   RUN_STRAIGHT = 1;
-   ai_run(14);
-   armagon_think();
-   };
-void()   armagon_run9    =[ $lwalk9.asc  , armagon_run10    ]
-   {
-   sound (self, 7, "armagon/servo.wav", SERVO_VOLUME, ATTN_ARMAGON);
-   ChangeYaw();
-   RUN_STRAIGHT = 1;
-   ai_run(14);
-   armagon_think();
-   };
-void()   armagon_run10    =[ $lwalk10.asc  , armagon_run11    ]
-   {
-   ChangeYaw();
-   RUN_STRAIGHT = 1;
-   ai_run(14);
-   armagon_think();
-   };
-void()   armagon_run11    =[ $lwalk11.asc  , armagon_run12    ]
-   {
-   sound (self, 6, "armagon/footfall.wav", 1, ATTN_ARMAGON);
-   ChangeYaw();
-   RUN_STRAIGHT = 1;
-   ai_run(14);
-   armagon_think();
-   };
-void()   armagon_run12    =[ $lwalk12.asc  , armagon_run1    ]
-   {
-   ChangeYaw();
-   RUN_STRAIGHT = 1;
-   ai_run(14);
-   armagon_think();
-   if ((self.cnt == 1) && (time > self.attack_finished))
+{
+  if (self.justrespawned) //Ry: On activation, set HP based on player count
+  {
+    local float currentdamage = 100000 - self.health;
+    self.justrespawned = FALSE;
+    
+    if (deathmatch)
+      self.health = 3000;
+    else
+    {
+      //Ry: Set HP for skill level
+      if (skill >= 2)
       {
+        if (horde_ent)
+          self.health = 3000; //Hard + Horde Mode [08-01-2022]
+        else
+          self.health = 3500; //Hard
+      }
+      else if (skill == 1)
+        self.health = 2500; //Normal
+      else
+        self.health = 2000; //Easy
+
+      self.health = ScaleByPlayerCount(self.health,self.health*0.5,TRUE);
+    }
+    self.health = self.health - currentdamage; //Ry: Apply any damage that happened before activation
+    if (self.health < 1)
+      self.health = 1;
+  }
+  ChangeYaw();
+  RUN_STRAIGHT = 1;
+  ai_run(14);
+  armagon_think();
+};
+void()   armagon_run2    =[ $lwalk2.asc  , armagon_run3    ]
+{
+  ChangeYaw();
+  RUN_STRAIGHT = 1;
+  ai_run(14);
+  armagon_think();
+};
+void()   armagon_run3    =[ $lwalk3.asc  , armagon_run4    ]
+{
+  sound (self, 7, "armagon/servo.wav", SERVO_VOLUME, ATTN_ARMAGON);
+  ChangeYaw();
+  RUN_STRAIGHT = 1;
+  ai_run(14);
+  armagon_think();
+};
+void()   armagon_run4    =[ $lwalk4.asc  , armagon_run5    ]
+{
+  ChangeYaw();
+  RUN_STRAIGHT = 1;
+  ai_run(14);
+  armagon_think();
+};
+void()   armagon_run5    =[ $lwalk5.asc  , armagon_run6    ]
+{
+  sound (self, 6, "armagon/footfall.wav", 1, ATTN_ARMAGON);
+  ChangeYaw();
+  RUN_STRAIGHT = 1;
+  ai_run(14);
+  armagon_think();
+};
+void()   armagon_run6    =[ $lwalk6.asc  , armagon_run7    ]
+{
+  ChangeYaw();
+  RUN_STRAIGHT = 1;
+  ai_run(14);
+  armagon_think();
+};
+void()   armagon_run7    =[ $lwalk7.asc  , armagon_run8    ]
+{
+  ChangeYaw();
+  RUN_STRAIGHT = 1;
+  ai_run(14);
+  armagon_think();
+};
+void()   armagon_run8    =[ $lwalk8.asc  , armagon_run9    ]
+{
+  ChangeYaw();
+  RUN_STRAIGHT = 1;
+  ai_run(14);
+  armagon_think();
+};
+void()   armagon_run9    =[ $lwalk9.asc  , armagon_run10    ]
+{
+  sound (self, 7, "armagon/servo.wav", SERVO_VOLUME, ATTN_ARMAGON);
+  ChangeYaw();
+  RUN_STRAIGHT = 1;
+  ai_run(14);
+  armagon_think();
+};
+void()   armagon_run10    =[ $lwalk10.asc  , armagon_run11    ]
+{
+  ChangeYaw();
+  RUN_STRAIGHT = 1;
+  ai_run(14);
+  armagon_think();
+};
+void()   armagon_run11    =[ $lwalk11.asc  , armagon_run12    ]
+{
+  sound (self, 6, "armagon/footfall.wav", 1, ATTN_ARMAGON);
+  ChangeYaw();
+  RUN_STRAIGHT = 1;
+  ai_run(14);
+  armagon_think();
+};
+void()   armagon_run12    =[ $lwalk12.asc  , armagon_run1    ]
+{
+  ChangeYaw();
+  RUN_STRAIGHT = 1;
+  ai_run(14);
+  armagon_think();
+  if (visible(self.enemy)) //Ry: Make sure target is visible [08-06-2022]
+  {
+    if ((self.cnt == 1) && (time > self.attack_finished))
+    {
       local float delta;
-      delta = self.ideal_yaw - self.angles_y;
+
+      //Ry: Calculate this, since movements can be based on goalentity [08-07-2022]
+      enemy_yaw = vectoyaw(self.enemy.origin - self.origin);
+      delta = enemy_yaw - self.angles_y;
+
       if (delta > 180) delta = delta - 360;
       if (delta < -180) delta = delta + 360;
       if (delta>0)
-         self.think = armagon_overleft1;
+        self.think = armagon_overleft1;
       else
-         self.think = armagon_overright1;
+        self.think = armagon_overright1;
       return;
-      }
-   if (self.lefty == 1)
-      {
+    }
+    if (self.lefty == 1)
+    {
       self.lefty = 0;
       self.think = self.th_missile;
-      }
-   };
+    }
+  }
+};
 
 void()   armagon_watk1    =[ $lw0fir1.asc, armagon_watk2  ] {self.busy=TRUE;ChangeYaw();walkmove (self.angles_y, 14);armagon_think();}; //Ry: Can't interrupt
 void()   armagon_watk2    =[ $lw0fir2.asc, armagon_watk3  ] {sound (self, 7, "armagon/servo.wav", SERVO_VOLUME, ATTN_ARMAGON);ChangeYaw();walkmove (self.angles_y, 14);armagon_think();};
@@ -722,7 +820,7 @@ void()   armagon_body_explode2 =
    ThrowGib ("progs/gib1.mdl", -200);
    ThrowGib ("progs/gib2.mdl", -200);
    ThrowGib ("progs/gib3.mdl", -200);
-   if (!deathmatch) //Ry: Cull the gibs a bit in DM
+   if (!deathmatch && !horde) //Ry: Cull the gibs a bit in DM and Horde [08-03-2022]
    {
      ThrowGib ("progs/gib1.mdl", -200);
      ThrowGib ("progs/gib2.mdl", -200);
@@ -764,164 +862,166 @@ void()   armagon_body_explode1 =
    };
 
 void(entity attacker, float damage) armagon_pain =
-   {
-   if (self.health <= 0)
+{
+  if (self.health <= 0)
 		return;		// allready dying, don't go into pain frame
 
-   if (damage < 25)
-      return;
+  if (damage < 25)
+    return;
 	if (self.pain_finished > time)
 		return;
 	self.pain_finished = time + 2;
 
-   sound (self, CHAN_VOICE, "armagon/pain.wav", 1, ATTN_NORM);
-   };
+  sound (self, CHAN_VOICE, "armagon/pain.wav", 1, ATTN_NORM);
+};
 
 
 
 void() armagon_missile_attack =
-   {
-   if (random()<0.5)
-      armagon_watk1();
-   else
-      armagon_wlaseratk1();
-//   self.nextthink = time + 0.1;
-   };
+{
+  if (random()<0.5)
+    armagon_watk1();
+  else
+    armagon_wlaseratk1();
+};
 
 void() armagon_repulse_attack =
-   {
-   armagon_think();
-   if (self.state == 0)
-      {
-      SUB_AttackFinished (0.5);
-      sound (self, CHAN_BODY, "armagon/repel.wav", 1, ATTN_NORM);
-      self.state = 1;
-      return;
-      }
-   else if (self.state == 1)
-      {
-      local entity head;
-      local vector dir;
+{
+  armagon_think();
+  if (self.state == 0)
+  {
+    SUB_AttackFinished (0.5);
+    sound (self, CHAN_BODY, "armagon/repel.wav", 1, ATTN_NORM);
+    self.state = 1;
+    return;
+  }
+  else if (self.state == 1)
+  {
+    local entity head;
+    local vector dir;
 
-      // look in our immediate vicinity
-      head = findradius(self.origin, 300);
-      while(head)
-         {
-         if(!(head.flags & FL_NOTARGET) && (head.flags & FL_CLIENT))
-            {
-            if (visible(head) && (head.health > 0))
-               {
-               dir = head.origin - (self.origin - '0 0 24');
-               dir = normalize(dir);
-               head.velocity = head.velocity + dir*1500;
-               }
-            }
-         head = head.chain;
-         }
-      T_RadiusDamage (self, self, 60, self);
-      self.state = 0;
-      SUB_AttackFinished (0.1);
+    // look in our immediate vicinity
+    head = findradius(self.origin, 300);
+    while(head)
+    {
+      if(!(head.flags & FL_NOTARGET))
+      {
+        if ((head != self) && visible(head) && (head.health > 0) && (head.flags & (FL_MONSTER|FL_CLIENT))) //Ry: Able to repel monsters too now [08-02-2022]
+        {
+          dir = head.origin - (self.origin - '0 0 24');
+          dir = normalize(dir);
+          if (head.flags & FL_MONSTER) //Ry: Detach monsters from the ground [08-02-2022]
+            head.flags -= (head.flags & FL_ONGROUND);
+          head.velocity = head.velocity + dir*1500;
+        }
       }
-//   self.nextthink = time + 0.1;
-   };
+      head = head.chain;
+    }
+    T_RadiusDamage (self, self, 60, self);
+    self.state = 0;
+    SUB_AttackFinished (0.1);
+  }
+};
 
 void() armagon_stand_attack =
-   {
-   local vector   spot1, spot2;
+{
+  local vector   spot1, spot2;
 
 // see if any entities are in the way of the shot
-   spot1 = self.origin + self.view_ofs;
-   spot2 = self.enemy.origin + self.enemy.view_ofs;
+  spot1 = self.origin + self.view_ofs;
+  spot2 = self.enemy.origin + self.enemy.view_ofs;
 
-   traceline (spot1, spot2, FALSE, self);
+  traceline (spot1, spot2, FALSE, self);
 
-   if (trace_ent != self.enemy)
-      {
-      armagon_run1();
-      return;
-      }
+  if (trace_ent != self.enemy)
+  {
+    armagon_run1();
+    return;
+  }
 
 	if (trace_inopen && trace_inwater)
-      {
-      armagon_run1();
-      return;
-      }
+  {
+    armagon_run1();
+    return;
+  }
 
-   if (time < self.attack_finished)
-      {
-      return;
-      }
+  if (time < self.attack_finished)
+  {
+    return;
+  }
 
-   if ((vlen(spot2-spot1) < 200) && (self.enemy.classname == "player"))
-      {
-      armagon_repulse_attack();
-      return;
-      }
+  if (vlen(spot2-spot1) < 200) //Ry: Can now repel monsters as well [07-31-2022]
+  {
+    armagon_repulse_attack();
+    return;
+  }
 
-   self.state = 0;
+  self.state = 0;
 
-   if (vlen(spot2-spot1) > 450)
-      {
-      armagon_run1();
-      return;
-      }
+  if (vlen(spot2-spot1) > 450)
+  {
+    armagon_run1();
+    return;
+  }
 
-   if (random()<0.5)
-      armagon_satk1();
-   else
-      armagon_slaser1();
+  if (random()<0.5)
+    armagon_satk1();
+  else
+    armagon_slaser1();
 
-   if (self.cnt == 1)
-      {
-      armagon_run1();
-      return;
-      }
-   };
+  if (self.cnt == 1)
+  {
+    armagon_run1();
+    return;
+  }
+};
 
 
 float()  ArmagonCheckAttack =
-   {
-	local vector	spot1, spot2;
-	local entity	targ;
-   local float    ang;
-   local float    delta;
-   local float    dist;
+{
+  local vector	spot1, spot2;
+  local entity	targ;
+  local float    ang;
+  local float    delta;
+  local float    dist;
 
-   self.lefty = 0;
+  self.lefty = 0;
 
 	targ = self.enemy;
 
 // see if any entities are in the way of the shot
-   spot1 = self.origin + self.view_ofs;
+  spot1 = self.origin + self.view_ofs;
 	spot2 = targ.origin + targ.view_ofs;
 
 	traceline (spot1, spot2, FALSE, self);
 
-   if ((trace_ent != targ) && (!self.charmed))
-      return FALSE;     // don't have a clear shot
+  if ((trace_ent != targ) && (!self.charmed))
+    return FALSE;     // don't have a clear shot
 
 	if (trace_inopen && trace_inwater)
 		return FALSE;			// sight line crossed contents
 
-   if (time < self.attack_finished)
+  if (time < self.attack_finished)
 		return FALSE;
 
-   ang = self.angles_y + self.fixangle;
-   delta = self.ideal_yaw - ang;
-   dist = vlen(spot2-spot1);
-   if ((fabs(delta) > 10 && (dist > 200)) || (self.enemy.classname != "player"))
-      return FALSE;
-   if (dist < 400)
-      {  // melee attack
-      self.th_melee ();
-      return TRUE;
-		}
+  ang = self.angles_y + self.fixangle;
+
+  //Ry: Calculate this, since movements can be based on goalentity [08-07-2022]
+  enemy_yaw = vectoyaw(self.enemy.origin - self.origin);
+
+  delta = enemy_yaw - ang;
+  dist = vlen(spot2-spot1);
+  if (fabs(delta) > 10 && (dist > 200)) //Ry: Can now repel monsters as well [08-02-2022]
+    return FALSE;
+  if (dist < 400)
+  {  // melee attack
+    self.th_melee ();
+    return TRUE;
+  }
 // missile attack
-   self.lefty = 1;
-//   self.th_missile ();
-//   SUB_AttackFinished (1.5*random());
-   return FALSE;
-   };
+  self.lefty = 1;
+  return FALSE;
+};
 
 
 /*QUAKED monster_armagon (1 0 0) (-32 -32 -24) (32 32 64) Ambush
@@ -930,9 +1030,9 @@ void() monster_armagon =
 {
   local entity body;
 
-  hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
+  missionpackmap = TRUE; //Ry: Map has Hipnotic entity
 
-  if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
+  if (!EntityValidForMode(ENTTYPE_MONSTER)) //Ry: New function to handle func_spawn and horde mode
     return;
 
   precache_model ("progs/armabody.mdl");
@@ -952,12 +1052,13 @@ void() monster_armagon =
   self.netname = "Armagon"; //Ry: Give name for frag message
   self.health = 100000; //Ry: HP will be properly set when Armagon starts moving, based on difficulty and player count
   self.justrespawned = TRUE;
+  self.important = TRUE; //Ry: Armagon will now reverse telefrag other monsters [08-08-2022]
 
   body = spawn();
   body.classname = "monster_armagon_body";
   body.origin = self.origin - '0 0 64';
   body.angles = self.angles; //Ry: Try and correct angle on body if Armagon spawns turned
-  body.fixangle = TRUE;
+  body.fixangle = 0;
   body.think = armagon_body_think; //Ry: Make sure the body stays with the head while falling
   body.nextthink = time;
 
@@ -973,14 +1074,14 @@ void() monster_armagon =
   setmodel (body, "progs/armabody.mdl");
   setmodel (self, "progs/armalegs.mdl");
 
-  setsize (self, '-48 -48 -24', '48 48 84' );
+  setsize (self, VEC_HULL_ARMAGON_MIN, VEC_HULL_ARMAGON_MAX );
   setorigin (self, self.origin);
   setorigin (body, body.origin);
   
-  if (skill==0)
+  if (skill >= 2 || copper_nightmare) //Ry: Copper hates monster differences, so have fun with Hard stats Armagon on Easy/Normal if using Copper Nightmare [07-14-2022]
   {
-    self.yaw_speed = 5;
-    self.worldtype = 0.9;
+    self.yaw_speed = 12;
+    self.worldtype = 0.75;
   }
   else if (skill==1)
   {
@@ -989,15 +1090,17 @@ void() monster_armagon =
   }
   else
   {
-    self.yaw_speed = 12;
-    self.worldtype = 0.75;
+    self.yaw_speed = 5;
+    self.worldtype = 0.9;
   }
   self.lefty = 0;
   self.state = 0;
   self.super_time = 0;
   self.endtime = 0;
 
-	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+  #ifdef ENGINE_KEX
+    self.allowPathFind = USEPATH_NO; //Ry: Not entirely compatible with bot nav movement [08-07-2022]
+  #endif
 	self.combat_style = CS_RANGED;
   
   self.th_stand = armagon_stand1;
@@ -1007,6 +1110,7 @@ void() monster_armagon =
   self.th_missile = armagon_missile_attack;
   self.th_melee = armagon_stop1;
   self.th_pain = armagon_pain;
+  self.touch = armagon_touch; //Ry: Armagon can crush monsters and players if dropped on them [07-31-2022]
    
   walkmonster_start();
 };

@@ -49,6 +49,10 @@ $frame pull1 pull2 pull3 pull4 pull5 pull6 pull7 pull8 pull9 pull10 pull11
 
 //=============================================================================
 
+#ifdef GAME_ROGUE
+  float	OGRE_BOSS	= 2;
+  float	OGRE_NORMAL	= 4;
+#endif
 
 void() OgreGrenadeExplode =
 {
@@ -87,6 +91,11 @@ void() OgreGrenadeTouch =
 OgreFireGrenade
 ================
 */
+#ifdef GAME_ROGUE
+  void() MultiGrenadeTouch;
+  void() MultiGrenadeExplode;
+#endif
+
 void() OgreFireGrenade =
 {
 	local	entity missile;
@@ -98,7 +107,7 @@ void() OgreFireGrenade =
 	missile = spawn ();
 
 //JIM
-	missile.classname = "grenade";
+	missile.classname = "ogre_grenade";
 
 	missile.owner = self;
 	missile.movetype = MOVETYPE_BOUNCE;
@@ -116,13 +125,25 @@ void() OgreFireGrenade =
 
 	missile.angles = vectoangles(missile.velocity);
 
-	missile.touch = OgreGrenadeTouch;
-
-// set missile duration
+  #ifdef GAME_ROGUE
+	if(self.spawnflags & OGRE_BOSS)
+	{
+		missile.touch = MultiGrenadeTouch;
+		missile.think = MultiGrenadeExplode;
+		setmodel (missile, "progs/mervup.mdl");
+		missile.classname = "MultiGrenade";
+	}
+	else
+	{
+  #endif
+    missile.touch = OgreGrenadeTouch;
+    missile.think = OgreGrenadeExplode;
+    setmodel (missile, "progs/grenade.mdl");
+  #ifdef GAME_ROGUE
+  }
+  #endif
+  // set missile duration
 	missile.nextthink = time + 2.5;
-	missile.think = OgreGrenadeExplode;
-
-	setmodel (missile, "progs/grenade.mdl");
 	setsize (missile, '0 0 0', '0 0 0');
 	setorigin (missile, self.origin);
 };
@@ -362,8 +383,16 @@ void(entity attacker, float damage)	ogre_pain =
 void()	ogre_die1	=[	$death1,	ogre_die2	] {};
 void()	ogre_die2	=[	$death2,	ogre_die3	] {};
 void()	ogre_die3	=[	$death3,	ogre_die4	]
-{self.solid = SOLID_NOT;
-self.ammo_rockets = 2;DropBackpack(TRUE);}; //Ry: Added new argument for DropBackpack
+{
+  self.solid = SOLID_NOT;
+  #ifdef GAME_ROGUE
+  if (self.spawnflags & OGRE_BOSS)
+    self.ammo_multi_rockets = 2;
+  else
+  #endif
+    self.AMMO_ROCKETS = 2;
+  DropBackpack(TRUE);
+}; //Ry: Added new argument for DropBackpack
 void()	ogre_die4	=[	$death4,	ogre_die5	] {};
 void()	ogre_die5	=[	$death5,	ogre_die6	] {};
 void()	ogre_die6	=[	$death6,	ogre_die7	] {};
@@ -386,8 +415,16 @@ void()	ogre_die14	=[	$death14,	ogre_die14	]
 void()	ogre_bdie1	=[	$bdeath1,	ogre_bdie2	] {};
 void()	ogre_bdie2	=[	$bdeath2,	ogre_bdie3	] {ai_forward(5);};
 void()	ogre_bdie3	=[	$bdeath3,	ogre_bdie4	]
-{self.solid = SOLID_NOT;
-self.ammo_rockets = 2;DropBackpack(TRUE);};
+{
+  self.solid = SOLID_NOT;
+  #ifdef GAME_ROGUE
+  if (self.spawnflags & OGRE_BOSS)
+    self.ammo_multi_rockets = 2;
+  else
+  #endif
+    self.AMMO_ROCKETS = 2;
+  DropBackpack(TRUE);
+};
 void()	ogre_bdie4	=[	$bdeath4,	ogre_bdie5	] {ai_forward(1);};
 void()	ogre_bdie5	=[	$bdeath5,	ogre_bdie6	] {ai_forward(3);};
 void()	ogre_bdie6	=[	$bdeath6,	ogre_bdie7	] {ai_forward(7);};
@@ -406,7 +443,7 @@ void()	ogre_bdie10	=[	$bdeath10,	ogre_bdie10	]
 void() ogre_die =
 {
 // check for gib
-	if (self.health < -80)
+	if ( self.health < self.gib_health ) //Ry: Compare to the saved var now [07-31-2022]
 	{
 		sound (self, CHAN_VOICE, "player/udeath.wav", 1, ATTN_NORM);
 		ThrowHead ("progs/h_ogre.mdl", self.health);
@@ -432,13 +469,21 @@ void() ogre_melee =
 		ogre_swing1 ();
 };
 
+#ifdef GAME_ROGUE
+  /*QUAKED monster_ogre (1 0 0) (-32 -32 -24) (32 32 64) Ambush Boss Normal
+  The Ogre
 
-/*QUAKED monster_ogre (1 0 0) (-32 -32 -24) (32 32 64) Ambush
+  Boss: use the modified skin and fire multigrenades.
+  Normal: use the original skin and fire normal grenades.
+  */
+#else
+  /*QUAKED monster_ogre (1 0 0) (-32 -32 -24) (32 32 64) Ambush
 
-*/
+  */
+#endif
 void() monster_ogre =
 {
-	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
+	if (!EntityValidForMode(ENTTYPE_MONSTER)) //Ry: New function to handle func_spawn and horde mode
 		return;
 
 	precache_model ("progs/ogre.mdl");
@@ -453,35 +498,59 @@ void() monster_ogre =
 	precache_sound ("ogre/ogsawatk.wav");
 	precache_sound ("ogre/ogwake.wav");
   
-  //Ry: Precache Centroid as well in case Ogre is replaced in ID1
-  precache_model2 ("progs/scor.mdl");
-  precache_model2 ("progs/h_scourg.mdl");
-	precache_model2 ("progs/laser.mdl");
-  precache_model2 ("progs/s_light.mdl");
-  precache_model2 ("progs/spike.mdl");
+  #ifdef GAME_HIPNOTIC
+    //Ry: Precache Centroid as well in case Ogre is replaced in ID1
+    precache_model2 ("progs/scor.mdl");
+    precache_model2 ("progs/h_scourg.mdl");
+    precache_model2 ("progs/laser.mdl");
+    precache_model2 ("progs/s_light.mdl");
+    precache_model2 ("progs/spike.mdl");
 
-  precache_sound ("misc/null.wav");
-  precache_sound ("scourge/idle.wav");
-  precache_sound ("scourge/pain.wav");
-  precache_sound ("scourge/pain2.wav");
-  precache_sound ("scourge/sight.wav");
-  precache_sound ("scourge/tailswng.wav");
-  precache_sound ("scourge/walk.wav");
-  precache_sound2 ("shambler/smack.wav");
-  precache_sound2 ("weapons/rocket1i.wav");
+    precache_sound ("misc/null.wav");
+    precache_sound ("scourge/idle.wav");
+    precache_sound ("scourge/pain.wav");
+    precache_sound ("scourge/pain2.wav");
+    precache_sound ("scourge/sight.wav");
+    precache_sound ("scourge/tailswng.wav");
+    precache_sound ("scourge/walk.wav");
+    precache_sound2 ("shambler/smack.wav");
+    precache_sound2 ("weapons/rocket1i.wav");
+  #endif
   
   self.netname = "Ogre"; //Ry: Name for Deathmatch
   
-	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+  #ifdef ENGINE_KEX
+    self.allowPathFind = USEPATH_ALLOW; //Ry: Can use Remaster pathing [08-01-2022]
+  #endif
 	self.combat_style = CS_MIXED_ABOVE;
 
 	self.solid = SOLID_SLIDEBOX;
 	self.movetype = MOVETYPE_STEP;
 
 	setmodel (self, "progs/ogre.mdl");
+  
+  #ifdef GAME_ROGUE
+    // none specified - choose random. 25% boss on normal, hard, bloodbath
+    if (self.spawnflags <= 1)
+    {
+      if ( (cvar("skill") > 0) || copper_nightmare )
+      {
+        if ( random() <= 0.25 )
+        {
+          self.spawnflags = self.spawnflags | OGRE_BOSS;
+        }
+      }
+    }
+    
+    if (self.spawnflags & OGRE_BOSS)
+    {
+      self.skin = 1;
+    }
+  #endif
 
 	setsize (self, VEC_HULL2_MIN, VEC_HULL2_MAX);
 	self.health = 200;
+  self.gib_health = -80; //Ry: Var for gib health [07-31-2022]
 
 	self.th_stand = ogre_stand1;
 	self.th_walk = ogre_walk1;

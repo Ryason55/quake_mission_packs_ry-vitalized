@@ -243,7 +243,7 @@ void() dog_dieb9		=[	$deathb9,	dog_dieb9	]
 void() dog_die =
 {
 // check for gib
-	if (self.health < -35)
+	if ( self.health < self.gib_health ) //Ry: Compare to the saved var now [07-31-2022]
 	{
 		sound (self, CHAN_VOICE, "player/udeath.wav", 1, ATTN_NORM);
 		ThrowGib ("progs/gib3.mdl", self.health);
@@ -341,7 +341,7 @@ float()	DogCheckAttack =
 */
 void() monster_dog =
 {
-	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
+	if (!EntityValidForMode(ENTTYPE_MONSTER)) //Ry: New function to handle func_spawn and horde mode
 		return;
 
 	precache_model ("progs/h_dog.mdl");
@@ -355,7 +355,9 @@ void() monster_dog =
   
   self.netname = "Rottweiler"; //Ry: Name for Deathmatch
   
-	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+  #ifdef ENGINE_KEX
+    self.allowPathFind = USEPATH_ALLOW; //Ry: Can use Remaster pathing [08-01-2022]
+  #endif
 	self.combat_style = CS_MELEE;
 
 	self.solid = SOLID_SLIDEBOX;
@@ -365,6 +367,7 @@ void() monster_dog =
 
 	setsize (self, '-32 -32 -24', '32 32 40');
 	self.health = 25;
+  self.gib_health = -35; //Ry: Var for gib health [07-31-2022]
 
 	self.th_stand = dog_stand1;
 	self.th_walk = dog_walk1;

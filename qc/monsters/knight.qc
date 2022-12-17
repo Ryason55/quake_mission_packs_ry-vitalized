@@ -55,10 +55,24 @@ void()	knight_stand7	=[	$stand7,	knight_stand8	] {ai_stand();};
 void()	knight_stand8	=[	$stand8,	knight_stand9	] {ai_stand();};
 void()	knight_stand9	=[	$stand9,	knight_stand1	] {ai_stand();};
 
-void()	knight_walk1	=[	$walk1,		knight_walk2	] {
-if (random() < 0.2)
-	sound (self, CHAN_VOICE, "knight/idle.wav", 1,  ATTN_IDLE);
-ai_walk(3);};
+void() kn_idle_sound =
+{
+	if (random() < 0.2)
+	{
+    #ifdef GAME_ROGUE
+		if (self.spawnflags & 2) // statue
+			sound (self, CHAN_VOICE, "statue/idle.wav", 1, ATTN_IDLE);
+		else
+    #endif
+      sound (self, CHAN_VOICE, "knight/idle.wav", 1,  ATTN_IDLE);
+	}
+};
+
+void()	knight_walk1	=[	$walk1,		knight_walk2	]
+{
+  kn_idle_sound();
+  ai_walk(3);
+};
 void()	knight_walk2	=[	$walk2,		knight_walk3	] {ai_walk(2);};
 void()	knight_walk3	=[	$walk3,		knight_walk4	] {ai_walk(3);};
 void()	knight_walk4	=[	$walk4,		knight_walk5	] {ai_walk(4);};
@@ -74,10 +88,11 @@ void()	knight_walk13	=[	$walk13,	knight_walk14	] {ai_walk(4);};
 void()	knight_walk14	=[	$walk14,	knight_walk1	] {ai_walk(3);};
 
 
-void()	knight_run1	=[	$runb1,		knight_run2	] {
-if (random() < 0.2)
-	sound (self, CHAN_VOICE, "knight/idle.wav", 1,  ATTN_IDLE);
-ai_run(16);};
+void()	knight_run1	=[	$runb1,		knight_run2	]
+{
+  kn_idle_sound();
+  ai_run(16);
+};
 void()	knight_run2	=[	$runb2,		knight_run3	] {ai_run(20);};
 void()	knight_run3	=[	$runb3,		knight_run4	] {ai_run(13);};
 void()	knight_run4	=[	$runb4,		knight_run5	] {ai_run(7);};
@@ -152,7 +167,13 @@ void(entity attacker, float damage)	knight_pain =
 
 	r = random();
 	
-	sound (self, CHAN_VOICE, "knight/khurt.wav", 1, ATTN_NORM);
+  #ifdef GAME_ROGUE
+	if (self.spawnflags & 2) // statue
+		sound (self, CHAN_VOICE, "statue/pain.wav", 1, ATTN_NORM);
+	else
+  #endif
+    sound (self, CHAN_VOICE, "knight/khurt.wav", 1, ATTN_NORM);
+
 	if (r < 0.85)
 	{
 		knight_pain1 ();
@@ -227,59 +248,143 @@ void()	knight_dieb11 = [	$deathb11,	knight_dieb11]
 void() knight_die =
 {
 // check for gib
-	if (self.health < -40)
+	if ( self.health < self.gib_health ) //Ry: Compare to the saved var now [07-31-2022]
 	{
 		sound (self, CHAN_VOICE, "player/udeath.wav", 1, ATTN_NORM);
 		ThrowHead ("progs/h_knight.mdl", self.health);
-		ThrowGib ("progs/gib1.mdl", self.health);
-		ThrowGib ("progs/gib2.mdl", self.health);
-		ThrowGib ("progs/gib3.mdl", self.health);
+    #ifdef GAME_ROGUE
+    if (self.spawnflags & 2) // statue
+		{
+			ThrowGib ( "progs/statgib1.mdl", self.health);
+			ThrowGib ( "progs/statgib2.mdl", self.health);
+			ThrowGib ( "progs/statgib3.mdl", self.health);
+		}
+		else
+		{
+    #endif
+      ThrowGib ("progs/gib1.mdl", self.health);
+      ThrowGib ("progs/gib2.mdl", self.health);
+      ThrowGib ("progs/gib3.mdl", self.health);
+    #ifdef GAME_ROGUE
+    }
+    #endif
 		return;
 	}
 
 // regular death
-	sound (self, CHAN_VOICE, "knight/kdeath.wav", 1, ATTN_NORM);
+  #ifdef GAME_ROGUE
+	if (self.spawnflags & 2) // statue
+		sound (self, CHAN_VOICE, "statue/death.wav", 1, ATTN_NORM);
+	else
+  #endif
+    sound (self, CHAN_VOICE, "knight/kdeath.wav", 1, ATTN_NORM);
 	if (random() < 0.5)
 		knight_die1 ();
 	else
 		knight_dieb1 ();
 };
 
+#ifdef GAME_ROGUE
+  void() knight_pause =
+  {
+    sound ( self, CHAN_VOICE, "statue/see.wav", 1, ATTN_NORM);
 
-/*QUAKED monster_knight (1 0 0) (-16 -16 -24) (16 16 40) Ambush
-*/
+    self.takedamage = DAMAGE_AIM;
+    self.th_stand = knight_stand1;
+    self.th_walk = knight_walk1;
+    self.th_run = knight_run1;
+    self.th_melee = knight_atk1;
+    self.th_pain = knight_pain;
+    self.th_die = knight_die;
+    self.use = SUB_Null;
+    
+    self.think = knight_run1;
+
+    self.enemy = activator;
+    self.nextthink = time + 0.1;
+    self.think = FoundTarget;
+      
+    self.delay = 0;
+  };
+
+  void() knight_pause1 =
+  {
+    self.takedamage = DAMAGE_NO;
+    self.use = knight_pause;
+    self.think = knight_pause1;
+      self.nextthink = time + 0.1;
+  };
+
+  /*QUAKED monster_knight (1 0 0) (-16 -16 -24) (16 16 40) Ambush Statue
+
+  Statue - select this to use the stone skin and have him frozen in place.
+
+  delay: time from sight to attack (default 5)
+  frame: frame to be frozen in. (default 44)
+  */
+#else
+  /*QUAKED monster_knight (1 0 0) (-16 -16 -24) (16 16 40) Ambush
+  */
+#endif
 void() monster_knight =
 {
-	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
+	if (!EntityValidForMode(ENTTYPE_MONSTER)) //Ry: New function to handle func_spawn and horde mode
 		return;
 
 	precache_model ("progs/knight.mdl");
 	precache_model ("progs/h_knight.mdl");
   
-	precache_sound ("knight/kdeath.wav");
-	precache_sound ("knight/khurt.wav");
-	precache_sound ("knight/ksight.wav");
+  #ifdef GAME_ROGUE
+	if (self.spawnflags & 2) // statue
+	{
+		precache_model ( "progs/statgib1.mdl");
+		precache_model ( "progs/statgib2.mdl");
+		precache_model ( "progs/statgib3.mdl");
+		precache_sound ( "statue/see.wav");
+		precache_sound ( "statue/idle.wav");
+		precache_sound ( "statue/pain.wav");
+		precache_sound ( "statue/death.wav");
+	}
+	else
+	{
+  #endif
+    precache_sound ("knight/kdeath.wav");
+    precache_sound ("knight/khurt.wav");
+    precache_sound ("knight/ksight.wav");
+    precache_sound ("knight/idle.wav");
+  #ifdef GAME_ROGUE
+  }
+  #endif
 	precache_sound ("knight/sword1.wav");
 	precache_sound ("knight/sword2.wav");
-	precache_sound ("knight/idle.wav");
 
-  //Ry: Precache Gremlin as well in case Knight is replaced in ID1
-  precache_model ("progs/grem.mdl");
-  precache_model ("progs/h_grem.mdl");
-  
-  precache_sound ("grem/death.wav");
-  precache_sound ("grem/attack.wav");
-  precache_sound ("demon/djump.wav");
-  precache_sound ("demon/dhit2.wav");
-  precache_sound ("grem/pain1.wav");
-  precache_sound ("grem/pain2.wav");
-  precache_sound ("grem/pain3.wav");
-  precache_sound ("grem/idle.wav");
-  precache_sound ("grem/sight1.wav");
+  #ifdef GAME_HIPNOTIC
+    //Ry: Precache Gremlin as well in case Knight is replaced in ID1
+    precache_model ("progs/grem.mdl");
+    precache_model ("progs/h_grem.mdl");
+    
+    precache_sound ("grem/death.wav");
+    precache_sound ("grem/attack.wav");
+    precache_sound ("demon/djump.wav");
+    precache_sound ("demon/dhit2.wav");
+    precache_sound ("grem/pain1.wav");
+    precache_sound ("grem/pain2.wav");
+    precache_sound ("grem/pain3.wav");
+    precache_sound ("grem/idle.wav");
+    precache_sound ("grem/sight1.wav");
+  #elifdef GAME_ROGUE
+    //Ry: Precache Phantom Swordsman in case of replacement in ID1
+    precache_model ("progs/sword.mdl");
+    precache_sound ("knight/sword1.wav");
+    precache_sound ("knight/ksight.wav");
+    precache_sound ("player/axhit2.wav");
+  #endif
   
   self.netname = "Knight"; //Ry: Name for Deathmatch
   
-	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+  #ifdef ENGINE_KEX
+    self.allowPathFind = USEPATH_ALLOW; //Ry: Can use Remaster pathing [08-01-2022]
+  #endif
 	self.combat_style = CS_MELEE;
 
 	self.solid = SOLID_SLIDEBOX;
@@ -289,13 +394,42 @@ void() monster_knight =
 
 	setsize (self, '-16 -16 -24', '16 16 40');
 	self.health = 75;
+  self.gib_health = -40; //Ry: Var for gib health [07-31-2022]
+  
+  #ifdef GAME_ROGUE
+	if (self.spawnflags & 2) // statue
+	{
+		if (self.frame == 0)
+			self.frame = 44;
+		self.skin = 1;
 
-	self.th_stand = knight_stand1;
-	self.th_walk = knight_walk1;
-	self.th_run = knight_run1;
-	self.th_melee = knight_atk1;
-	self.th_pain = knight_pain;
-	self.th_die = knight_die;
+		if (!self.targetname)
+		{
+			dprint ("statue not targeted\n");
+			dprint (self.classname);
+			dprint (" at ");
+			dprint (vtos(self.origin));
+			dprint ("\n");
+			return;
+		}
+
+		self.use = knight_pause;
+    self.th_stand = knight_pause1;
+    self.th_walk = knight_pause1;
+		self.th_run = knight_pause1;
+	}
+	else
+	{
+  #endif
+    self.th_stand = knight_stand1;
+    self.th_walk = knight_walk1;
+    self.th_run = knight_run1;
+    self.th_melee = knight_atk1;
+    self.th_pain = knight_pain;
+    self.th_die = knight_die;
+  #ifdef GAME_ROGUE
+  }
+  #endif
 	
 	walkmonster_start ();
 };
