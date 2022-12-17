@@ -123,83 +123,6 @@
       "sp": false
     },
     {
-      "title": "Tower of the Apprentice",
-      "bsp": "horde1",
-      "episode": "mg1",
-      "game": "mg1",
-      "horde": true,
-      "dm": false,
-      "coop": false,
-      "bots": true,
-      "sp": false
-    },
-    {
-      "title": "Frozen Court",
-      "bsp": "horde2",
-      "episode": "mg1",
-      "game": "mg1",
-      "horde": true,
-      "dm": false,
-      "coop": false,
-      "bots": true,
-      "sp": false
-    },
-    {
-      "title": "The Foundry",
-      "bsp": "horde3",
-      "episode": "mg1",
-      "game": "mg1",
-      "horde": true,
-      "dm": false,
-      "coop": false,
-      "bots": true,
-      "sp": false
-    },
-    {
-      "title": "The Hunt",
-      "bsp": "horde4",
-      "episode": "mg1",
-      "game": "mg1",
-      "horde": true,
-      "dm": false,
-      "coop": false,
-      "bots": true,
-      "sp": false
-    },
-    {
-      "title": "Relic",
-      "bsp": "horde5",
-      "episode": "mg1",
-      "game": "mg1",
-      "horde": true,
-      "dm": false,
-      "coop": false,
-      "bots": true,
-      "sp": false
-    },
-    {
-      "title": "The Trial",
-      "bsp": "horde6",
-      "episode": "mg1",
-      "game": "mg1",
-      "horde": true,
-      "dm": false,
-      "coop": false,
-      "bots": true,
-      "sp": false
-    },
-    {
-      "title": "The Tower",
-      "bsp": "horde7",
-      "episode": "mg1",
-      "game": "mg1",
-      "horde": true,
-      "dm": false,
-      "coop": false,
-      "bots": true,
-      "sp": false
-    },
-    {
       "title": "Entrance",
       "bsp": "start",
       "episode": "id1",
@@ -520,160 +443,6 @@
       "sp": true
     },
     {
-      "title": "Split Decision",
-      "bsp": "start",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Deviant's Domain",
-      "bsp": "r1m1",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Dread Portal",
-      "bsp": "r1m2",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Judgement Call",
-      "bsp": "r1m3",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Cave of Death",
-      "bsp": "r1m4",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Towers of Wrath",
-      "bsp": "r1m5",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Temple of Pain",
-      "bsp": "r1m6",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Tomb of the Overlord",
-      "bsp": "r1m7",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Tempus Fugit",
-      "bsp": "r2m1",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Elemental Fury I",
-      "bsp": "r2m2",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Elemental Fury II",
-      "bsp": "r2m3",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Curse of Osiris",
-      "bsp": "r2m4",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Wizard's Keep",
-      "bsp": "r2m5",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Blood Sacrifice",
-      "bsp": "r2m6",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Last Bastion",
-      "bsp": "r2m7",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Source of Evil",
-      "bsp": "r2m8",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": true,
-      "sp": true
-    },
-    {
-      "title": "Division of Change",
-      "bsp": "ctf1",
-      "episode": "rogue",
-      "game": "rogue",
-      "dm": true,
-      "coop": false,
-      "bots": true,
-      "sp": false
-    },
-    {
       "title": "Command HQ",
       "bsp": "start",
       "episode": "hipnotic",
@@ -738,6 +507,7 @@
       "bsp": "hip2m1",
       "episode": "hipnotic",
       "game": "hipnotic",
+	  "horde": true,
       "dm": true,
       "coop": true,
       "bots": true,
@@ -848,9 +618,181 @@
       "bsp": "hipend",
       "episode": "hipnotic",
       "game": "hipnotic",
+	  "horde": true,
       "dm": true,
       "coop": true,
       "bots": true,
+      "sp": true
+    },
+    {
+      "title": "Division of Change",
+      "bsp": "ctf1",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": false,
+      "bots": true,
+      "sp": false,
+	  "ctf": true
+    },
+    {
+      "title": "Split Decision",
+      "bsp": "start",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "sp": true
+    },
+    {
+      "title": "Deviant's Domain",
+      "bsp": "r1m1",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "sp": true,
+	  "ctf": true
+    },
+    {
+      "title": "Dread Portal",
+      "bsp": "r1m2",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "sp": true,
+	  "ctf": true
+    },
+    {
+      "title": "Judgement Call",
+      "bsp": "r1m3",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "sp": true,
+	  "ctf": true
+    },
+    {
+      "title": "Cave of Death",
+      "bsp": "r1m4",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "sp": true,
+	  "ctf": true
+    },
+    {
+      "title": "Towers of Wrath",
+      "bsp": "r1m5",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "sp": true,
+	  "ctf": true
+    },
+    {
+      "title": "Temple of Pain",
+      "bsp": "r1m6",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "sp": true,
+	  "ctf": true
+    },
+    {
+      "title": "Tomb of the Overlord",
+      "bsp": "r1m7",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "sp": true,
+	  "ctf": true
+    },
+    {
+      "title": "Tempus Fugit",
+      "bsp": "r2m1",
+      "episode": "rogue",
+      "game": "rogue",
+	  "horde": true,
+      "dm": true,
+      "coop": true,
+	  "bots": true,
+      "sp": true,
+	  "ctf": true
+    },
+    {
+      "title": "Elemental Fury I",
+      "bsp": "r2m2",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "sp": true,
+	  "ctf": true
+    },
+    {
+      "title": "Elemental Fury II",
+      "bsp": "r2m3",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "sp": true,
+	  "ctf": true
+    },
+    {
+      "title": "Curse of Osiris",
+      "bsp": "r2m4",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "sp": true,
+	  "ctf": true
+    },
+    {
+      "title": "Wizard's Keep",
+      "bsp": "r2m5",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "sp": true,
+	  "ctf": true
+    },
+    {
+      "title": "Blood Sacrifice",
+      "bsp": "r2m6",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "sp": true,
+	  "ctf": true
+    },
+    {
+      "title": "Last Bastion",
+      "bsp": "r2m7",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "sp": true,
+	  "ctf": true
+    },
+    {
+      "title": "Source of Evil",
+      "bsp": "r2m8",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
       "sp": true
     },
     {
@@ -1127,6 +1069,154 @@
       "dm": false,
       "coop": true,
       "sp": true
+    },
+    {
+      "title": "Tower of the Apprentice",
+      "bsp": "horde1",
+      "episode": "mg1",
+      "game": "mg1",
+      "horde": true,
+      "dm": false,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "Frozen Court",
+      "bsp": "horde2",
+      "episode": "mg1",
+      "game": "mg1",
+      "horde": true,
+      "dm": false,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "The Foundry",
+      "bsp": "horde3",
+      "episode": "mg1",
+      "game": "mg1",
+      "horde": true,
+      "dm": false,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "The Hunt",
+      "bsp": "horde4",
+      "episode": "mg1",
+      "game": "mg1",
+      "horde": true,
+      "dm": false,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "Relic",
+      "bsp": "horde5",
+      "episode": "mg1",
+      "game": "mg1",
+      "horde": true,
+      "dm": false,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "The Trial",
+      "bsp": "horde6",
+      "episode": "mg1",
+      "game": "mg1",
+      "horde": true,
+      "dm": false,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "The Tower",
+      "bsp": "horde7",
+      "episode": "mg1",
+      "game": "mg1",
+      "horde": true,
+      "dm": false,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "McKinley Base",
+      "bsp": "ctf1",
+      "episode": "id1",
+      "game": "ctf",
+	  "bots": true,
+      "ctf": true
+    },
+    {
+      "title": "McKinley Station",
+      "bsp": "ctf2",
+      "episode": "id1",
+      "game": "ctf",
+	  "bots": true,
+      "ctf": true
+    },
+    {
+      "title": "Spill the Blood",
+      "bsp": "ctf3",
+      "episode": "id1",
+      "game": "ctf",
+	  "bots": true,
+      "ctf": true
+    },
+    {
+      "title": "Gloom Castles",
+      "bsp": "ctf4",
+      "episode": "id1",
+      "game": "ctf",
+	  "bots": true,
+      "ctf": true
+    },
+    {
+      "title": "Capturephobopolis",
+      "bsp": "ctf5",
+      "episode": "id1",
+      "game": "ctf",
+      "ctf": true
+    },
+    {
+      "title": "Vertigo",
+      "bsp": "ctf6",
+      "episode": "id1",
+      "game": "ctf",
+	  "bots": true,
+      "ctf": true
+    },
+    {
+      "title": "The Strongbox",
+      "bsp": "ctf7",
+      "episode": "id1",
+      "game": "ctf",
+	  "bots": true,
+      "ctf": true
+    },
+    {
+      "title": "Chthon's Capture House",
+      "bsp": "ctf8",
+      "episode": "id1",
+      "game": "ctf",
+	  "bots": true,
+      "ctf": true
+    },
+    {
+      "title": "Da Ancient War Grounds",
+      "bsp": "ctf9",
+      "episode": "id1",
+      "game": "ctf",
+	  "bots": true,
+      "ctf": true
     },
     {
       "title": "Place of Two Deaths",
@@ -1533,6 +1623,416 @@
       "bsp": "end",
       "episode": "hipnotic",
       "game": "hipnotic",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "Place of Two Deaths",
+      "bsp": "dm1",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "Claustrophobopolis",
+      "bsp": "dm2",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "The Abandoned Base",
+      "bsp": "dm3",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "The Bad Place",
+      "bsp": "dm4",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "The Cistern",
+      "bsp": "dm5",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "The Dark Zone",
+      "bsp": "dm6",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "The Edge",
+      "bsp": "dm7",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "Acrophobia",
+      "bsp": "dm8",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "Base 32",
+      "bsp": "base32b",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "Death 32",
+      "bsp": "death32c",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": false,
+      "bots": true,
+      "sp": false
+    },
+    {
+      "title": "Slipgate Complex",
+      "bsp": "e1m1",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "Castle of the Damned",
+      "bsp": "e1m2",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Necropolis",
+      "bsp": "e1m3",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Grisly Grotto",
+      "bsp": "e1m4",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "Gloom Keep",
+      "bsp": "e1m5",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Door To Chthon",
+      "bsp": "e1m6",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The House of Chthon",
+      "bsp": "e1m7",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "Ziggurat Vertigo",
+      "bsp": "e1m8",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Installation",
+      "bsp": "e2m1",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "Ogre Citadel",
+      "bsp": "e2m2",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "Crypt of Decay",
+      "bsp": "e2m3",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Ebon Fortress",
+      "bsp": "e2m4",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Wizard's Manse",
+      "bsp": "e2m5",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Dismal Oubliette",
+      "bsp": "e2m6",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "Underearth",
+      "bsp": "e2m7",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "Termination Central",
+      "bsp": "e3m1",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Vaults of Zin",
+      "bsp": "e3m2",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Tomb of Terror",
+      "bsp": "e3m3",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "Satan's Dark Delight",
+      "bsp": "e3m4",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "Wind Tunnels",
+      "bsp": "e3m5",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "Chambers of Torment",
+      "bsp": "e3m6",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Haunted Halls",
+      "bsp": "e3m7",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Sewage System",
+      "bsp": "e4m1",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Tower of Despair",
+      "bsp": "e4m2",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Elder God Shrine",
+      "bsp": "e4m3",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Palace of Hate",
+      "bsp": "e4m4",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "Hell's Atrium",
+      "bsp": "e4m5",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Pain Maze",
+      "bsp": "e4m6",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "Azure Agony",
+      "bsp": "e4m7",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "The Nameless City",
+      "bsp": "e4m8",
+      "episode": "rogue",
+      "game": "rogue",
+      "dm": true,
+      "coop": true,
+      "bots": true,
+      "sp": true
+    },
+    {
+      "title": "Shub-Niggurath's Pit",
+      "bsp": "end",
+      "episode": "rogue",
+      "game": "rogue",
       "dm": true,
       "coop": true,
       "bots": true,
