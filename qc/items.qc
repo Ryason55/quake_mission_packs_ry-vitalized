@@ -2777,7 +2777,7 @@ void() item_artifact_super_damage =
 {
 	self.touch = powerup_touch;
 
-   precache_model ("progs/quaddama.mdl");
+  precache_model ("progs/quaddama.mdl");
 	precache_sound ("items/damage.wav");
 	precache_sound ("items/damage2.wav");
 	precache_sound ("items/damage3.wav");

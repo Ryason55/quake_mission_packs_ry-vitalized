@@ -1864,7 +1864,7 @@ void() PlayerJump =
   
   #ifdef GAME_ROGUE
     //Ry: Don't jump while hooked [09-17-2022]
-    if (self.hookstatus > HOOK_RELEASED)
+    if (self.hookstatus > HOOK_FIRED)
       return;
   #endif
 
