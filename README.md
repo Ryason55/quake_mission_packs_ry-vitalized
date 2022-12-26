@@ -91,6 +91,7 @@ QuakeC Changes
 - Deathmatch: The number of available bodies for dead players that have respawned has been doubled from 4 to 8.  
 - Deathmatch: Nails and Lasers now have a larger hitbox against other players specifically. Nails from the regular Nailgun have a slightly larger hitbox than the others. Wall traps are not affected.  
 - Deathmatch: Earthquakes from mission pack map events no longer cause players to shake.  
+- :new: Deathmatch: Rocket capacity is now limited to 50, down from 100.  
 - :new: [DoE] Deathmatch: Alternate ammo types have lower ammo caps than campaign.  
 - :new: [DoE] Deathmatch: Weapon pickups no longer give alternate ammo inherantly.  
 - :new: [DoE] Deathmatch: Deathmatch Tag is now initiated with flag 32 in `gamecfg`, instead of `teamplay 3`.  
@@ -122,6 +123,7 @@ QuakeC Changes
 ----- :new: [DoE] Capture the Flag -----  
 - Regular CTF can now be initiated from the menu in Remaster.  
 - Implemented team selection on join, similar to Remaster's Threewave CTF.  
+- Team colors have been modified to match the banners in the levels.  
 - Scoring in CTF is now based off of captures instead of frags.  
 - If teams become unbalanced, a player can elect to switch teams with `impulse 100`.  
 - The Laser Cannon bind (impulse 225) now reports the score of each team.  
@@ -451,6 +453,7 @@ Map Changes
 - SP/Co-op: Added a number of MonsterJump triggers to help monsters with the vents and areas they lead to.  
 - SP/Co-op: In the Silver Key spot, the floor gate that opens up when the vent is used will now also open for monsters.  
 - :new: SP/Co-op: Moved a number of Spike Mines to be less likely to unexpectedly jump the player.  
+- :new: SP/Co-op: Fixed a bug in the code relating to `func_spawn`, where Scrags that are yet to spawn fall to the floor. In this level, this caused 4 Scrags to spawn underneath lava, where they couldn't see the player.  
 
 
 [SoA] HIP2M5 - Mortum's Keep  
@@ -746,7 +749,7 @@ https://www.mediafire.com/file/d5wd846r2wa8fyc/QuakeSoA_MjolnirModelFixes_V1.0.z
 Notes:  
 - Currently, any changes to item spawn behavior in Deathmatch only apply to `deathmatch 3`, which needs to be set manually in the console.  
 - Horde versions of maps can be accessed by setting `horde 1` in the console, and using `map ___` to start a compatible level. Note that Quakespasm doesn't unset `horde` when starting a new game from the menu.  
-- Other source ports haven't been extensively tested.  
+- Other source ports and derivatives haven't been extensively tested. One notable thing is Remaster-only cvars, like `sv_cheats` and `horde`, may be absent from other source ports.  
 
 
 Known Issues
