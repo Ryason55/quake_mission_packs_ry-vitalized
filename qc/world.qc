@@ -631,15 +631,17 @@ void() StartFrame =
   #ifndef ENGINE_WINQUAKE
     cheats_allowed = cvar("sv_cheats");
     horde = cvar("horde");
-    if (!campaign_valid)
-    {
-      campaign_valid = TRUE;
-      campaign = cvar("campaign");
-    }
-    else
-    {
-      cvar_set("campaign", ftos(campaign));
-    }
+    #ifdef ENGINE_KEX
+      if (!campaign_valid)
+      {
+        campaign_valid = TRUE;
+        campaign = cvar("campaign");
+      }
+      else
+      {
+        cvar_set("campaign", ftos(campaign));
+      }
+    #endif
   #endif
 	framecount = framecount + 1;
   
@@ -676,10 +678,14 @@ void() StartFrame =
         {
           if (plr.deadflag && !(plr.flags & FL_ISBOT))
           {
-            if (plr.goalentity) //Ry: Spectator
+            #ifdef ENGINE_KEX
+            if (plr.goalentity || !coop) //Ry: Spectator
+            #endif
               FilteredCenterPrint(plr,CPRINT_CHOICE,"GAME OVER\n\nAll players have fallen...");
+            #ifdef ENGINE_KEX
             else //Ry: Dead on the floor (pushed down so the scoreboard doesn't cover it)
               FilteredCenterPrint(plr,CPRINT_CHOICE,"\n\n\n\n\n\n\n\n\n\nGAME OVER\n\nAll players have fallen...");
+            #endif
           }
           plr = find(plr,classname,"player");
         }

@@ -152,7 +152,7 @@ void() info_intermission =
 
 void() SetChangeParms =
 {
-  if (deathmatch) //Ry: Shouldn't carry over inventory in Deathmatch, in the case that map rotation is used
+  if (deathmatch || horde) //Ry: Shouldn't carry over inventory in Deathmatch/Horde, in the case that map rotation is used
   {
     SetNewParms ();
     parm16 = self.mapsfinished+1;

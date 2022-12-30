@@ -511,28 +511,31 @@ float(float enttype) EntityValidForMode =
     return FALSE;
   }
   //Ry: Additional spawn flags for Horde mode
-  if ((cvar("horde") == 1) && !deathmatch)
+  if (world.ryspawnflags & RYSPAWNFLAG_HYBRIDHORDE) //Ry: Only parse these if the map is designed for them [2022-12-27]
   {
-    if (self.ryspawnflags & RYSPAWNFLAG_HORDEONLY)
-      return TRUE;
-    if ( ((enttype == ENTTYPE_MONSTER) || (enttype == ENTTYPE_GAMEPLAY)) )
+    if ((cvar("horde") == 1) && !deathmatch)
     {
-      if ( !(self.ryspawnflags & RYSPAWNFLAG_HORDEENABLE) )
+      if (self.ryspawnflags & RYSPAWNFLAG_HORDEONLY)
+        return TRUE;
+      if ( ((enttype == ENTTYPE_MONSTER) || (enttype == ENTTYPE_GAMEPLAY)) )
+      {
+        if ( !(self.ryspawnflags & RYSPAWNFLAG_HORDEENABLE) )
+        {
+          remove(self);
+          return FALSE;
+        }
+      }
+      else if ( self.ryspawnflags & RYSPAWNFLAG_HORDEDISABLE )
       {
         remove(self);
         return FALSE;
       }
     }
-    else if ( self.ryspawnflags & RYSPAWNFLAG_HORDEDISABLE )
+    else if ((self.ryspawnflags & RYSPAWNFLAG_HORDEONLY) || (enttype == ENTTYPE_HORDE))
     {
       remove(self);
       return FALSE;
     }
-  }
-  else if ((self.ryspawnflags & RYSPAWNFLAG_HORDEONLY) || (enttype == ENTTYPE_HORDE))
-  {
-    remove(self);
-    return FALSE;
   }
   #ifdef GAME_ROGUE
     if (deathmatch && (teamplay >= TEAM_CTF) && (teamplay <= TEAM_CTF_ALT))
@@ -2227,7 +2230,7 @@ void() DummyModel_Place = //impulse 230
       setmodel(self.currentdummymodel,self.model);
       setsize(self.currentdummymodel,VEC_HULL_MIN,VEC_HULL_MAX);
       DummyModel_CopyFacing();
-      FilteredCenterPrint(self,CPRINT_WORLD,"Created new dummy model");
+      FilteredCenterPrint(self,CPRINT_WORLD,"Created new diorama model");
     }
   }
 }
@@ -2273,7 +2276,11 @@ void() DummyModel_GrabModel = //impulse 231
       setsize(self.currentdummymodel,trace_ent.mins,trace_ent.maxs);
       self.currentdummymodel.frame = 0;
       DummyModel_Realign(trace_ent);
-      FilteredCenterPrint(self,CPRINT_WORLD,"Grabbed model: ",trace_ent.model);
+      #ifdef ENGINE_KEX
+        FilteredCenterPrint(self,CPRINT_WORLD,"Grabbed model: {}",ftos(self.currentdummymodel.modelindex));
+      #else
+        FilteredCenterPrint(self,CPRINT_WORLD,"Grabbed model: ",trace_ent.model);
+      #endif
     }
   }
 }

@@ -116,12 +116,14 @@ float motd_priority;
 //Ry: New spawn flags for entities in Horde/CTF
 .float ryspawnflags;
 
-float RYSPAWNFLAG_HORDEONLY    =  1;
+float RYSPAWNFLAG_HYBRIDHORDE  =  1; //Ry: For Worldspawn
+
+float RYSPAWNFLAG_HORDEONLY    =  1; //Ry: For Entities
 float RYSPAWNFLAG_HORDEENABLE  =  2;
 float RYSPAWNFLAG_HORDEDISABLE =  4;
 #ifdef GAME_ROGUE
-  float RYSPAWNFLAG_CTFONLY      =  8;
-  float RYSPAWNFLAG_CTFEXCLUDE   = 16;
+  float RYSPAWNFLAG_CTFONLY    =  8;
+  float RYSPAWNFLAG_CTFEXCLUDE = 16;
 #endif
 
 
@@ -377,9 +379,11 @@ float     PICK_TAKENFROM = 4;
 
 .float monstersize;
 
-#ifndef ENGINE_WINQUAKE
+#ifdef ENGINE_KEX
   float campaign_valid;
   float campaign;
+#endif
+#ifndef ENGINE_WINQUAKE
   float cheats_allowed;
 #endif
 

@@ -74,13 +74,20 @@ void() MOTD =
             info1 = "\nNightmare difficulty";
         }
       }
-      if (fastmonsters)
-        if (!teamplay)
-          info2 = "\n\nFast Monsters enabled\nFriendly Fire enabled";
-        else
-          info2 = "\n\nFast Monsters enabled";
-      else if (!teamplay)
-        info2 = "\n\nFriendly Fire enabled";
+      if (horde && !horde_ent) //Ry: Warning message just in case [2022-12-27]
+      {
+        info2 = "\n\nMap doesn't support Horde Mode!";
+      }
+      else
+      {
+        if (fastmonsters)
+          if (!teamplay)
+            info2 = "\n\nFast Monsters enabled\nFriendly Fire enabled";
+          else
+            info2 = "\n\nFast Monsters enabled";
+        else if (!teamplay)
+          info2 = "\n\nFriendly Fire enabled";
+      }
     }
 
     #ifdef ENGINE_KEX
@@ -107,7 +114,7 @@ void() CheckMOTD =
 {
 	if (self.motd_time && self.motd_count)
 	{ 
-    if (!coop || self.mapsfinished < 1) //Ry: In Co-op, only show the message on the first map
+    if (!coop || horde || self.mapsfinished < 1) //Ry: In Co-op, only show the message on the first map
     {
       #if defined(ENGINE_KEX) || defined(GAME_ROGUE)
         if (!self.motd_cmd && (self.motd_time <= (time + 2.9)))
@@ -134,7 +141,11 @@ void() SetMOTD =
   if (deathmatch || coop || horde)
   {
     self.motd_time = time + 3;
-    self.motd_count = 2;
+    #ifdef ENGINE_KEX
+      self.motd_count = 2;
+    #else
+      self.motd_count = 3;
+    #endif
   }
 };
 
