@@ -1,0 +1,67 @@
+// Included for QSpy guys
+teamplay 0?Hipnotic
+
+// load the base configuration
+exec default.cfg
+
+// load the last saved configuration
+exec config.cfg
+
+// run a user script file if present
+exec autoexec.cfg
+// Ry: also run a separate user script for armagon specifically
+exec hipnotic.cfg
+
+//
+// stuff command line statements
+//
+stuffcmds
+
+// opt into unicode font rendering
+scr_usekfont 1
+
+// start demos if not allready running a server
+startdemos hipdemo1 hipdemo2 hipdemo3 hipdemo4
+
+alias quickswitch_up "switchweapon 0 1"
+alias quickswitch_right "switchweapon 2 3"
+alias quickswitch_down "switchweapon 4 9 5"
+alias quickswitch_left "switchweapon 6 7 8 10"
+
+//Ry: Alias commands to toggle various settings
+alias footsteps "impulse 70"
+alias gremlinitemsteal "impulse 71"
+alias gremitemsteal "impulse 71"
+alias missionpackrebalance "impulse 72"
+alias hiprebalance "impulse 72"
+alias roguerebalance "impulse 72"
+alias rebalance "impulse 72"
+alias widelightning "impulse 73"
+alias widespikes "impulse 74"
+alias fastmonsters "impulse 75"
+alias coppernightmare "impulse 76"
+alias preferoriginalweapons "impulse 77"
+alias preferid1weps "impulse 77"
+alias exitwarp "impulse 78"
+alias grapplealways "impulse 79"
+alias alwaysgrapple "impulse 79"
+alias grapple "impulse 79"
+alias alternateplasma "impulse 80"
+alias altplasma "impulse 80"
+
+//Ry: Alias commands for placing and manipulating diorama models
+alias modelplace "impulse 230"
+alias modelgrab "impulse 231"
+alias modelindexup "impulse 232"
+alias modelindexdown "impulse 233"
+alias modelmoveup "impulse 234"
+alias modelmovedown "impulse 235"
+alias modelcopyheading "impulse 236"
+alias modelcopyangle "impulse 237"
+alias modelresetangle "impulse 238"
+alias modelframeup "impulse 239"
+alias modelframedown "impulse 240"
+alias modelnext "impulse 241"
+alias modelcopy "impulse 242"
+alias modelsnap "impulse 243"
+alias modelprint "impulse 244"

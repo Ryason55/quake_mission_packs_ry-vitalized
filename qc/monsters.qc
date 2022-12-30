@@ -75,7 +75,9 @@ void() walkmonster_start_go =
 
 	if (!walkmove(0,0))
 	{
-		dprint ("walkmonster in wall at: ");
+		dprint ("walkmonster "); //Ry: Print monster class too [09-15-2022]
+    dprint (self.classname);
+    dprint (" in wall at: ");
 		dprint (vtos(self.origin));
 		dprint ("\n");
 	}
@@ -89,6 +91,8 @@ void() walkmonster_start_go =
 	self.use = monster_use;
 
 	self.flags = self.flags | FL_MONSTER;
+  if (!self.category)
+    self.category = "monster"; //Ry: For easier searching [09-05-2022]
 
 	if (self.target)
 	{
@@ -135,7 +139,9 @@ void() walkmonster_start =
   self.flags = self.flags | FL_MONSTER;
   self.think = walkmonster_start_go;
   total_monsters = total_monsters + 1;
-  self.navcooldowntime = 0;
+  #ifdef ENGINE_KEX
+    self.navcooldowntime = 0;
+  #endif
 };
 
 
@@ -152,10 +158,14 @@ void() flymonster_start_go =
 
 	self.flags = self.flags | FL_FLY;
 	self.flags = self.flags | FL_MONSTER;
+  if (!self.category)
+    self.category = "monster"; //Ry: For easier searching [09-05-2022]
 
 	if (!walkmove(0,0))
 	{
-		dprint ("flymonster in wall at: ");
+		dprint ("flymonster "); //Ry: Print monster class too [09-15-2022]
+    dprint (self.classname);
+    dprint (" in wall at: ");
 		dprint (vtos(self.origin));
 		dprint ("\n");
 	}
@@ -197,7 +207,9 @@ void() flymonster_start =
   self.flags = self.flags | FL_MONSTER;
   self.think = flymonster_start_go;
   total_monsters = total_monsters + 1;
-  self.navcooldowntime = 0;
+  #ifdef ENGINE_KEX
+    self.navcooldowntime = 0;
+  #endif
 };
 
 
@@ -221,6 +233,8 @@ void() swimmonster_start_go =
 
 	self.flags = self.flags | FL_SWIM;
 	self.flags = self.flags | FL_MONSTER;
+  if (!self.category)
+    self.category = "monster"; //Ry: For easier searching [09-05-2022]
 
 	if (self.target)
 	{
@@ -261,5 +275,7 @@ void() swimmonster_start =
   self.nextthink = self.nextthink + 0.05 + random()*0.45; //Ry: Minimum amount of time before monster is started, to fix the frozen monster bug
 	self.think = swimmonster_start_go;
   total_monsters = total_monsters + 1;
-  self.navcooldowntime = 0;
+  #ifdef ENGINE_KEX
+    self.navcooldowntime = 0;
+  #endif
 };

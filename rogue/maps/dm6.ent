@@ -1,0 +1,725 @@
+{
+ "classname" "worldspawn"
+ "message" "The Dark Zone"
+ "sounds" "5"
+ "wad" "id1/gfx/tim.wad"
+ "worldtype" "0"
+}
+{
+ "classname" "info_player_start"
+ "angle" "0"
+ "origin" "760 -1080 256"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "1392 -1088 208"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "448 -1504 312"
+}
+{
+ "classname" "light"
+ "light" "225"
+ "origin" "440 -1640 344"
+}
+{
+ "classname" "light"
+ "light" "300"
+ "origin" "184 -1736 400"
+}
+{
+ "classname" "light"
+ "origin" "328 -1736 400"
+}
+{
+ "classname" "light"
+ "origin" "336 -1912 400"
+}
+{
+ "classname" "light"
+ "origin" "184 -1912 400"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "656 -1088 80"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "360 -1088 152"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "1496 -408 480"
+}
+{
+ "classname" "light"
+ "light" "350"
+ "origin" "200 -816 184"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "45"
+ "origin" "308 -1788 44"
+ "targetname" "t1"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*1"
+ "target" "t1"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "270"
+ "origin" "200 -892 119"
+ "targetname" "t2"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*2"
+ "target" "t2"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "1230 -626 196"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "1286 -294 196"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "1818 -1174 76"
+}
+{
+ "classname" "light"
+ "origin" "1656 -472 248"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1656 -544 80"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1744 -544 80"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "1500 -576 120"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "1642 -870 76"
+}
+{
+ "classname" "light"
+ "origin" "1432 -1088 64"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1744 -1088 216"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "944 -1080 320"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "1104 -1080 320"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1184 -1088 184"
+}
+{
+ "classname" "light"
+ "origin" "1016 -920 104"
+}
+{
+ "classname" "light"
+ "origin" "1016 -1256 104"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1400 -336 104"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1224 -888 16"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "824 -888 16"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1224 -1296 16"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "824 -1288 16"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "728 -1088 168"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "978 -382 68"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1024 -720 56"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "1074 -1718 68"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1024 -1464 56"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1304 -440 56"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "832 -1272 344"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "1208 -904 344"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "840 -904 344"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "1216 -1280 344"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "394 -1038 284"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "704 -1088 296"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "506 -1966 236"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "10 -1590 76"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "10 -2054 124"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "224 -1784 72"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "272 -1784 72"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "552 -1664 72"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "448 -1912 72"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "312 -1616 120"
+}
+{
+ "classname" "light"
+ "light" "125"
+ "origin" "80 -1824 96"
+}
+{
+ "classname" "light"
+ "light" "125"
+ "origin" "272 -2000 184"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1744 -832 256"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "200 -880 144"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "204 -944 336"
+}
+{
+ "classname" "light_flame_small_yellow"
+ "origin" "192 -1348 240"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "232 -1936 72"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "180"
+ "origin" "232 -1512 40"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "270"
+ "origin" "1016 -416 40"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "0"
+ "origin" "0 -1088 264"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "info_player_deathmatch"
+ "angle" "270"
+ "origin" "448 -1344 256"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "0"
+ "origin" "408 -1088 256"
+}
+{
+ "classname" "item_health"
+ "origin" "928 -864 232"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_health"
+ "origin" "984 -864 232"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_health"
+ "origin" "192 -1264 88"
+ "spawnflags" "2"
+}
+{
+ "classname" "item_health"
+ "origin" "1696 -1160 16"
+}
+{
+ "classname" "item_health"
+ "origin" "1224 -608 144"
+}
+{
+ "classname" "info_null"
+}
+{
+ "classname" "item_health"
+ "origin" "1048 -520 16"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_health"
+ "origin" "1048 -568 16"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_weapon"
+ "origin" "752 -1640 16"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_weapon"
+ "origin" "456 -2048 16"
+ "spawnflags" "9"
+}
+{
+ "classname" "item_health"
+ "origin" "232 -1912 16"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_health"
+ "origin" "408 -1064 232"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*3"
+ "target" "t1"
+}
+{
+ "classname" "item_health"
+ "origin" "872 -960 -64"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_weapon"
+ "origin" "1244 -1316 -64"
+ "spawnflags" "1"
+}
+{
+ "classname" "light"
+ "origin" "1488 -1088 240"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1024 -840 368"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1024 -1344 368"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "1758 -298 196"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1680 -344 104"
+}
+{
+ "classname" "info_null"
+}
+{
+ "classname" "item_health"
+ "origin" "304 -1944 16"
+ "spawnflags" "1"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1520 -280 80"
+}
+{
+ "classname" "item_weapon"
+ "origin" "1280 -1272 -64"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_weapon"
+ "origin" "816 -1640 16"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_health"
+ "origin" "920 -1008 -64"
+ "spawnflags" "1"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "168 -1512 56"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "968 -1460 272"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "0"
+ "origin" "896 -1464 256"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1696 -168 192"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1872 -320 192"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1880 -192 192"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "225"
+ "origin" "1892 -160 168"
+}
+{
+ "classname" "light"
+ "light" "100"
+ "origin" "16 -1088 280"
+}
+{
+ "classname" "weapon_nailgun"
+ "origin" "1224 -1088 -64"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "weapon_grenadelauncher"
+ "origin" "1264 -1088 232"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "weapon_supernailgun"
+ "origin" "440 -1992 144"
+}
+{
+ "classname" "weapon_rocketlauncher"
+ "angle" "180"
+ "origin" "200 -1112 88"
+}
+{
+ "classname" "weapon_supershotgun"
+ "origin" "1392 -584 16"
+}
+{
+ "classname" "item_shells"
+ "origin" "1736 -1112 144"
+}
+{
+ "classname" "info_null"
+}
+{
+ "classname" "weapon_rocketlauncher"
+ "origin" "1512 -432 36"
+}
+{
+ "classname" "light"
+ "light" "125"
+ "origin" "376 -2016 80"
+}
+{
+ "classname" "light"
+ "light" "100"
+ "origin" "240 -2016 56"
+}
+{
+ "classname" "light"
+ "light" "125"
+ "origin" "1224 -1088 -40"
+}
+{
+ "classname" "light"
+ "light" "125"
+ "origin" "1392 -584 80"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1024 -616 80"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "344 -1784 80"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "440 -1640 112"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "776 -1672 96"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "448 -1360 280"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "item_armor1"
+ "origin" "72 -1992 64"
+}
+{
+ "classname" "light"
+ "light" "125"
+ "origin" "728 -1088 -8"
+}
+{
+ "classname" "func_door_secret"
+ "angle" "180"
+ "model" "*4"
+ "spawnflags" "4"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "840 -1088 -32"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "840 -1088 -120"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*5"
+ "target" "t3"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "498 -984 -244"
+ "light" "200"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "498 -1184 -244"
+ "light" "200"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "896 -1086 -244"
+ "light" "200"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "0"
+ "origin" "1072 -1096 -32"
+ "targetname" "t3"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "600 -1088 -264"
+}
+{
+ "classname" "weapon_lightning"
+ "origin" "760 -1080 -296"
+}
+{
+ "classname" "item_cells"
+ "origin" "600 -1064 -296"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_cells"
+ "origin" "656 -1064 -296"
+ "spawnflags" "1"
+}
+{
+ "classname" "info_null"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "item_cells"
+ "origin" "472 -1272 232"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "item_cells"
+ "origin" "472 -1224 232"
+ "spawnflags" "0"
+}
+{
+ "classname" "light"
+ "light" "125"
+ "origin" "760 -1080 -272"
+}
+{
+ "classname" "info_intermission"
+ "mangle" "30 0 0"
+ "origin" "864 -1088 336"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "trigger_changelevel"
+ "map" "dm7"
+ "model" "*6"
+}
+{
+ "classname" "item_armorInv"
+ "origin" "1736 -344 144"
+}
+// Start of new entities
+{
+ "classname" "info_player_deathmatch"
+ "angle" "315"
+ "origin" "1376 -256 40"
+}
+{
+ "classname" "item_spikes"
+ "origin" "-8 -1688 16"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_spikes"
+ "origin" "-8 -1760 16"
+ "spawnflags" "1"
+}
+{
+ "classname" "dmatch_tag_token"
+ "origin" "1568 -1088 32"
+}
+{
+ "classname" "item_random_powerup"
+ "origin" "512 -1088 -280"
+ "spawnflags" "3"
+}
+{
+ "classname" "item_sphere"
+ "origin" "1024 -1096 104"
+ "static" "1"
+}
+{
+ "classname" "item_lava_spikes"
+ "origin" "1328 -280 144"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_lava_spikes"
+ "origin" "1264 -344 144"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_multi_rockets"
+ "origin" "440 -1928 16"
+}
+{
+ "classname" "item_plasma"
+ "origin" "1008 -1344 232"
+}

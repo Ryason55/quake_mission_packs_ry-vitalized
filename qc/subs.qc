@@ -321,29 +321,17 @@ void() FoundTarget; //Ry: Added reference here
 void(float normal) SUB_AttackFinished =
 {
 	self.cnt = 0;		// refire count for nightmare
-	if ((skill != 3) || (random() > 0.5)) //Ry: Nightmare monsters now only have a 50% chance to instantly refire, so they can still move around unpredictably
-  {
-		self.attack_finished = time + normal;
-    self.busy = FALSE; //Ry: Enemy is no longer busy
-  }
-  if (self.nextenemy && self.nextenemy != world) //Ry: Retarget once attack is finished
-  {
-    if (self.nextenemy != self.enemy)
-    {
-      if (self.enemy.classname == "player")
-        self.oldenemy = self.enemy;
-      self.enemy = self.nextenemy;
-      FoundTarget ();
-    }
-    self.nextenemy = world;
-  }
+  //Ry: Nightmare monsters now only have a 50% chance to instantly refire, so they can still move around unpredictably
+  //Ry: Unless using Copper Nightmare, because of the funny "Turret Enemies" buzzword [07-14-2022]
+	if ((skill < 3) || (random() > 0.5) || copper_nightmare)
+    self.attack_finished = AttackRecoil(self,normal);
 };
 
 float (entity targ) visible;
 
 void (void() thinkst) SUB_CheckRefire =
 {
-	if ((skill != 3) || (random() > 0.5))
+	if ((skill < 3) || copper_nightmare) //Ry: No monster differences in Copper Nightmare [07-14-2022]
 		return;
 	if (self.cnt == 1)
 		return;

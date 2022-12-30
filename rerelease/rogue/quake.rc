@@ -1,0 +1,77 @@
+
+// load the base configuration
+exec default.cfg
+
+// load the last saved configuration
+exec config.cfg
+
+// run a user script file if present
+exec autoexec.cfg
+// Ry: also run a separate user script for dissolution specifically
+exec rogue.cfg
+
+//
+// stuff command line statements
+//
+stuffcmds
+
+// opt into unicode font rendering
+scr_usekfont 1
+
+// start demos if not allready running a server
+startdemos demo1 demo2
+
+alias quickswitch_up "switchweapon 0 1"
+alias quickswitch_right "switchweapon 2 3 4 5"
+alias quickswitch_down "switchweapon 6 7 8 9"
+alias quickswitch_left "switchweapon 10 11 12"
+
+//Ry: Alias commands to toggle various settings
+alias footsteps "impulse 70"
+alias gremlinitemsteal "impulse 71"
+alias gremitemsteal "impulse 71"
+alias missionpackrebalance "impulse 72"
+alias hiprebalance "impulse 72"
+alias roguerebalance "impulse 72"
+alias rebalance "impulse 72"
+alias widelightning "impulse 73"
+alias widespikes "impulse 74"
+alias fastmonsters "impulse 75"
+alias coppernightmare "impulse 76"
+alias preferoriginalweapons "impulse 77"
+alias preferid1weps "impulse 77"
+alias exitwarp "impulse 78"
+alias grapplealways "impulse 79"
+alias alwaysgrapple "impulse 79"
+alias grapple "impulse 79"
+alias alternateplasma "impulse 80"
+alias altplasma "impulse 80"
+
+//Ry: Dissolution exclusive settings
+alias runes "impulse 90"
+//alias teamarmor "impulse 91"
+//alias teamhealth "impulse 92"
+//alias automaticteams "impulse 93"
+//alias autoteams "impulse 93"
+alias deathmatchtag "impulse 94"
+alias tag "impulse 94"
+
+//Ry: Alias commands for placing and manipulating diorama models
+alias modelplace "impulse 230"
+alias modelgrab "impulse 231"
+alias modelindexup "impulse 232"
+alias modelindexdown "impulse 233"
+alias modelmoveup "impulse 234"
+alias modelmovedown "impulse 235"
+alias modelcopyheading "impulse 236"
+alias modelcopyangle "impulse 237"
+alias modelresetangle "impulse 238"
+alias modelframeup "impulse 239"
+alias modelframedown "impulse 240"
+alias modelnext "impulse 241"
+alias modelcopy "impulse 242"
+alias modelsnap "impulse 243"
+alias modelprint "impulse 244"
+
+//Ry: Disable shadows on Dissolution-specific projectiles and such
+r_noEntityCastShadowList "progs/missile.mdl,progs/flame.mdl,progs/flame2.mdl,progs/lavaball.mdl,progs/grenade.mdl,progs/spike.mdl,progs/s_spike.mdl,progs/laser.mdl,progs/lspike.mdl,progs/candle.mdl,progs/bolt.mdl,progs/bolt2.mdl,progs/bolt3.mdl,progs/quaddama.mdl,progs/invulner.mdl,progs/hook.mdl,progs/beam.mdl,progs/mervup.mdl,progs/rockup.mdl,progs/rockup_d.mdl,progs/plasma.mdl,progs/p_shield.mdl,progs/sphere.mdl,progs/ctfbase.mdl,progs/ctfmodel.mdl,progs/sword.mdl"

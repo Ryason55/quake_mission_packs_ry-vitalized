@@ -278,43 +278,43 @@ float(entity item) GremlinCanStealItem = //Ry: Checks for specific items
   {
     if (item.classname == "item_shells")
     {
-      if ((self.items & (IT_SHOTGUN|IT_SUPER_SHOTGUN)) && (self.ammo_shells < 100))
+      if ((self.items & (IT_SHOTGUN|IT_SUPER_SHOTGUN)) && (self.AMMO_SHELLS < 100))
         return TRUE;
     }
     else if (item.classname == "item_nails")
     {
-      if ((self.items & (IT_NAILGUN|IT_SUPER_NAILGUN)) && (self.ammo_nails < 200))
+      if ((self.items & (IT_NAILGUN|IT_SUPER_NAILGUN)) && (self.AMMO_NAILS < 200))
         return TRUE;
     }
     else if (item.classname == "item_rockets")
     {
-      if ((self.items & (IT_ROCKET_LAUNCHER|IT_GRENADE_LAUNCHER|IT_PROXIMITY_GUN)) && (self.ammo_rockets < 100))
+      if ((self.items & (IT_ROCKET_LAUNCHER|IT_GRENADE_LAUNCHER|IT_PROXIMITY_GUN)) && (self.AMMO_ROCKETS < ammocap_rockets))
         return TRUE;
     }
     else if (item.classname == "item_cells")
     {
-      if ((self.items & (IT_LIGHTNING|IT_LASER_CANNON)) && (self.ammo_cells < 100))
+      if ((self.items & (IT_LIGHTNING|IT_LASER_CANNON)) && (self.AMMO_CELLS < 100))
         return TRUE;
     }
   }
   if (item.classname == "item_backpack" && !item.owner) //Ry: Only go for backpacks if it would enable weapon usage, and don't pursue protected backpacks
   {
-    if ( ((self.ammo_shells + item.ammo_shells) > 0) )
+    if ( ((self.AMMO_SHELLS + item.AMMO_SHELLS) > 0) )
     {
       if ( (item.items & (IT_SHOTGUN|IT_SUPER_SHOTGUN)) || (self.items & (IT_SHOTGUN|IT_SUPER_SHOTGUN)) )
         return TRUE;
     }
-    if ( ((self.ammo_nails + item.ammo_nails) > 0) )
+    if ( ((self.AMMO_NAILS + item.AMMO_NAILS) > 0) )
     {
       if ( (item.items & (IT_NAILGUN|IT_SUPER_NAILGUN)) || (self.items & (IT_NAILGUN|IT_SUPER_NAILGUN)) )
         return TRUE;
     }
-    if ( ((self.ammo_rockets + item.ammo_rockets) > 0) )
+    if ( ((self.AMMO_ROCKETS + item.AMMO_ROCKETS) > 0) )
     {
       if ( (item.items & (IT_ROCKET_LAUNCHER|IT_GRENADE_LAUNCHER|IT_PROXIMITY_GUN)) || (self.items & (IT_ROCKET_LAUNCHER|IT_GRENADE_LAUNCHER|IT_PROXIMITY_GUN)) )
         return TRUE;
     }
-    if ( ((self.ammo_cells + item.ammo_cells) > 0) )
+    if ( ((self.AMMO_CELLS + item.AMMO_CELLS) > 0) )
     {
       if ( (item.items & (IT_LIGHTNING|IT_LASER_CANNON)) || (self.items & (IT_LIGHTNING|IT_LASER_CANNON)) )
         return TRUE;
@@ -395,7 +395,7 @@ void() Gremlin_FireGrenade = //Similar to Ogres, but player damage, and random f
   local vector dir;
   local float conemul;
 
-  self.currentammo = self.ammo_rockets = self.ammo_rockets - 1;
+  self.currentammo = self.AMMO_ROCKETS = self.AMMO_ROCKETS - 1;
 	self.effects = self.effects | EF_MUZZLEFLASH;
 
 	sound (self, CHAN_WEAPON, "weapons/grenade.wav", 1, ATTN_NORM);
@@ -428,13 +428,13 @@ void() Gremlin_FireGrenade = //Similar to Ogres, but player damage, and random f
 
 	missile.angles = vectoangles(missile.velocity);
 
-  if (skill > 0 || deathmatch)
+  if (skill > 0 || copper_nightmare || deathmatch)
   {
     missile.touch = GrenadeTouch;
     missile.nextthink = time + 2.5;
     missile.think = GrenadeExplode;
     if (!deathmatch)
-      missile.effects = EF_CANDLELIGHT;
+      SetLightEffect(missile,SET_EF_CANDLE,TRUE); //Ry: Projectile glows to indicate player damage
   }
   else
   {
@@ -520,7 +520,7 @@ float() GremlinAttemptWeaponSteal =
 
   if (vlen(delta) > 100)
     return FALSE;
-  if (!deathmatch && skill < 3 && random() < 0.5) //Ry: Always steal on Nightmare/DM
+  if (!deathmatch && (skill < 3 || copper_nightmare) && random() < 0.5) //Ry: Always steal on Nightmare/DM
     return FALSE;
   //
   // we are within range so lets go for it
@@ -561,22 +561,28 @@ float() GremlinAttemptWeaponSteal =
   }
   self.weapon = best;
 
+  //Ry: Play pickup sound as an indicator [12-10-2022]
+  if (weaponstolen)
+    sound (self, CHAN_ITEM, "weapons/pkup.wav", 1, ATTN_NORM);
+  else
+    sound (self, CHAN_ITEM, "weapons/lock4.wav", 1, ATTN_NORM);
+
   // take some ammo while we are at it
   self.items = self.items - ( self.items & (IT_SHELLS | IT_NAILS | IT_ROCKETS | IT_CELLS ) );
   if ( best & IT_SUPER_SHOTGUN )
   {
-    amount = victim.ammo_shells;
+    amount = victim.AMMO_SHELLS;
     if (amount > 20)
       amount = 20;
-    victim.ammo_shells = victim.ammo_shells - amount;
-    self.ammo_shells = self.ammo_shells + amount;
+    victim.AMMO_SHELLS = victim.AMMO_SHELLS - amount;
+    self.AMMO_SHELLS = self.AMMO_SHELLS + amount;
 	  self.items = self.items | IT_SHELLS;
-    self.currentammo = self.ammo_shells;
+    self.currentammo = self.AMMO_SHELLS;
     if (weaponstolen)
       message = "Gremlin stole your Double-barreled Shotgun\n"; //Ry: Updated name from "Super Shotgun", for consistency
     else
     {
-      if (victim.ammo_shells <= 0) //Ry: Now can steal ammo if they already have the weapon
+      if (victim.AMMO_SHELLS <= 0) //Ry: Now can steal ammo if they already have the weapon
       {
         message = "Gremlin stole your remaining Shells\n";
         weaponstolen = TRUE;
@@ -587,13 +593,13 @@ float() GremlinAttemptWeaponSteal =
   }
   else if ( best & (IT_NAILGUN|IT_SUPER_NAILGUN) )
   {
-    amount = victim.ammo_nails;
+    amount = victim.AMMO_NAILS;
     if (amount > 40)
       amount = 40;
-    victim.ammo_nails = victim.ammo_nails - amount;
-    self.ammo_nails = self.ammo_nails + amount;
+    victim.AMMO_NAILS = victim.AMMO_NAILS - amount;
+    self.AMMO_NAILS = self.AMMO_NAILS + amount;
     self.items = self.items | IT_NAILS;
-    self.currentammo = self.ammo_nails;
+    self.currentammo = self.AMMO_NAILS;
     if (weaponstolen)
     {
       if (best == IT_NAILGUN)
@@ -603,7 +609,7 @@ float() GremlinAttemptWeaponSteal =
     }
     else
     {
-      if (victim.ammo_nails <= 0)
+      if (victim.AMMO_NAILS <= 0)
       {
         message = "Gremlin stole your remaining Nails\n";
         weaponstolen = TRUE;
@@ -614,13 +620,13 @@ float() GremlinAttemptWeaponSteal =
   }
   else if ( best & (IT_ROCKET_LAUNCHER|IT_GRENADE_LAUNCHER|IT_PROXIMITY_GUN) )
   {
-    amount = victim.ammo_rockets;
+    amount = victim.AMMO_ROCKETS;
     if (amount > 5)
       amount = 5;
-    victim.ammo_rockets = victim.ammo_rockets - amount;
-    self.ammo_rockets = self.ammo_rockets + amount;
+    victim.AMMO_ROCKETS = victim.AMMO_ROCKETS - amount;
+    self.AMMO_ROCKETS = self.AMMO_ROCKETS + amount;
     self.items = self.items | IT_ROCKETS;
-    self.currentammo = self.ammo_rockets;
+    self.currentammo = self.AMMO_ROCKETS;
     if (weaponstolen)
     {
       if (best == IT_ROCKET_LAUNCHER)
@@ -632,7 +638,7 @@ float() GremlinAttemptWeaponSteal =
     }
     else
     {
-      if (victim.ammo_rockets <= 0)
+      if (victim.AMMO_ROCKETS <= 0)
       {
         message = "Gremlin stole your remaining Rockets\n";
         weaponstolen = TRUE;
@@ -643,13 +649,13 @@ float() GremlinAttemptWeaponSteal =
   }
   else if ( best & (IT_LIGHTNING|IT_LASER_CANNON) )
   {
-    amount = victim.ammo_cells;
+    amount = victim.AMMO_CELLS;
     if (amount > 40)
       amount = 40;
-    victim.ammo_cells = victim.ammo_cells - amount;
-    self.ammo_cells = self.ammo_cells + amount;
+    victim.AMMO_CELLS = victim.AMMO_CELLS - amount;
+    self.AMMO_CELLS = self.AMMO_CELLS + amount;
     self.items = self.items | IT_CELLS;
-    self.currentammo = self.ammo_cells;
+    self.currentammo = self.AMMO_CELLS;
     if (weaponstolen)
     {
       if (best == IT_LIGHTNING)
@@ -659,7 +665,7 @@ float() GremlinAttemptWeaponSteal =
     }
     else
     {
-      if (victim.ammo_cells <= 0)
+      if (victim.AMMO_CELLS <= 0)
       {
         message = "Gremlin stole your remaining Cells\n";
         weaponstolen = TRUE;
@@ -676,7 +682,7 @@ float() GremlinAttemptWeaponSteal =
   amount = 0;
 
   //Ry: Incite other Gremlins nearby to also try and steal from the player on Normal+
-  if ( ((skill > 0) || deathmatch) && (victim.classname == "player") )
+  if ( ((skill > 0) || copper_nightmare || deathmatch) && (victim.classname == "player") )
   {
     head = findradius(victim.origin, 100);
     while (head)
@@ -704,9 +710,9 @@ float() GremlinAttemptWeaponSteal =
       sprint (victim,message);
     if (weaponstolen) //Ry: If a weapon was stolen, or if all ammo for the weapon was stolen
     {
-      if ( (amount > 0) || (skill < 3) ) //Ry: Gremlins change you to the Shotgun/Axe on Nightmare, unless there's other Gremlins that can steal
+      if ( (amount > 0) || ((skill < 3) || copper_nightmare) ) //Ry: Gremlins change you to the Shotgun/Axe on Nightmare, unless there's other Gremlins that can steal
         self.weapon = W_BestWeapon ();
-      else if ( self.ammo_shells > 0 )
+      else if ( self.AMMO_SHELLS > 0 )
         self.weapon = IT_SHOTGUN;
       else
         self.weapon = IT_AXE;
@@ -740,7 +746,7 @@ float() GremlinAttemptWeaponSteal =
     self.enemy = victim;
     FoundTarget();
     self.attack_finished = time;
-    self.search_time = time + 1.0;
+    self.search_time = AttackRecoil(self,1.0);
   }
 
   return TRUE;
@@ -767,7 +773,7 @@ float() GremlinFindTarget =
   //Ry: Now only gorge if within the spawn limit, or the Gremlin wants a health boost
   if ( (!self.gremstate) && time > self.wait && ((NumSpawnGremlins < (NumGremlins*2)) || self.health < 100) )
   {
-    self.wait = time + 1.0;
+    self.wait = AttackRecoil(self,1.0);
     dist = 2000;
     if (self.charmed) //Ry: More contained when charmed
       dist = 300;
@@ -785,7 +791,7 @@ float() GremlinFindTarget =
       gorge = world;
       head = nextent(world);
       stemp = self;
-      avoidsight = ( ((skill > 0) || deathmatch) && (self.health > 30) );
+      avoidsight = ( ((skill > 0) || copper_nightmare || deathmatch) && (self.health > 30) );
       while (head!=world)
       {
         //Ry: Also look for (non-head) Bodyques
@@ -821,7 +827,7 @@ float() GremlinFindTarget =
   //      dprint("\n");
         self.oldenemy = self.enemy;
         self.enemy = gorge;
-        self.search_time = time + 4.0;
+        self.search_time = AttackRecoil(self,4.0);
         SightSound(); //Ry: Do these instead of FoundTarget
         HuntTarget();
         Gremlin_UpdateState(GREM_GORGING);
@@ -838,12 +844,12 @@ float() GremlinFindTarget =
       self.enemy = head;
       FoundTarget();
       self.attack_finished = time;
-      self.search_time = time + 2.0;
+      self.search_time = AttackRecoil(self,2.0);
       return TRUE;
     }
   }
   result = FindTarget();
-  self.search_time = time + 2.0;
+  self.search_time = AttackRecoil(self,2.0);
   return result;
 };
 //============================================================================
@@ -1003,32 +1009,34 @@ void(float dist) gremlin_run =
       }
     }
 
-    //Ry: If there isn't a clear path, use bot navs to path to the item
-    if (!clearpath && time >= self.navcooldowntime)
-    {
-      pathstatus = walkpathtogoal( dist, self.goalentity.origin );
-      if ( pathstatus == PATH_IN_PROGRESS ) //Ry: Return if pathing succeeds
+    #ifdef ENGINE_KEX
+      //Ry: If there isn't a clear path, use bot navs to path to the item
+      if (!clearpath && time >= self.navcooldowntime)
       {
-        if (time >= self.super_time) //Ry: A monster butting up against a wall/obstacle seems to have PATH_IN_PROGRESS come up on some frames, so this timer is to account for that
-          self.delay = time + 2;
-        return;
+        pathstatus = walkpathtogoal( dist, self.goalentity.origin );
+        if ( pathstatus == PATH_IN_PROGRESS ) //Ry: Return if pathing succeeds
+        {
+          if (time >= self.super_time) //Ry: A monster butting up against a wall/obstacle seems to have PATH_IN_PROGRESS come up on some frames, so this timer is to account for that
+            self.delay = AttackRecoil(self,2);
+          return;
+        }
+        else if (pathstatus == PATH_REACHED_PATH_END) //Ry: Gremlin can now path directly to the target
+        {
+          self.navcooldowntime = AttackRecoil(self,3);
+        }
+        else if (pathstatus == PATH_ERROR) //Ry: No navs, not near node, or no path to target
+        {
+          self.delay = 0;
+          self.navcooldowntime = AttackRecoil(self,1);
+        }
+        else //Ry: Gremlin is blocked by something
+        {
+          self.super_time = AttackRecoil(self,0.5);
+          if (!self.delay) //Ry: Amount of time before giving up on navigation
+            self.delay = AttackRecoil(self,2);
+        }
       }
-      else if (pathstatus == PATH_REACHED_PATH_END) //Ry: Gremlin can now path directly to the target
-      {
-        self.navcooldowntime = time + 3;
-      }
-      else if (pathstatus == PATH_ERROR) //Ry: No navs, not near node, or no path to target
-      {
-        self.delay = 0;
-        self.navcooldowntime = time + 1;
-      }
-      else //Ry: Gremlin is blocked by something
-      {
-        self.super_time = time + 0.5;
-        if (!self.delay) //Ry: Amount of time before giving up on navigation
-          self.delay = time + 2;
-      }
-    }
+    #endif
 
     //Ry: If delay time is exceeded and there's no clear path, abort
     if (!clearpath && (time >= self.delay))
@@ -1065,7 +1073,7 @@ void(float dist) gremlin_run =
         clearpath = walkmove (self.angles_y, dist);
         if (clearpath) //Ry: Try moving straight; If fails, continue
           return;
-        self.lastfragtime = time + 1; //Ry: If this fails, set a delay before trying again
+        self.lastfragtime = AttackRecoil(self,1); //Ry: If this fails, set a delay before trying again
       }
     }
 
@@ -1100,32 +1108,34 @@ void(float dist) gremlin_run =
       }
     }
 
-    //Ry: If there isn't a clear path, use bot navs to path to the item
-    if (!clearpath && time >= self.navcooldowntime)
-    {
-      r = walkpathtogoal( dist, self.goalentity.origin );
-      if ( r == PATH_IN_PROGRESS ) //Ry: Return if pathing succeeds
+    #ifdef ENGINE_KEX
+      //Ry: If there isn't a clear path, use bot navs to path to the item
+      if (!clearpath && time >= self.navcooldowntime)
       {
-        if (time >= self.super_time) //Ry: A monster butting up against a wall/obstacle seems to have PATH_IN_PROGRESS come up on some frames, so this timer is to account for that
-          self.delay = time + 2;
-        return;
+        r = walkpathtogoal( dist, self.goalentity.origin );
+        if ( r == PATH_IN_PROGRESS ) //Ry: Return if pathing succeeds
+        {
+          if (time >= self.super_time) //Ry: A monster butting up against a wall/obstacle seems to have PATH_IN_PROGRESS come up on some frames, so this timer is to account for that
+            self.delay = AttackRecoil(self,2);
+          return;
+        }
+        else if (r == PATH_REACHED_PATH_END) //Ry: Gremlin can now path directly to the item
+        {
+          self.navcooldowntime = AttackRecoil(self,3);
+        }
+        else if (r == PATH_ERROR) //Ry: No navs, not near node, or no path to item
+        {
+          self.delay = 0;
+          self.navcooldowntime = AttackRecoil(self,1);
+        }
+        else //Ry: Gremlin is blocked by something
+        {
+          self.super_time = AttackRecoil(self,0.5);
+          if (!self.delay) //Ry: Amount of time before giving up on navigation
+            self.delay = AttackRecoil(self,2);
+        }
       }
-      else if (r == PATH_REACHED_PATH_END) //Ry: Gremlin can now path directly to the item
-      {
-        self.navcooldowntime = time + 3;
-      }
-      else if (r == PATH_ERROR) //Ry: No navs, not near node, or no path to item
-      {
-        self.delay = 0;
-        self.navcooldowntime = time + 1;
-      }
-      else //Ry: Gremlin is blocked by something
-      {
-        self.super_time = time + 0.5;
-        if (!self.delay) //Ry: Amount of time before giving up on navigation
-          self.delay = time + 2;
-      }
-    }
+    #endif
 
     //Ry: If delay time is exceeded and there's no clear path, abort
     if (!clearpath && (time >= self.delay))
@@ -1233,7 +1243,7 @@ void(float dist) gremlin_run =
           self.ideal_yaw = vectoyaw(normalize(self.goalentity.origin-self.origin));
           ChangeYaw ();
           movetogoal(dist);
-          self.nextthink = time + 0.1;
+          self.nextthink = AttackRecoil(self,0.1);
           return;
         }
       }
@@ -1244,7 +1254,7 @@ void(float dist) gremlin_run =
         GremlinHasAmmo();
     }
     ai_run(dist);
-    self.nextthink = time + 0.1;
+    self.nextthink = AttackRecoil(self,0.1);
   }
 };
 
@@ -1335,10 +1345,10 @@ void()   gremlin_jump8   =[ $jump8.asc,     gremlin_jump9   ] {};
 void()   gremlin_jump9   =[ $jump9.asc,     gremlin_jump10   ] {};
 void()   gremlin_jump10   =[ $jump10.asc,     gremlin_jump11   ] {};
 void()   gremlin_jump11   =[ $jump11.asc,     gremlin_jump1   ]
-   {
-   self.nextthink = time + 3;
-   // if three seconds pass, assume gremlin is stuck and jump again
-   };
+{
+  self.nextthink = time + 3;
+  // if three seconds pass, assume gremlin is stuck and jump again
+};
 
 void()   gremlin_jump12   =[ $jump12.asc,    gremlin_jump13  ] {};
 void()   gremlin_jump13   =[ $jump13.asc,    gremlin_jump14  ] {};
@@ -1541,7 +1551,7 @@ void()   gremlin_glook20   =[ $glook20.asc,     gremlin_glook20]
       {
       //GremlinDropBackpack(); //Ry: Just put away weapon when idling too long
       GremlinStoreWeapon();
-      self.enemy = entity_null; //Ry: Clear foe so can properly target again
+      self.enemy = world; //Ry: Clear foe so can properly target again
       if (self.movetarget)
          self.th_walk ();
       else
@@ -1704,38 +1714,38 @@ void() GremlinDropBackpack =
 
     if ( self.super_item.weapon & (IT_NAILGUN|IT_SUPER_NAILGUN) )
     {
-      if (self.ammo_nails > 30)
-        self.ammo_nails = self.ammo_nails - 30;
+      if (self.AMMO_NAILS > 30)
+        self.AMMO_NAILS = self.AMMO_NAILS - 30;
       else
-        self.ammo_nails = 0;
+        self.AMMO_NAILS = 0;
     }
     else if ( self.super_item.weapon & IT_SUPER_SHOTGUN )
     {
-      if (self.ammo_shells > 20)
-        self.ammo_shells = self.ammo_shells - 20;
+      if (self.AMMO_SHELLS > 20)
+        self.AMMO_SHELLS = self.AMMO_SHELLS - 20;
       else
-        self.ammo_shells = 0;
+        self.AMMO_SHELLS = 0;
     }
     else if ( self.super_item.weapon & (IT_ROCKET_LAUNCHER|IT_GRENADE_LAUNCHER|IT_PROXIMITY_GUN) )
     {
-      if (self.ammo_rockets > 5)
-        self.ammo_rockets = self.ammo_rockets - 5;
+      if (self.AMMO_ROCKETS > 5)
+        self.AMMO_ROCKETS = self.AMMO_ROCKETS - 5;
       else
-        self.ammo_rockets = 0;
+        self.AMMO_ROCKETS = 0;
     }
     else if ( self.super_item.weapon & IT_LIGHTNING )
     {
-      if (self.ammo_cells > 15)
-        self.ammo_cells = self.ammo_cells - 15;
+      if (self.AMMO_CELLS > 15)
+        self.AMMO_CELLS = self.AMMO_CELLS - 15;
       else
-        self.ammo_cells = 0;
+        self.AMMO_CELLS = 0;
     }
     else if ( self.super_item.weapon & IT_LASER_CANNON )
     {
-      if (self.ammo_cells > 30)
-        self.ammo_cells = self.ammo_cells - 30;
+      if (self.AMMO_CELLS > 30)
+        self.AMMO_CELLS = self.AMMO_CELLS - 30;
       else
-        self.ammo_cells = 0;
+        self.AMMO_CELLS = 0;
     }
 
     self.super_item = world;
@@ -1744,10 +1754,10 @@ void() GremlinDropBackpack =
 
   //Ry: Clean up items before deciding whether or not to drop
   self.items = self.items - ( self.items & (IT_SHELLS | IT_NAILS | IT_ROCKETS | IT_CELLS ) );
-  if (self.ammo_shells < 0) self.ammo_shells = 0;
-  if (self.ammo_nails < 0) self.ammo_nails = 0;
-  if (self.ammo_rockets < 0) self.ammo_rockets = 0;
-  if (self.ammo_cells < 0) self.ammo_cells = 0;
+  if (self.AMMO_SHELLS < 0) self.AMMO_SHELLS = 0;
+  if (self.AMMO_NAILS < 0) self.AMMO_NAILS = 0;
+  if (self.AMMO_ROCKETS < 0) self.AMMO_ROCKETS = 0;
+  if (self.AMMO_CELLS < 0) self.AMMO_CELLS = 0;
 
   /*dprint("Dead Gremlin at ");
   dprint(vtos(self.origin));
@@ -1760,7 +1770,7 @@ void() GremlinDropBackpack =
   if (!deathmatch) //Ry: Only drop weapons that were stolen in SP/Co-op
     self.items = self.stolenitems;
 
-  if ( (self.items + self.ammo_shells + self.ammo_nails + self.ammo_rockets + self.ammo_cells) <= 0 )
+  if ( (self.items + self.AMMO_SHELLS + self.AMMO_NAILS + self.AMMO_ROCKETS + self.AMMO_CELLS) <= 0 )
     return;
 
 	item = spawn();
@@ -1795,18 +1805,18 @@ void() GremlinDropBackpack =
   else
 		item.netname = "";
 
-  item.ammo_shells = self.ammo_shells;
-	item.ammo_nails = self.ammo_nails;
-	item.ammo_rockets = self.ammo_rockets;
-	item.ammo_cells = self.ammo_cells;
+  item.AMMO_SHELLS = self.AMMO_SHELLS;
+	item.AMMO_NAILS = self.AMMO_NAILS;
+	item.AMMO_ROCKETS = self.AMMO_ROCKETS;
+	item.AMMO_CELLS = self.AMMO_CELLS;
 
   if (self.health > 0) //Ry: When still alive, also empty out inventory
   {
     self.items = 0;
-    self.ammo_shells = 0;
-    self.ammo_nails = 0;
-    self.ammo_rockets = 0;
-    self.ammo_cells = 0;
+    self.AMMO_SHELLS = 0;
+    self.AMMO_NAILS = 0;
+    self.AMMO_ROCKETS = 0;
+    self.AMMO_CELLS = 0;
     item.lastfragtime = time + 0.2; //Ry: And make sure it's not picked immediately
   }
 
@@ -1840,7 +1850,7 @@ void() gremlin_die =
 	local float		dot;
 
   // check for gib  //Ry: Also drop backpack if ammo was collected
-  if (self.items & (IT_SHOTGUN|IT_SUPER_SHOTGUN|IT_NAILGUN|IT_SUPER_NAILGUN|IT_GRENADE_LAUNCHER|IT_ROCKET_LAUNCHER|IT_LIGHTNING|IT_LASER_CANNON|IT_PROXIMITY_GUN) || self.ammo_shells > 0 || self.ammo_nails > 0 || self.ammo_rockets > 0 || self.ammo_cells > 0)
+  if (self.items & (IT_SHOTGUN|IT_SUPER_SHOTGUN|IT_NAILGUN|IT_SUPER_NAILGUN|IT_GRENADE_LAUNCHER|IT_ROCKET_LAUNCHER|IT_LIGHTNING|IT_LASER_CANNON|IT_PROXIMITY_GUN) || self.AMMO_SHELLS > 0 || self.AMMO_NAILS > 0 || self.AMMO_ROCKETS > 0 || self.AMMO_CELLS > 0)
   {
     GremlinDropBackpack();
   }
@@ -1854,7 +1864,7 @@ void() gremlin_die =
 
   Gremlin_UpdateState(GREM_DEFAULT); //Ry: Reset state to default
 
-  if (self.health < -35)
+  if ( self.health < self.gib_health ) //Ry: Compare to the saved var now [07-31-2022]
   {
 		sound (self, CHAN_VOICE, "player/udeath.wav", 1, ATTN_NORM);
     ThrowHead ("progs/h_grem.mdl", self.health);
@@ -1949,7 +1959,7 @@ entity() GremlinFindVictim =
    local float head_dist;
    //local float decision;
 
-   self.search_time = time + 1.0;
+   self.search_time = AttackRecoil(self,1.0);
 // look in our immediate vicinity
 
    selected = world;
@@ -1958,7 +1968,7 @@ entity() GremlinFindVictim =
    while(head)
       {
       //Ry: Check for team, and don't target other monsters in Nightmare (unless charmed)
-      if (!(head.flags & FL_NOTARGET) && ( (self.team == 0) || !(self.team == head.team) ) && ( (head.flags & FL_CLIENT) || ((head.flags & FL_MONSTER) && (skill < 3 || self.charmed)) ) )
+      if (!(head.flags & FL_NOTARGET) && ( (self.team == 0) || !(self.team == head.team) ) && ( (head.flags & FL_CLIENT) || ((head.flags & FL_MONSTER) && (skill < 3 || copper_nightmare || self.charmed)) ) )
          {
          if (visible(head) && (head.health > 0) && (head !=self))
             {
@@ -1996,7 +2006,7 @@ void() Gremlin_FireRocket =
   local vector dir;
   local float conemul;
 
-	self.currentammo = self.ammo_rockets = self.ammo_rockets - 1;
+	self.currentammo = self.AMMO_ROCKETS = self.AMMO_ROCKETS - 1;
    self.effects = self.effects | EF_MUZZLEFLASH;
 
 	sound (self, CHAN_WEAPON, "weapons/sgun1.wav", 1, ATTN_NORM);
@@ -2021,7 +2031,7 @@ void() Gremlin_FireRocket =
   makevectors(self.v_angle);
   dir = dir + crandom()* conemul * v_right + crandom()* conemul *v_up;
   missile.velocity = normalize(dir);
-  missile.velocity = missile.velocity * 1000;
+  missile.velocity = missile.velocity * ProjectileSpeed(self,1000);
 	missile.angles = vectoangles(missile.velocity);
 
 	missile.touch = T_MissileTouch;
@@ -2062,9 +2072,9 @@ void(float ox) Gremlin_FireNailGun =
   dir = normalize(dir);
   launch_spike (self.origin + '0 0 16', dir);
 
-  if (self.weapon == IT_SUPER_NAILGUN && (self.ammo_nails > 1)) //Ry: Actually be able to fire super nails
+  if (self.weapon == IT_SUPER_NAILGUN && (self.AMMO_NAILS > 1)) //Ry: Actually be able to fire super nails
   {
-    self.currentammo = self.ammo_nails = self.ammo_nails - 2;
+    self.currentammo = self.AMMO_NAILS = self.AMMO_NAILS - 2;
     sound (self, CHAN_WEAPON, "weapons/spike2.wav", 1, ATTN_NORM);
     newmis.touch = superspike_touch;
     newmis.classname = "super_spike";
@@ -2074,7 +2084,7 @@ void(float ox) Gremlin_FireNailGun =
   }
   else
   {
-    self.currentammo = self.ammo_nails = self.ammo_nails - 1;
+    self.currentammo = self.AMMO_NAILS = self.AMMO_NAILS - 1;
     sound (self, CHAN_WEAPON, "weapons/rocket1i.wav", 1, ATTN_NORM);
     CreateMissileField(newmis,6);
   }
@@ -2093,7 +2103,7 @@ void(float ox) Gremlin_FireLaserGun =
   local vector dir;
   local float conemul;
 
-  self.currentammo = self.ammo_cells = self.ammo_cells - 1;
+  self.currentammo = self.AMMO_CELLS = self.AMMO_CELLS - 1;
   self.effects = self.effects | EF_MUZZLEFLASH;
    
   if (self.charmed)
@@ -2122,7 +2132,7 @@ void() Gremlin_FireShotGun =
   local vector dir;
   local float conemul;
 
-  self.currentammo = self.ammo_shells = self.ammo_shells - 1;
+  self.currentammo = self.AMMO_SHELLS = self.AMMO_SHELLS - 1;
   self.effects = self.effects | EF_MUZZLEFLASH;
  
   if (self.charmed)
@@ -2152,13 +2162,13 @@ void() Gremlin_FireSuperShotGun =
   local vector dir;
   local float conemul;
  
-  if (self.ammo_shells < 2) //Ry: Fire a single shotgun blast if too low on ammo, just like the player
+  if (self.AMMO_SHELLS < 2) //Ry: Fire a single shotgun blast if too low on ammo, just like the player
   {
     Gremlin_FireShotGun();
     return;
   }
 
-  self.currentammo = self.ammo_shells = self.ammo_shells - 2;
+  self.currentammo = self.AMMO_SHELLS = self.AMMO_SHELLS - 2;
   self.effects = self.effects | EF_MUZZLEFLASH;
 
   if (self.charmed)
@@ -2191,11 +2201,10 @@ void() Gremlin_FireLightningGun =
 // explode if under water
   if ((self.watertype <= CONTENT_WATER) && (self.waterlevel > 1)) //Ry: Actually check water level, so they don't blow up in ankle-deep water
 	{
-		cells = self.ammo_cells;
-		self.ammo_cells = 0;
-      discharged = 1;
+    self.deathtype = "discharge";
+		cells = self.AMMO_CELLS;
+		self.AMMO_CELLS = 0;
 		T_RadiusDamage (self, self, 35*cells, world);
-      discharged = 0;
 //      W_SetCurrentAmmo ();
 		return;
 	}
@@ -2204,7 +2213,7 @@ void() Gremlin_FireLightningGun =
 
 	ai_face ();
 
-  self.currentammo = self.ammo_cells = self.ammo_cells - 2;
+  self.currentammo = self.AMMO_CELLS = self.AMMO_CELLS - 2;
   org = self.origin + '0 0 16';
    
   if (self.charmed)
@@ -2232,7 +2241,7 @@ void() Gremlin_FireLightningGun =
 	WriteCoord (MSG_BROADCAST, trace_endpos_y);
 	WriteCoord (MSG_BROADCAST, trace_endpos_z);
 
-  LightningDamage (org, trace_endpos+(dir*4), self, self, 30, TRUE); //Ry: Added inflictor, and use the extra traces like the player
+  LightningDamage (org, trace_endpos+(dir*4), self, self, 30, TRUE, self.team); //Ry: Added inflictor, use the extra traces like the player, and forward team [07-31-2022]
 };
 
 /*
@@ -2247,7 +2256,7 @@ void() GremlinFireProximityGrenade =
   local float conemul;
 
   NumProximityGrenades = NumProximityGrenades + 1;
-  self.currentammo = self.ammo_rockets = self.ammo_rockets - 1;
+  self.currentammo = self.AMMO_ROCKETS = self.AMMO_ROCKETS - 1;
 
 	sound (self, CHAN_WEAPON, "weapons/grenade.wav", 1, ATTN_NORM);
 
@@ -2260,6 +2269,10 @@ void() GremlinFireProximityGrenade =
   missile.takedamage = DAMAGE_NO;
   missile.health = 5;
   missile.state = 0;
+
+  //Ry: Proxy Bombs fired by Enemy Gremlins in campaign will glow [12-10-2022]
+  if (hip_rebalance && !deathmatch && self.team == 0)
+    SetLightEffect(missile,SET_EF_CANDLE,TRUE);
 
 // set missile speed
 
@@ -2387,9 +2400,9 @@ void() Gremlin_MissileAttack =
 */
 void() monster_gremlin =
 {
-  hipnoticmap = TRUE; //Ry: Map has Hipnotic entity
+  missionpackmap = TRUE; //Ry: Map has Hipnotic entity
   
-  if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
+  if (!EntityValidForMode(ENTTYPE_MONSTER)) //Ry: New function to handle func_spawn and horde mode
 		return;
     
   precache_model ("progs/grem.mdl");
@@ -2404,7 +2417,7 @@ void() monster_gremlin =
   precache_sound ("grem/pain3.wav");
   precache_sound ("grem/idle.wav");
   precache_sound ("grem/sight1.wav");
-  
+
   setmodel (self, "progs/grem.mdl");
   setsize (self, VEC_HULL_MIN, VEC_HULL_MAX);
   self.solid = SOLID_SLIDEBOX;
@@ -2413,11 +2426,14 @@ void() monster_gremlin =
   self.netname = "Gremlin"; //Ry: Name for Deathmatch
   self.health = 100;
   self.max_health = 100; //Ry: Just use 100 instead of 101
+  self.gib_health = -35; //Ry: Var for gib health [07-31-2022]
   self.yaw_speed = 40;
   self.lastsafecheck = time; //Ry: Initial safe vector for returning a dropped weapon backpack
   self.lastsafevect = self.origin;
   
-	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+  #ifdef ENGINE_KEX
+    self.allowPathFind = USEPATH_ALWAYS; //Ry: Always use Remaster pathing [08-01-2022]
+  #endif
 	self.combat_style = CS_MELEE; //Ry: Will change to CS_RANGED when it steals a weapon
   
   self.th_stand = gremlin_stand1;
@@ -2654,10 +2670,10 @@ void() Gremlin_Split =
   grem.items = 0; //Ry: Remove any weapons and ammo copied by SUB_CopyEntity
   grem.weapon = 0; //(Could potentially make it so a Gremlin will share an extra weapon they have with the spawn)
   grem.currentammo = 0;
-  grem.ammo_shells = 0;
-  grem.ammo_nails = 0;
-  grem.ammo_rockets = 0;
-  grem.ammo_cells = 0;
+  grem.AMMO_SHELLS = 0;
+  grem.AMMO_NAILS = 0;
+  grem.AMMO_ROCKETS = 0;
+  grem.AMMO_CELLS = 0;
   grem.combat_style = CS_MELEE;
 
   setorigin(grem, pos);
@@ -2685,7 +2701,7 @@ void(float side)  Gremlin_Gorge =
 	delta = self.enemy.origin - self.origin;
 
   sound (self, CHAN_WEAPON, "demon/dhit2.wav", 1, ATTN_NORM);
-  if ( ((skill > 2) && !gorgingzombie) || deathmatch ) //Ry: Gorge twice as fast in Nightmare and Deathmatch
+  if ( ((skill > 2) && !gorgingzombie && !copper_nightmare) || deathmatch ) //Ry: Gorge twice as fast in Nightmare and Deathmatch
     ldmg = 14+10*random();
   else
     ldmg = 7+5*random();

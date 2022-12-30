@@ -266,18 +266,19 @@ entity(vector fmins, vector fmaxs) spawn_field =
 
 float (entity e1, entity e2) EntitiesTouching =
 {
-	if (e1.mins_x > e2.maxs_x)
-		return FALSE;
-	if (e1.mins_y > e2.maxs_y)
-		return FALSE;
-	if (e1.mins_z > e2.maxs_z)
-		return FALSE;
-	if (e1.maxs_x < e2.mins_x)
-		return FALSE;
-	if (e1.maxs_y < e2.mins_y)
-		return FALSE;
-	if (e1.maxs_z < e2.mins_z)
-		return FALSE;
+  //Ry: New vars that account for a custom origin set on the entity [11-09-2022]
+  if (e1.start_mins_x > e2.start_maxs_x)
+    return FALSE;
+  if (e1.start_mins_y > e2.start_maxs_y)
+    return FALSE;
+  if (e1.start_mins_z > e2.start_maxs_z)
+    return FALSE;
+  if (e1.start_maxs_x < e2.start_mins_x)
+    return FALSE;
+  if (e1.start_maxs_y < e2.start_mins_y)
+    return FALSE;
+  if (e1.start_maxs_z < e2.start_mins_z)
+    return FALSE;
 	return TRUE;
 };
 
@@ -401,10 +402,12 @@ Key doors are allways wait -1.
 */
 
 void() func_door =
-
 {
+  #ifdef GAME_ROGUE
+    local vector tempVect;
+  #endif
 
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
   PrepareKeyMechanismSounds(); //Ry: Global function for this now
@@ -445,7 +448,6 @@ void() func_door =
 		self.noise2 = "doors/ddoor1.wav";
 	}
 
-
 	SetMovedir ();
 
 	self.max_health = self.health;
@@ -478,7 +480,22 @@ void() func_door =
     self.dmg = 0;
 
 	self.pos1 = self.origin;
-	self.pos2 = self.pos1 + self.movedir*(fabs(self.movedir*self.size) - self.lip);
+  
+  #ifdef GAME_ROGUE
+    // PGM fix for cameron's door problem - 02/19/97
+    tempVect = self.movedir;
+    if (tempVect_x < 0)
+      tempVect_x = 0 - tempVect_x;
+    if (tempVect_y < 0)
+      tempVect_y = 0 - tempVect_y;
+    self.pos2 = self.pos1 + self.movedir*(fabs(tempVect*self.size) - self.lip);
+  #else
+    self.pos2 = self.pos1 + self.movedir*(fabs(self.movedir*self.size) - self.lip);
+  #endif
+  
+  //Ry: If an origin is defined on the entity, adjust the position used for determining whether to link [11-09-2022]
+  self.start_mins = self.origin + self.mins;
+  self.start_maxs = self.origin + self.maxs;
 
 // DOOR_START_OPEN is to allow an entity to be lighted in the closed position
 // but spawn in the open position
@@ -700,7 +717,7 @@ If a secret door has a targetname, it will only be opened by it's botton or trig
 
 void () func_door_secret =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
 	if (self.sounds == 0)

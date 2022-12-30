@@ -78,7 +78,7 @@ Pushable walls.
 
 void() func_pushable =
 	{
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
   {
     remove(self);
     return;

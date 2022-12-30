@@ -14,29 +14,22 @@ float IT_PROXIMITY_GUN = 65536;
 float HIP_IT_WETSUIT = 2;
 float HIP_IT_EMPATHY_SHIELDS = 4;
 float HIP_IT_HORN_OF_CONJURING = 8;
-//added update stat message
-float SVC_UPDATESTAT = 3;
-float SVC_CUTSCENE   = 34;
-//added total monster message
-float STAT_TOTALMONSTERS = 12;
-float STAT_TOTALSECRETS = 11;
 .void()     th_turn;
 float AS_DODGING     = 5;
 float CHARMED_RADIUS = 1500;
 float MAX_CHARMER_DISTANCE = 200;
 float MIN_CHARMER_DISTANCE = 150;
 float TOOCLOSE_CHARMER_DISTANCE = 120;
-float visible_distance;
-entity damage_inflictor;
+//float visible_distance; //Ry: Moved to ry_defs.qc
+//entity damage_inflictor; //Ry: Moved to ry_defs.qc
 float footsteps;
 
-
 //MED 11/09/96 added new spawnflags
-float SPAWNFLAG_SUPERSPIKE	= 1;
-float SPAWNFLAG_LASER = 2;
-float SPAWNFLAG_LAVABALL = 4;
-float SPAWNFLAG_ROCKET = 8;
-float SPAWNFLAG_SILENT = 16;
+//float SPAWNFLAG_SUPERSPIKE	= 1; //Ry: Moved to ry_defs.qc
+//float SPAWNFLAG_LASER = 2;
+//float SPAWNFLAG_LAVABALL = 4;
+//float SPAWNFLAG_ROCKET = 8;
+//float SPAWNFLAG_SILENT = 16;
 
 // Hipnotic Constants
 float MIN_ANGLE_DELTA = 10;
@@ -51,22 +44,20 @@ float MIN_ANGLE_DELTA = 10;
 //
 // Hipnotic entries
 //
-// have to use a new items flag because we ran out of bits in the original
-.float      items2;
 // gremlin stuff
 //.float      gorging;
 //.float      stoleweapon;
 .entity     lastvictim;
 // spawn variables
 .void()     spawnfunction;
-.string     spawnclassname;
+//.string     spawnclassname;
 .float      spawnsolidtype;
 .string     spawnmodel;
 .void()     spawnthink;
-.entity     spawnmaster;
+//.entity     spawnmaster;
 .vector     spawnmins;
 .vector     spawnmaxs;
-.float      spawnsilent;
+//.float      spawnsilent;
 .float      spawnmulti;
 // horn of conjuring
 .float      charmed;
@@ -94,11 +85,8 @@ entity horn_charmer;
 .string group;
 .string event;
 
-// Miscellaneous
-.float gravity;
-
 //MED 01/05/97 added discharge variable
-float discharged;
+//float discharged; //Ry: removed discharge variable [07-12-2022]
 //MED 01/05/97 added hipnotic decoy
 entity hipdecoy;
 //

@@ -104,13 +104,15 @@ void()	player_stand1 =[	$axstnd1,	player_stand1	]
 			self.walkframe = 0;
 		self.frame = $axstnd1 + self.walkframe;
 	}
-   else if (self.weapon == IT_MJOLNIR)
-	{
-		if (self.walkframe >= 12)
-			self.walkframe = 0;
-      self.frame = 6 + self.walkframe;
-	}
-   else
+  #ifdef GAME_HIPNOTIC
+    else if (self.weapon == IT_MJOLNIR)
+    {
+      if (self.walkframe >= 12)
+        self.walkframe = 0;
+        self.frame = 6 + self.walkframe;
+    }
+  #endif
+  else
 	{
 		if (self.walkframe >= 5)
 			self.walkframe = 0;
@@ -135,55 +137,59 @@ void()   player_run =[  $rockrun1,  player_run  ]
 			self.walkframe = 0;
 		self.frame = $axrun1 + self.walkframe;
 	}
-   else if (self.weapon == IT_MJOLNIR)
-	{
-      if (self.walkframe == 6)
-			self.walkframe = 0;
-      self.frame = self.walkframe;
-	}
-   else
+  #ifdef GAME_HIPNOTIC
+    else if (self.weapon == IT_MJOLNIR)
+    {
+        if (self.walkframe == 6)
+        self.walkframe = 0;
+        self.frame = self.walkframe;
+    }
+  #endif
+  else
 	{
 		if (self.walkframe == 6)
 			self.walkframe = 0;
 		self.frame = self.frame + self.walkframe;
 	}
-   if (footsteps == 1)
-      {
+  #ifdef GAME_HIPNOTIC
+    if (footsteps == 1)
+    {
       self.spawnsilent = self.spawnsilent + vlen(self.origin - self.old_velocity);
       self.old_velocity = self.origin;
       if ((self.flags & FL_ONGROUND) && (self.movetype == MOVETYPE_WALK) && (self.waterlevel < 2)) //Ry: Don't play footsteps underwater, or when flying
-         {
-         if (self.spawnsilent > 95)
-            {
-            local float r;
-            if (self.spawnsilent > 190)
-               self.spawnsilent = 0;
+      {
+        if (self.spawnsilent > 95)
+        {
+          local float r;
+          if (self.spawnsilent > 190)
+            self.spawnsilent = 0;
+          else
+          {
+            self.spawnsilent = 0.5*(self.spawnsilent - 95);
+          }
+          if (!self.invisible_finished) //Ry: Don't play footsteps while under the effect of the Ring of Shadows
+          {
+            r = random();
+            if (r < 0.14)
+              sound (self, CHAN_FOOT, "misc/foot1.wav", 0.5, ATTN_NORM); //Ry: Changed the sound channel that these use so they don't conflict with powerup pickup sounds
+            else if (r < 0.29)
+              sound (self, CHAN_FOOT, "misc/foot2.wav", 0.5, ATTN_NORM);
+            else if (r < 0.43)
+              sound (self, CHAN_FOOT, "misc/foot3.wav", 0.5, ATTN_NORM);
+            else if (r < 0.58)
+              sound (self, CHAN_FOOT, "misc/foot4.wav", 0.5, ATTN_NORM);
+            else if (r < 0.72)
+              sound (self, CHAN_FOOT, "misc/foot5.wav", 0.5, ATTN_NORM);
+            else if (r < 0.86)
+              sound (self, CHAN_FOOT, "misc/foot6.wav", 0.5, ATTN_NORM);
             else
-               {
-               self.spawnsilent = 0.5*(self.spawnsilent - 95);
-               }
-            if (!self.invisible_finished) //Ry: Don't play footsteps while under the effect of the Ring of Shadows
-            {
-              r = random();
-              if (r < 0.14)
-                 sound (self, CHAN_FOOT, "misc/foot1.wav", 0.5, ATTN_NORM); //Ry: Changed the sound channel that these use so they don't conflict with powerup pickup sounds
-              else if (r < 0.29)
-                 sound (self, CHAN_FOOT, "misc/foot2.wav", 0.5, ATTN_NORM);
-              else if (r < 0.43)
-                 sound (self, CHAN_FOOT, "misc/foot3.wav", 0.5, ATTN_NORM);
-              else if (r < 0.58)
-                 sound (self, CHAN_FOOT, "misc/foot4.wav", 0.5, ATTN_NORM);
-              else if (r < 0.72)
-                 sound (self, CHAN_FOOT, "misc/foot5.wav", 0.5, ATTN_NORM);
-              else if (r < 0.86)
-                 sound (self, CHAN_FOOT, "misc/foot6.wav", 0.5, ATTN_NORM);
-              else
-                 sound (self, CHAN_FOOT, "misc/foot7.wav", 0.5, ATTN_NORM);
-            }
-            }
-         }
+              sound (self, CHAN_FOOT, "misc/foot7.wav", 0.5, ATTN_NORM);
+          }
+        }
       }
-   self.walkframe = self.walkframe + 1;
+    }
+  #endif
+  self.walkframe = self.walkframe + 1;
 };
 
 
@@ -216,6 +222,54 @@ void()	player_axed3 =	[$axattd3, player_axed4	] {self.weaponframe=7;W_FireAxe();
 void()	player_axed4 =	[$axattd4, player_run	] {self.weaponframe=8;};
 
 
+#ifdef GAME_ROGUE
+  //============================================================================
+  //ZOID--
+  void() player_grapple3;
+  void() player_grapple4;
+  void() player_grapple5;
+
+  void()  player_grapple1 =  [$axattd1, player_grapple2 ] 
+    { self.weaponframe=1; W_FireGrapple(); };
+  //	{ self.weaponframe=2; W_FireGrapple(); };
+  void()  player_grapple2 =  [$axattd2, player_grapple3 ]
+    { self.weaponframe=2; };
+  //	{ self.weaponframe=3; };
+  void()  player_grapple3 =  [$axattd3, player_grapple3 ]
+    {
+  //		self.weaponframe=3;
+      self.weaponframe=2;
+      if (self.hookstatus < HOOK_FIRED)
+      {
+          player_grapple5();
+          return;
+      }
+      if (vlen(self.hook.origin - self.origin) >= 50) {
+        if (self.hookstatus == HOOK_ATTACHED) {
+          player_grapple4();
+          return;
+        }
+      }
+    };
+  void() player_grapple4 =  [$deathc4, player_grapple4 ]
+    {
+  //		self.weaponframe=4;
+      self.weaponframe=2;
+      if (self.hookstatus < HOOK_FIRED)
+      {
+        player_grapple5();
+        return;
+      }
+      if (vlen(self.hook.origin - self.origin) < 50 || self.hookstatus < HOOK_ATTACHED) {
+        player_grapple3();
+        return;
+      }
+    };
+  void()  player_grapple5 =  [$axattd4, player_run    ] 
+  //	{self.weaponframe=5;};
+    {self.weaponframe=1;};
+  //--ZOID
+#endif
 //============================================================================
 
 void() player_nail1   =[$nailatt1, player_nail2  ]
@@ -246,17 +300,53 @@ void() player_nail2   =[$nailatt2, player_nail1  ]
 };
 
 //============================================================================
+#ifdef GAME_ROGUE
+  void(float ox) W_FireLavaSpikes;
+
+  void() player_lava_nail1   =[$nailatt1, player_lava_nail2  ] 
+  {
+    self.effects = self.effects | EF_MUZZLEFLASH;
+
+    if (!self.button0)
+      {player_run ();return;}
+    self.weaponframe = self.weaponframe + 1;
+    if (self.weaponframe == 9)
+      self.weaponframe = 1;
+    SuperDamageSound();
+    W_FireLavaSpikes (4);
+    self.attack_finished = time + 0.2;
+  };
+  void() player_lava_nail2   =[$nailatt2, player_lava_nail1  ]
+  {
+    self.effects = self.effects | EF_MUZZLEFLASH;
+
+    if (!self.button0)
+      {player_run ();return;}
+    self.weaponframe = self.weaponframe + 1;
+    if (self.weaponframe == 9)
+      self.weaponframe = 1;
+    SuperDamageSound();
+    W_FireLavaSpikes (-4);
+    self.attack_finished = time + 0.2;
+  };
+
+  //============================================================================
+#endif
 
 void() player_light1   =[$light1, player_light2  ]
 {
 	self.effects = self.effects | EF_MUZZLEFLASH;
 
 	if (!self.button0)
-		{player_run ();return;}
+	{
+    player_run();
+    return;
+  }
 	self.weaponframe = self.weaponframe + 1;
 	if (self.weaponframe == 5)
 		self.weaponframe = 1;
 	SuperDamageSound();
+  makevectors (self.v_angle); //Ry: Ensure these vectors are set [09-23-2022]
 	W_FireLightning();
 	self.attack_finished = time + 0.2;
 };
@@ -265,46 +355,96 @@ void() player_light2   =[$light2, player_light1  ]
 	self.effects = self.effects | EF_MUZZLEFLASH;
 
 	if (!self.button0)
-		{player_run ();return;}
+	{
+    player_run();
+    return;
+  }
 	self.weaponframe = self.weaponframe + 1;
 	if (self.weaponframe == 5)
 		self.weaponframe = 1;
 	SuperDamageSound();
+  makevectors (self.v_angle);
 	W_FireLightning();
 	self.attack_finished = time + 0.2;
 };
 
-//MED 10/18/96 added HIPWEAPONS
-//============================================================================
+#ifdef GAME_ROGUE
+  void() W_FirePlasma;
 
-void()   player_hammer1 =  [32, player_hammer2   ] {self.weaponframe=1;};
-void()   player_hammer2 =  [33, player_hammer3   ] {self.weaponframe=2;};
-void()   player_hammer3 =  [34, player_hammer4   ] {self.weaponframe=3;};
-void()   player_hammer4 =  [35, player_hammer5   ] {self.weaponframe=4;HIP_FireMjolnir();};
-void()   player_hammer5 =  [36, player_hammer6   ] {self.weaponframe=4;};
-void()   player_hammer6 =  [37, player_run ] {self.weaponframe=4;};
+  //Ry: Actual frames for the Plasma attack [09-10-2022]
+  void()  player_plasmafast1 = [ $shotatt3, player_plasmafast2 ]
+  {
+    self.weaponframe = 2;
+  };
+  void()  player_plasmafast2 = [ $shotatt4, player_plasmafast3 ]
+  {
+    self.weaponframe = 3;
+  };
+  void()  player_plasmafast3 = [ $shotatt5, player_plasmafast4 ]
+  {
+    self.weaponframe = 4;
+  };
+  void()  player_plasmafast4 = [ $shotatt6, player_run         ]
+  {
+    self.weaponframe = 0;
+  };
 
-void()   player_mjolnir1 =  [38, player_mjolnir2   ] {self.weaponframe=1;};
-void()   player_mjolnir2 =  [39, player_mjolnir3   ] {self.weaponframe=2;};
-void()   player_mjolnir3 =  [40, player_mjolnir4   ] {self.weaponframe=3;};
-void()   player_mjolnir4 =  [41, player_mjolnir5   ] {self.weaponframe=4;HIP_FireMjolnir();};
-void()   player_mjolnir5 =  [42, player_mjolnir6   ] {self.weaponframe=4;};
-void()   player_mjolnir6 =  [43, player_run ] {self.weaponframe=4;};
+  //Ry: Attack start frame, which determines whether to do the extended or regular attack
+  void()  player_plasma1 = [ $light1, player_plasma2 ]
+  {
+    self.weaponframe = 1;
+    W_FirePlasma();
+    if (!altplasma)
+      self.think = player_plasmafast1;
+  };
+  void()  player_plasma2 = [ $light2, player_plasma3 ]
+  {
+    self.weaponframe = 2;
+  };
+  void()  player_plasma3 = [ $light1, player_plasma4 ]
+  {
+    self.weaponframe = 3;
+  };
+  void()  player_plasma4 = [ $light2, player_plasma5 ]
+  {
+    self.weaponframe = 4;
+  };
+  void()  player_plasma5 = [ $shotatt3, player_plasma6 ]
+  {
+    self.weaponframe = 0;
+  };
+  void()  player_plasma6 = [ $shotatt4, player_plasma7 ] {};
+  void()  player_plasma7 = [ $shotatt5, player_plasma8 ] {};
+  void()  player_plasma8 = [ $shotatt6, player_run     ] {};
+#endif
 
-//============================================================================
+#ifdef GAME_HIPNOTIC
+  //MED 10/18/96 added HIPWEAPONS
+  //============================================================================
 
-//MED 10/18/96 added HIPSWEAPONS
-//void() player_laser1   =[$nailatt1, player_laser2  ] {self.attack_finished = time + 0.1;self.weaponframe=1;self.nextthink = time + 0.09;HIP_FireLaser(0);};
-//void() player_laser2   =[$nailatt2, player_laser4  ] {self.attack_finished = time + 0.1;self.weaponframe=2;self.nextthink = time + 0.09;};
-//void() player_laser3   =[$nailatt1, player_laser4  ] {self.attack_finished = time + 0.1;self.weaponframe=3;self.nextthink = time + 0.09;};
-//void() player_laser4   =[$nailatt2, player_laser5  ] {self.attack_finished = time + 0.1;self.weaponframe=4;self.nextthink = time + 0.09;HIP_FireLaser(1);};
-//void() player_laser5   =[$nailatt1, player_laser1  ] {self.attack_finished = time + 0.1;self.weaponframe=5;self.nextthink = time + 0.09;};
-//void() player_laser6   =[$nailatt2, player_laser1  ] {self.attack_finished = time + 0.1;self.weaponframe=6;self.nextthink = time + 0.09;};
-void() player_laser1   =[$nailatt1, player_laser3  ] {self.attack_finished = time + 0.1;self.weaponframe=1;self.nextthink = time + 0.1;HIP_FireLaser(0);};
-void() player_laser2   =[$nailatt2, player_laser3  ] {self.attack_finished = time + 0.1;self.weaponframe=2;self.nextthink = time + 0.1;};
-void() player_laser3   =[$nailatt2, player_laser1  ] {self.attack_finished = time + 0.1;self.weaponframe=4;self.nextthink = time + 0.1;HIP_FireLaser(1);};
-void() player_laser4   =[$nailatt1, player_laser1  ] {self.attack_finished = time + 0.1;self.weaponframe=5;self.nextthink = time + 0.1;};
-//============================================================================
+  void()   player_hammer1 =  [32, player_hammer2   ] {self.weaponframe=1;};
+  void()   player_hammer2 =  [33, player_hammer3   ] {self.weaponframe=2;};
+  void()   player_hammer3 =  [34, player_hammer4   ] {self.weaponframe=3;};
+  void()   player_hammer4 =  [35, player_hammer5   ] {self.weaponframe=4;HIP_FireMjolnir();};
+  void()   player_hammer5 =  [36, player_hammer6   ] {self.weaponframe=4;};
+  void()   player_hammer6 =  [37, player_run ] {self.weaponframe=4;};
+
+  void()   player_mjolnir1 =  [38, player_mjolnir2   ] {self.weaponframe=1;};
+  void()   player_mjolnir2 =  [39, player_mjolnir3   ] {self.weaponframe=2;};
+  void()   player_mjolnir3 =  [40, player_mjolnir4   ] {self.weaponframe=3;};
+  void()   player_mjolnir4 =  [41, player_mjolnir5   ] {self.weaponframe=4;HIP_FireMjolnir();};
+  void()   player_mjolnir5 =  [42, player_mjolnir6   ] {self.weaponframe=4;};
+  void()   player_mjolnir6 =  [43, player_run ] {self.weaponframe=4;};
+
+  //============================================================================
+
+  //MED 10/18/96 added HIPSWEAPONS
+  void() player_laser1   =[$nailatt1, player_laser3  ] {self.attack_finished = time + 0.1;self.weaponframe=1;self.nextthink = time + 0.1;HIP_FireLaser(0);};
+  void() player_laser2   =[$nailatt2, player_laser3  ] {self.attack_finished = time + 0.1;self.weaponframe=2;self.nextthink = time + 0.1;};
+  void() player_laser3   =[$nailatt2, player_laser1  ] {self.attack_finished = time + 0.1;self.weaponframe=4;self.nextthink = time + 0.1;HIP_FireLaser(1);};
+  void() player_laser4   =[$nailatt1, player_laser1  ] {self.attack_finished = time + 0.1;self.weaponframe=5;self.nextthink = time + 0.1;};
+  //============================================================================
+#endif
 
 
 void() player_rocket1   =[$rockatt1, player_rocket2  ] {self.weaponframe=1;
@@ -330,7 +470,11 @@ local float		rs;
 	}
 
 // water pain sounds
+  #ifdef GAME_HIPNOTIC
 	if (self.watertype == CONTENT_WATER && self.waterlevel == 3 && !(self.radsuit_finished || self.wetsuit_finished)) //Ry: Check for biosuit and wetsuit
+  #else
+  if (self.watertype == CONTENT_WATER && self.waterlevel == 3 && !self.radsuit_finished) //Ry: Check for biosuit
+  #endif
 	{
 		DeathBubbles(1);
 		if (random() > 0.5)
@@ -435,9 +579,11 @@ void(entity attacker, float damage) player_pain =
 
 	if (self.weapon == IT_AXE)
 		player_axpain1 ();
-   else if (self.weapon == IT_MJOLNIR)
+  #ifdef GAME_HIPNOTIC
+    else if (self.weapon == IT_MJOLNIR)
       player_hampain1 ();
-   else
+  #endif
+  else
 		player_pain1 ();
 };
 
@@ -451,7 +597,7 @@ void() player_die_ham1;
 
 void() DeathBubblesSpawn =
 {
-local entity	bubble;
+  local entity	bubble;
 	if (self.owner.waterlevel != 3)
 		return;
 	bubble = spawn();
@@ -475,7 +621,7 @@ local entity	bubble;
 
 void(float num_bubbles) DeathBubbles =
 {
-local entity	bubble_spawner;
+  local entity	bubble_spawner;
 
 	bubble_spawner = spawn();
 	setorigin (bubble_spawner, self.origin);
@@ -492,12 +638,14 @@ local entity	bubble_spawner;
 
 void() DeathSound =
 {
-local float		rs;
+  local float		rs;
 
 	// water death sounds
 	if (self.waterlevel == 3)
 	{
-		DeathBubbles(20);
+    //Ry: Only do bubbles in actual water [09-15-2022]
+    if (self.owner.watertype != CONTENT_WATER)
+      DeathBubbles(20);
 		sound (self, CHAN_VOICE, "player/h2odeath.wav", 1, ATTN_NONE);
 		return;
 	}
@@ -570,6 +718,9 @@ void(string gibname, float dm) ThrowGib =
 	setsize (new, '0 0 0', '0 0 0');
 	new.velocity = VelocityForDamage (dm);
 	new.movetype = MOVETYPE_BOUNCE;
+	if (cvar("pr_checkextension"))
+		if (checkextension("EX_MOVETYPE_GIB"))
+			new.movetype = MOVETYPE_GIB;
 	new.solid = SOLID_NOT;
 	new.avelocity_x = random()*600;
 	new.avelocity_y = random()*600;
@@ -581,22 +732,28 @@ void(string gibname, float dm) ThrowGib =
 	new.flags = 0;
 };
 
-//MED
-void() HeadThink =
-   {
-   self.nextthink = -1;
-   if (world.worldtype != 2)
-      {
+#ifdef GAME_HIPNOTIC
+  //MED
+  void() HeadThink =
+  {
+    self.nextthink = -1;
+    if (world.worldtype != 2)
+    {
       if (random()<0.1)
-         sound (self, 6, "misc/flys.wav", 0.7, ATTN_STATIC);
-      }
-   };
+        sound (self, 6, "misc/flys.wav", 0.7, ATTN_STATIC);
+    }
+  };
+#endif
 
 void(string gibname, float dm) ThrowHead =
 {
   setmodel (self, gibname);
   self.frame = 0;
+  self.nextthink = -1;
   self.movetype = MOVETYPE_BOUNCE;
+	if (cvar("pr_checkextension"))
+		if (checkextension("EX_MOVETYPE_GIB"))
+			self.movetype = MOVETYPE_GIB;
   self.takedamage = DAMAGE_NO;
   self.solid = SOLID_NOT;
   self.view_ofs = '0 0 8';
@@ -605,8 +762,10 @@ void(string gibname, float dm) ThrowHead =
   self.origin_z = self.origin_z - 24;
   self.flags = self.flags - (self.flags & FL_ONGROUND);
   self.avelocity = crandom() * '0 600 0';
-  //MED
-  self.gremstate = GREM_GORGING;
+  #ifdef GAME_HIPNOTIC
+    //MED
+    self.gremstate = GREM_GORGING;
+  #endif
   
   //Ry: Use Horde behaviour if Horde manager is found, otherwise do Hipnotic behaviour
   
@@ -620,17 +779,22 @@ void(string gibname, float dm) ThrowHead =
       self.nextthink = time + 1;
     }
   }
-  else
-  {
-    //MED
-    self.nextthink = time + 1.5;
-    self.think = HeadThink;
-  }
+  #ifdef GAME_HIPNOTIC
+    else
+    {
+      //MED
+      self.nextthink = time + 1.5;
+      self.think = HeadThink;
+    }
+  #endif
 };
 
 
 void() GibPlayer =
 {
+  #ifdef GAME_ROGUE
+    self.skin = 0; //Ry: Set skin back so the head gib's lack of the skin doesn't spam console [09-02-2022]
+  #endif
 	ThrowHead ("progs/h_player.mdl", self.health);
 	ThrowGib ("progs/gib1.mdl", self.health);
 	ThrowGib ("progs/gib2.mdl", self.health);
@@ -664,19 +828,38 @@ void() PlayerDie =
   {
 		DropBackpack(FALSE);
     DropPowerups(); //Ry: Drop powerups
+    #ifdef GAME_ROGUE
+      TeamDropFlagOfPlayer(self);
+      DropRune();
+    #endif
   }
+  
+  #ifdef GAME_ROGUE
+    //ZOID--
+    if (self.ctf_killed == 2)
+      self.ctf_killed = 0;
+    else
+      self.ctf_killed = 1;
+    //--ZOID
+  #endif
 
-   self.items = self.items - (self.items & IT_INVISIBILITY);
+  self.items = self.items - (self.items & IT_INVISIBILITY);
 	self.invisible_finished = 0;	// don't die as eyes
 	self.invincible_finished = 0;
 	self.super_damage_finished = 0;
 	self.radsuit_finished = 0;
-	//JIM
-	self.wetsuit_finished = 0;
-   self.modelindex = modelindex_player;   // don't use eyes
-   //JIM
-   self.empathy_finished = 0;
-   self.items2 = self.items2 - (self.items2 & HIP_IT_EMPATHY_SHIELDS);
+  self.modelindex = modelindex_player;   // don't use eyes
+  #ifdef GAME_HIPNOTIC
+    //JIM
+    self.wetsuit_finished = 0;
+    //JIM
+    self.empathy_finished = 0;
+    self.items2 = self.items2 - (self.items2 & HIP_IT_EMPATHY_SHIELDS);
+  #elifdef GAME_ROGUE
+    self.shield_finished = 0;
+    self.antigrav_finished = 0;
+    self.AGping = 0;
+  #endif
 
 	self.weaponmodel="";
 	self.view_ofs = '0 0 -8';
@@ -687,7 +870,7 @@ void() PlayerDie =
 	if (self.velocity_z < 10)
 		self.velocity_z = self.velocity_z + random()*300;
 
-	if (self.health < -40)
+	if (self.health < self.gib_health) //Ry: Compare to the saved var now [08-08-2022]
 	{
 		GibPlayer ();
 		return;
@@ -703,17 +886,19 @@ void() PlayerDie =
 		player_die_ax1 ();
 		return;
 	}
-   //MED 12/04/96
-   else if (self.weapon == IT_MJOLNIR)
-      {
+  #ifdef GAME_HIPNOTIC
+    //MED 12/04/96
+    else if (self.weapon == IT_MJOLNIR)
+    {
       self.modelindex = modelindex_hammer; // use hammer model
       player_die_ham1();
       return;
-      }
+    }
+  #endif
 
-	i = cvar("temp1");
-	if (!i)
-		i = 1 + floor(random()*6);
+	//i = cvar("temp1");
+	//if (!i)
+	i = 1 + floor(random()*6);
 
 	if (i == 1)
 		player_diea1();
@@ -730,20 +915,32 @@ void() PlayerDie =
 
 void() set_suicide_frame =
 {	// used by kill command and diconnect command
+  #ifdef GAME_HIPNOTIC
   if ((self.modelindex == modelindex_hammer) || (self.weapon == IT_MJOLNIR)) //Ry: Properly handle Hammer Ranger model
   {
     self.modelindex = modelindex_hammer;
     self.frame = 31;
   }
   else if (self.modelindex == modelindex_eyes) //Ry: Set back to regular model if using Ring of Shadows
+  #else
+  if (self.modelindex == modelindex_eyes)
+  #endif
   {
     self.modelindex = modelindex_player;
+    #ifdef GAME_ROGUE
+      //Ry: Reinstate CTF skin if appropriate [09-06-2022]
+      TeamSetSkin();
+    #endif
+    #ifdef GAME_HIPNOTIC
     if (self.weapon == IT_MJOLNIR) //Ry: Use appropriate model and frame if using Mjolnir/Axe
     {
       self.modelindex = modelindex_hammer;
       self.frame = 31;
     }
     else if (self.weapon == IT_AXE)
+    #else
+    if (self.weapon == IT_AXE)
+    #endif
       self.frame = $axdeth9;
     else
       self.frame = $deatha11;
@@ -839,3 +1036,62 @@ void()   player_die_ham5 =  [ 28 ,   player_die_ham6 ] {};
 void()   player_die_ham6 =  [ 29 ,   player_die_ham7 ] {};
 void()   player_die_ham7 =  [ 30 ,   player_die_ham8 ] {};
 void()   player_die_ham8 =  [ 31 ,   player_die_ham8 ] {PlayerDead();};
+
+#ifdef GAME_ROGUE
+  void(entity shieldOwner, vector dir) shield_spawn;
+
+  void() player_touch = 
+  {
+    local vector	vec;
+    local float		dot;
+    local float		doDamage;
+    
+    if ( self.items2 & IT2_SHIELD)
+    {
+      if (other.classname == "player")
+      {
+        makevectors ( self.angles );
+        vec = normalize (other.origin - self.origin);
+        dot = vec * v_forward;
+        if (dot < 0.3)
+          return;
+
+        other.velocity = v_forward * 500;
+        other.velocity_z = 250;
+
+        doDamage = FALSE;		
+        if (TeamArmorDam(other, self, self, 15))
+        {
+          if(self.shield_death_time < time)
+            doDamage = TRUE;
+        }
+
+        // if shield has timed out, respawn it.
+        // don't do particles more than twice a second. 
+        if ( self.shield_death_time < time)
+        {
+          sound(self,CHAN_WEAPON,"enforcer/enfstop.wav", 1, ATTN_NORM);
+    
+          WriteByte (MSG_BROADCAST, SVC_TEMPENTITY);
+          WriteByte (MSG_BROADCAST, TE_EXPLOSION2);
+          WriteCoord (MSG_BROADCAST, other.origin_x);
+          WriteCoord (MSG_BROADCAST, other.origin_y);
+          WriteCoord (MSG_BROADCAST, other.origin_z);
+          WriteByte (MSG_BROADCAST, 230);
+          WriteByte (MSG_BROADCAST, 5);
+
+          shield_spawn ( self, v_forward );
+        }
+
+        if (doDamage)
+        {
+          self.deathtype = "power_shield";
+          T_Damage (other, self.shield_entity, self, 15); //Ry: Indicate the player as the attacker now [09-04-2022]
+          self.deathtype = string_null;
+        }
+
+  //			self.shield_death_time = time + 0.5;
+      }
+    }
+  };
+#endif

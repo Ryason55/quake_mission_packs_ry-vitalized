@@ -144,7 +144,7 @@ void() f_death21 =[      $death21,       f_death21       ]
 void() fish_die =
 {
 // check for gib
-   if (self.health < -20)
+  if ( self.health < self.gib_health ) //Ry: Compare to the saved var now [07-31-2022]
 	{
 		sound (self, CHAN_VOICE, "player/udeath.wav", 1, ATTN_NORM);
       ThrowGib ("progs/gib1.mdl", self.health);
@@ -182,15 +182,26 @@ void(entity attacker, float damage)	fish_pain =
 */
 void() monster_fish =
 {
-	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
+	if (!EntityValidForMode(ENTTYPE_MONSTER)) //Ry: New function to handle func_spawn and horde mode
 		return;
 
 	precache_model2 ("progs/fish.mdl");
-
 	precache_sound2 ("fish/death.wav");
 	precache_sound2 ("fish/bite.wav");
 	precache_sound2 ("fish/idle.wav");
-  
+
+  #ifdef GAME_ROGUE
+  //Ry: Precache Eel in case of replacement in ID1
+    precache_model ("progs/eel2.mdl");
+    precache_model ("progs/eelgib.mdl");
+    precache_model ("progs/gib1.mdl");
+    precache_sound ("eel/edie3r.wav");
+    precache_sound ("eel/epain3.wav");
+    precache_sound ("eel/eactive1.wav");
+    precache_sound ("eel/eatt1.wav");
+    precache_sound ("eel/eelc5.wav");
+  #endif
+
   self.netname = "Rotfish"; //Ry: Name for Deathmatch
 
 	self.solid = SOLID_SLIDEBOX;
@@ -200,6 +211,7 @@ void() monster_fish =
 
 	setsize (self, '-16 -16 -24', '16 16 24');
 	self.health = 25;
+  self.gib_health = -20; //Ry: Var for gib health [07-31-2022]
 
 	self.th_stand = f_stand1;
 	self.th_walk = f_walk1;

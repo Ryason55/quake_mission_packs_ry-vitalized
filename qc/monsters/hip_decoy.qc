@@ -79,39 +79,42 @@ void(entity attacker, float damage)   decoy_pain =  //Ry: New function to appeas
 
 void(entity decoy) setup_decoy =
 {
-   local entity pl;
-   
-   decoy.netname = "Ranger"; //Ry: Name for Deathmatch
-   
-	 self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
-	 self.combat_style = CS_RANGED;
+  local entity pl;
 
-   decoy.classname = "monster_decoy";
-   setmodel (decoy, "progs/player.mdl");
-   setsize (decoy, VEC_HULL_MIN, VEC_HULL_MAX);
-   decoy.view_ofs = '0 0 22';
+  decoy.netname = "Ranger"; //Ry: Name for Deathmatch
 
-   decoy.solid = SOLID_SLIDEBOX;
-   decoy.movetype = MOVETYPE_STEP;
+  #ifdef ENGINE_KEX
+    self.allowPathFind = USEPATH_ALLOW; //Ry: Can use Remaster pathing [08-01-2022]
+  #endif
+	self.combat_style = CS_RANGED;
+  self.nodamagereact = TRUE; //Ry: Don't react to damage
 
-   decoy.health = 3000000;
+  decoy.classname = "monster_decoy";
+  setmodel (decoy, "progs/player.mdl");
+  setsize (decoy, VEC_HULL_MIN, VEC_HULL_MAX);
+  decoy.view_ofs = '0 0 22';
 
-   decoy.th_stand = decoy_stand1;
-   decoy.th_walk = decoy_walk1;
-   decoy.th_run = decoy_walk1;
-   decoy.th_missile = decoy_stand1;
-   decoy.th_pain = decoy_pain;
-   decoy.th_die = decoy_stand1;
+  decoy.solid = SOLID_SLIDEBOX;
+  decoy.movetype = MOVETYPE_STEP;
 
-   pl = find (world, classname, "player");
-   decoy.colormap = pl.colormap;
+  decoy.health = 3000000;
+
+  decoy.th_stand = decoy_stand1;
+  decoy.th_walk = decoy_walk1;
+  decoy.th_run = decoy_walk1;
+  decoy.th_missile = decoy_stand1;
+  decoy.th_pain = decoy_pain;
+  decoy.th_die = decoy_stand1;
+
+  pl = find (world, classname, "player");
+  decoy.colormap = pl.colormap;
 };
 
 /*QUAKED monster_decoy (1 0 0) (-16 -16 -24) (16 16 40)
 */
 void() monster_decoy =
 {
-  if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
+  if (!EntityValidForMode(ENTTYPE_MONSTER)) //Ry: New function to handle func_spawn and horde mode
     return;
 
   setup_decoy(self);

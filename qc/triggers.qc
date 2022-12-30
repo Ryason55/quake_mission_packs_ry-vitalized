@@ -37,19 +37,22 @@ void() multi_trigger =
 			return;
 		found_secrets = found_secrets + 1;
 		WriteByte (MSG_ALL, SVC_FOUNDSECRET);
-    
-		msg_entity = self.enemy; //Ry: Remaster secret achievement
-		WriteByte(MSG_ONE, SVC_ACHIEVEMENT);
-		WriteString(MSG_ONE, "ACH_FIND_SECRET");
-    
+
+    #ifdef ENGINE_KEX
+      msg_entity = self.enemy; //Ry: Remaster secret achievement
+      WriteByte(MSG_ONE, SVC_ACHIEVEMENT);
+      WriteString(MSG_ONE, "ACH_FIND_SECRET");
+    #endif
 	}
-  
-	if ((self.enemy.classname == "player") && (world.model == "maps/hip3m1.bsp") && (self.message == "$map_not_supposed_be_here")) //Ry: Remaster HIP3M1 ledge secret achievement
-	{
-		msg_entity = self.enemy;
-		WriteByte(MSG_ONE, SVC_ACHIEVEMENT);
-		WriteString(MSG_ONE, "ACH_FIND_SUPPOSED_BE_HERE");
-	}
+
+  #ifdef ENGINE_KEX
+    if ((self.enemy.classname == "player") && (world.model == "maps/hip3m1.bsp") && (self.message == "$map_not_supposed_be_here")) //Ry: Remaster HIP3M1 ledge secret achievement
+    {
+      msg_entity = self.enemy;
+      WriteByte(MSG_ONE, SVC_ACHIEVEMENT);
+      WriteString(MSG_ONE, "ACH_FIND_SUPPOSED_BE_HERE");
+    }
+  #endif
 
 	if (self.noise)
 		sound (self, CHAN_VOICE, self.noise, 1, ATTN_NORM);
@@ -85,12 +88,14 @@ void() multi_trigger =
          }
       }
 
-	if (((activator.classname == "player") && (world.model == "maps/e2m3.bsp")) && (self.message == "$map_dopefish")) //Ry: ID1 Dopefish achievement
-	{
-		msg_entity = activator;
-		WriteByte(MSG_ONE, SVC_ACHIEVEMENT);
-		WriteString(MSG_ONE, "ACH_FIND_DOPEFISH");
-	}
+  #ifdef ENGINE_KEX
+    if (((activator.classname == "player") && (world.model == "maps/e2m3.bsp")) && (self.message == "$map_dopefish")) //Ry: ID1 Dopefish achievement
+    {
+      msg_entity = activator;
+      WriteByte(MSG_ONE, SVC_ACHIEVEMENT);
+      WriteString(MSG_ONE, "ACH_FIND_DOPEFISH");
+    }
+  #endif
 
 };
 
@@ -141,7 +146,7 @@ set "message" to text string
 */
 void() trigger_multiple =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
 	if (self.sounds == 1)
@@ -189,8 +194,8 @@ void() trigger_multiple =
 		}
 	}
 //MED 12/01/96 added cnt stuff
-   if (self.cnt == 0)
-      self.cnt = -1;
+  if (self.cnt == 0)
+    self.cnt = -1;
 };
 
 
@@ -209,7 +214,7 @@ set "message" to text string
 */
 void() trigger_once =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
   self.wait = -1;
@@ -230,6 +235,8 @@ This fixed size trigger cannot be touched, it can only be fired by other events.
 */
 void() trigger_relay =
 {
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps [08-01-2022]
+    return;
 	self.use = SUB_UseTargets;
 };
 
@@ -247,7 +254,7 @@ set "message" to text string
 */
 void() trigger_secret =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
 	total_secrets = total_secrets + 1;
@@ -313,7 +320,7 @@ After the counter has been triggered "count" times (default 2), it will fire all
 */
 void() trigger_counter =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
   if (deathmatch) //Ry: Immediately trigger all one-time counters in Deathmatch
@@ -342,6 +349,9 @@ TELEPORT TRIGGERS
 
 float	PLAYER_ONLY	= 1;
 float	SILENT = 2;
+#ifdef GAME_ROGUE
+  float	CTF_ONLY = 4;
+#endif
 
 void() play_teleport =
 {
@@ -385,13 +395,15 @@ void() tdeath_touch =
 		return;
 
 // frag anyone who teleports in on top of an invincible player
-	if (other.classname == "player")
+	if (other.important) //Ry: This uses it's own setting now [08-08-2022]
 	{
 		if (other.invincible_finished > time)
 			self.classname = "teledeath2";
-		if (self.owner.classname != "player")
+		if (!self.owner.important)
 		{	// other monsters explode themselves
+      #ifdef GAME_HIPNOTIC
       if (!(self.owner.charmed) || self.classname == "teledeath") //Ry: Don't blow up a charmed monster that's spawning in
+      #endif
         T_Damage (self.owner, self, self, 50000);
 			return;
 		}
@@ -447,14 +459,52 @@ void() teleport_touch =
 	if (other.health <= 0 || other.solid != SOLID_SLIDEBOX)
 		return;
 
+	t = find (world, targetname, self.target);
+	if (!t) //Ry: Don't abort game if a target can't be found; Fixes the "crash" teleporter at the start of E4M8 [08-22-2022]
+  {
+    dprint("trigger_teleport couldn't find target\n");
+    self.touch = SUB_Null;
+    self.think = SUB_Remove;
+    self.nextthink = time;
+    return;
+  }
+
+  #ifndef ENGINE_WINQUAKE
+    //Ry: In Horde, do extra checks to make sure the destination is clear
+    local entity ent;
+    local float srcflg, dstflg;
+    if (horde_ent)
+    {
+      t.mins = other.mins;
+      t.maxs = other.maxs;
+      srcflg = other.flags & (FL_MONSTER|FL_CLIENT);
+      ent = findradius(t.origin,135);
+      while (ent)
+      {
+        //Ry: Don't teleport if there's a telefrag trigger going
+        if (ent.classname == "teledeath")
+        {
+          if (ent.owner != other)
+            if (BBoxIntersection(t,ent,4))
+              return;
+        }
+        else if (ent.classname != "monster_zombie") //Ry: Ignore Zombies
+        {
+          dstflg = ent.flags & (FL_MONSTER|FL_CLIENT);
+          //Ry: Clients don't teleport on clients, and Monsters don't teleport on anything
+          if (dstflg && ent.health > 0 && dstflg <= srcflg)
+            if (BBoxIntersection(t,ent,4))
+              return;
+        }
+        ent = ent.chain;
+      }
+    }
+  #endif
+
 	SUB_UseTargets ();
 
 // put a tfog where the player was
 	spawn_tfog (other.origin);
-
-	t = find (world, targetname, self.target);
-	if (!t)
-		objerror ("couldn't find target");
 
 // spawn a tfog flash in front of the destination
 	makevectors (t.mangle);
@@ -477,7 +527,9 @@ void() teleport_touch =
 	{
 		other.fixangle = 1;		// turn this way immediately
 		other.teleport_time = time + 0.7;
-    other.proxyimmunetime = time + 0.7; //Ry: Have Proxy Bombs ignore the player for a bit after teleporting
+    #ifdef GAME_HIPNOTIC
+      other.proxyimmunetime = time + 0.7; //Ry: Have Proxy Bombs ignore the player for a bit after teleporting
+    #endif
 		if (other.flags & FL_ONGROUND)
 			other.flags = other.flags - FL_ONGROUND;
 		other.velocity = v_forward * 300;
@@ -494,9 +546,15 @@ void() info_teleport_destination =
 	self.mangle = self.angles;
 	self.angles = '0 0 0';
 	self.model = "";
-	self.origin = self.origin + '0 0 27';
 	if (!self.targetname)
-		objerror ("no targetname");
+  {
+    dprint("info_teleport_destination at ");
+    dprint(vtos(self.origin));
+    dprint(" has no targetname set!\n");
+		remove(self);
+    return;
+  }
+	self.origin = self.origin + '0 0 27';
 };
 
 void() teleport_use =
@@ -513,16 +571,33 @@ If the trigger_teleport has a targetname, it will only teleport entities when it
 */
 void() trigger_teleport =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
 	local vector o;
+
+  #ifdef GAME_ROGUE
+    if (self.spawnflags & CTF_ONLY)
+    {
+      if (teamplay < TEAM_CTF || teamplay > TEAM_CTF_ALT)
+      {
+        remove (self);
+        return;
+      }
+    }
+  #endif
 
 	InitTrigger ();
 	self.touch = teleport_touch;
 	// find the destination
 	if (!self.target)
-		objerror ("no target");
+  {
+    dprint("trigger_teleport at ");
+    dprint(vtos( ((self.mins+self.maxs)/2) + self.origin ));
+    dprint(" has no target set!\n");
+		remove(self);
+    return;
+  }
 	self.use = teleport_use;
 
 	if (!(self.spawnflags & SILENT))
@@ -547,6 +622,28 @@ void() trigger_skill_touch =
 		return;
 
 	cvar_set ("skill", self.message);
+  //The following doesn't seem needed currently
+  /*if (copper_nightmare) //Ry: Copper Nightmare stuff [07-14-2022]
+  {
+    local float newhealth;
+    local entity player;
+    if ((skill < 3) && (cvar("skill") >= 3)) //Ry: To Nightmare
+      newhealth = 50;
+    else if ((skill >= 3) && (cvar("skill") < 3)) //Ry: From Nightmare
+      newhealth = 100;
+    if (newhealth)
+    {
+      player = find(world,classname,"player");
+      while (player)
+      {
+        if (player.health > 0)
+          player.health = newhealth;
+        player.max_health = newhealth;
+        player = find(player,classname,"player");
+      }
+    }
+    skill = cvar("skill");
+  }*/
 };
 
 /*QUAKED trigger_setskill (.5 .5 .5) ?
@@ -555,7 +652,7 @@ Only used on start map.
 */
 void() trigger_setskill =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
 	InitTrigger ();
@@ -600,7 +697,7 @@ Only fires if playing the registered version, otherwise prints the message
 */
 void() trigger_onlyregistered =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
 	precache_sound ("misc/talk.wav");
@@ -639,7 +736,12 @@ void() hurt_touch =
     {
       if (!(self.spawnflags & PLAYER_ONLY) || (other.classname == "player")) //Ry: Spawn Flag 1 makes this only affect players
       {
-        T_Damage (other, self, self, self.dmg);
+        if (other.classname == "monster_oldone") //Ry: Automatically assign Shub as owner [09-16-2022]
+        {
+          self.owner = other;
+          self.spawnflags |= PLAYER_ONLY;
+        }
+        T_Damage (other, self, self.owner, self.dmg); //Ry: Damage comes from owner, if one is set [09-16-2022]
         if (time > self.nextthink) //Ry: Only set these once per frame
         {
           self.think = SUB_Null;
@@ -673,54 +775,91 @@ defalt dmg = 5
 */
 void() trigger_hurt =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
+  self.netname = "trigger_hurt"; // for bot nav support.
 	InitTrigger ();
 	self.touch = hurt_touch;
 	if (!self.dmg)
 		self.dmg = 5;
-//MED 12/01/96 added count stuff
-   if (self.cnt == 0)
-      self.cnt = -1;
+  //MED 12/01/96 added count stuff
+  if (self.cnt == 0)
+    self.cnt = -1;
+  self.owner = self; //Ry: Set owner as self by default [09-16-2022]
 };
 
 //============================================================================
 
 float PUSH_ONCE = 1;
-float ADDITIVE_PUSH = 2;
-float PUSH_START_OFF = 4;
+#ifdef GAME_ROGUE
+  float PUSH_TOGL = 2;
+  float PUSH_ACTIVE = 4;
+#else
+  float ADDITIVE_PUSH = 2;
+  float PUSH_START_OFF = 4;
+#endif
+float PUSH_ITEMS = 8; //Ry: Ability to push items [07-29-2022]
+
+void() DoPush = //Ry: Separate function for this [07-29-2022]
+{
+  #ifndef GAME_ROGUE
+  if (self.spawnflags & ADDITIVE_PUSH) // yoder add, Jan 28 2021
+  {
+    other.velocity = other.velocity + (self.speed * self.movedir * 10 * frametime);
+    if (self.height) //Ry: Can now define a height [07-29-2022]
+      other.velocity_z = other.velocity_z + (self.height * frametime);
+  }
+  else
+  {
+  #endif
+    other.velocity = self.speed * self.movedir * 10;
+    if (self.height) //Ry: Can now define a height [07-29-2022]
+      other.velocity_z = self.height;
+  #ifndef GAME_ROGUE
+  }
+  #endif
+}
 
 void() trigger_push_touch =
 {
+  #ifdef GAME_ROGUE
+    if (!(self.spawnflags & PUSH_ACTIVE))
+      return;
+  #endif
+
+  if ((self.spawnflags & PUSH_ITEMS) && (other.flags & FL_ITEM)) //Ry: Allow push triggers to push items with a flag [07-29-2022]
+  {
+    DoPush();
+    return;
+  }
+  
 	// yoder Sept 24 2021 horde merge
-	
 	if (horde_ent)
 	{
-		if (other.spawnflags & PUSH_START_OFF) // ignore this spawnflag in horde mode
-			other.spawnflags-= PUSH_START_OFF;
+    #ifndef GAME_ROGUE
+      if (self.spawnflags & PUSH_START_OFF) // ignore this spawnflag in horde mode
+        self.spawnflags-= PUSH_START_OFF;
+    #endif
 		
 		if ((other.classname != "player"))
 		{
 			if ((other.classname == "item_artifact_invulnerability") || (other.classname == "item_artifact_super_damage"))
-			{
-				if (self.spawnflags & ADDITIVE_PUSH)
-					other.velocity = other.velocity + (self.speed * self.movedir * 10 * frametime); 
-				else
-					other.velocity = self.speed * self.movedir * 10;
-			}
+				DoPush();
 			return;
 		}
 	}
 	
+  #ifdef GAME_ROGUE
+  if (other.health > 0 || (other.classname == "grenade") || (other.classname == "MiniGrenade") || (other.classname == "MultiGrenade"))
+  #else
 	if (other.health > 0 || other.classname == "grenade")
+  #endif
 	{
-		if(other.flags & FL_INSHELTER) return;
+		if (other.flags & FL_INSHELTER)
+      return;
 
-		if (self.spawnflags & ADDITIVE_PUSH) // yoder add, Jan 28 2021
-			other.velocity = other.velocity + self.speed * self.movedir * 10 * frametime;
-		else
-			other.velocity = self.speed * self.movedir * 10;
+		DoPush();
 		if (other.classname == "player")
 		{
 			if (other.fly_sound < time)
@@ -735,14 +874,36 @@ void() trigger_push_touch =
 		remove(self);
 };
 
+#ifdef GAME_ROGUE
+  void() trigger_push_use = 
+  {
+    if (self.spawnflags & PUSH_ACTIVE)
+      self.spawnflags = self.spawnflags - PUSH_ACTIVE;
+    else
+      self.spawnflags = self.spawnflags + PUSH_ACTIVE;
+  };
 
-/*QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE
-Pushes the player
-*/
+  /*QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE PUSH_TOGL PUSH_ACTIVE
+  Pushes the player.
+
+  speed: velocity of push. (default 1000)
+  */
+#else
+  /*QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE
+  Pushes the player
+  */
+#endif
 void() trigger_push =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
+
+  #ifdef GAME_ROGUE
+    if (self.spawnflags & PUSH_TOGL)
+      self.use = trigger_push_use;
+    else
+      self.spawnflags = self.spawnflags + PUSH_ACTIVE;
+  #endif
 
 	InitTrigger ();
 	precache_sound ("ambience/windfly.wav");
@@ -760,8 +921,10 @@ void() trigger_monsterjump_touch =
 	if ( other.flags & (FL_MONSTER | FL_FLY | FL_SWIM) != FL_MONSTER )
 		return;
 
-  if ( other.charmed && (!self.charmed) ) //Ry: Charmed monsters ignore these unless specifically set
-    return;
+  #ifdef GAME_HIPNOTIC
+    if ( other.charmed && (!self.charmed) ) //Ry: Charmed monsters ignore these unless specifically set
+      return;
+  #endif
 
   if (self.checkdirection) //Ry: Check if monster is moving in roughly the same direction as the trigger
   {
@@ -809,7 +972,7 @@ Walking monsters that touch this will jump in the direction of the trigger's ang
 */
 void() trigger_monsterjump =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
 	if (!self.speed)

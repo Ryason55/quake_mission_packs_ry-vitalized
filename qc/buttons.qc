@@ -124,7 +124,7 @@ When a button is touched, it moves some distance in the direction of it's angle,
 void() func_button =
 {
 
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
   
   self.netname = "func_button"; // for bot nav support.

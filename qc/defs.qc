@@ -72,7 +72,7 @@ void()		StartFrame;
 void() 		PlayerPreThink;
 void() 		PlayerPostThink;
 
-void()		ClientKill;
+void(float Penalize) ClientKill;
 void()		ClientConnect;
 void() 		PutClientInServer;		// call after setting the parm1... parms
 void()		ClientDisconnect;
@@ -143,6 +143,7 @@ void		end_sys_globals;		// flag for structure dumping
 
 .float		items;			// bit flags
 
+
 .float		takedamage;
 .entity		chain;
 .float		deadflag;
@@ -211,6 +212,20 @@ void		end_sys_globals;		// flag for structure dumping
 void		end_sys_fields;			// flag for structure dumping
 //================================================
 
+//Ry: These need to be arranged like this so the weapon wheel doesn't screw up in Dissolution
+#ifndef GAME_ID1
+  .float		items2;
+#endif
+#ifdef GAME_ROGUE
+  .float		ammo_shells1, ammo_nails1, ammo_rockets1, ammo_cells1;
+  .float		ammo_lava_nails;
+  .float		ammo_multi_rockets;
+  .float		ammo_plasma;
+#endif
+#ifndef GAME_ID1
+  .float		gravity;
+#endif
+
 /*
 ==============================================================================
 
@@ -243,6 +258,11 @@ float	FL_JUMPRELEASED			= 4096;	// for jump debouncing
 float	FL_ISBOT    = 8192; //Ry: Is bot in Remaster
 float	FL_FUTUREMONSTER		= 16384;// for marking unspawned monsters
 float	FL_INSHELTER			= 32768;// for marking entities as sheltered from trigger_push
+float FL_NO_BOTS        = 65536;  // mal: any item marked with this will be ignored by bots.
+float FL_OBJECTIVE      = 131072;   // mal: any item marked with this is an objective of some kind.
+
+float FL_NO_PLAYERS     = 16384;  // mal: used by the spawn point editor
+float FL_NO_MONSTERS      = 32768;  // mal: used by the spawn point editor
 
 // edict.movetype values
 float	MOVETYPE_NONE			= 0;	// never moves
@@ -256,7 +276,7 @@ float	MOVETYPE_PUSH			= 7;	// no clip to world, push and crush
 float	MOVETYPE_NOCLIP			= 8;
 float	MOVETYPE_FLYMISSILE		= 9;	// fly with extra size against monsters
 float	MOVETYPE_BOUNCE			= 10;
-float	MOVETYPE_BOUNCEMISSILE	= 11;	// bounce with extra size
+float	MOVETYPE_GIB	    = 11; //Ry: Used for gib heads in Remaster [08-20-2022]
 
 // edict.solid values
 float	SOLID_NOT				= 0;	// no interaction with other objects
@@ -285,24 +305,32 @@ float	DAMAGE_YES				= 1;
 float	DAMAGE_AIM				= 2;
 
 // items
-float	IT_AXE					= 4096;
-float	IT_SHOTGUN				= 1;
-float	IT_SUPER_SHOTGUN		= 2;
-float	IT_NAILGUN				= 4;
-float	IT_SUPER_NAILGUN		= 8;
-float	IT_GRENADE_LAUNCHER		= 16;
-float	IT_ROCKET_LAUNCHER		= 32;
-float	IT_LIGHTNING			= 64;
-float	IT_EXTRA_WEAPON			= 128;
+float	IT_SHOTGUN          = 1;
+float	IT_SUPER_SHOTGUN    = 2;
+float	IT_NAILGUN          = 4;
+float	IT_SUPER_NAILGUN    = 8;
+float	IT_GRENADE_LAUNCHER = 16;
+float	IT_ROCKET_LAUNCHER  = 32;
+float	IT_LIGHTNING        = 64;
+float	IT_EXTRA_WEAPON     = 128;
 
-float	IT_SHELLS				= 256;
-float	IT_NAILS				= 512;
-float	IT_ROCKETS				= 1024;
-float	IT_CELLS				= 2048;
+#ifdef GAME_ROGUE
+  float	IT_SHELLS       = 128; //Ry: Thank you Dissolution, very cool
+  float	IT_NAILS        = 256;
+  float	IT_ROCKETS      = 512;
+  float	IT_CELLS        = 1024;
+  float	IT_AXE          = 2048;
+#else
+  float	IT_SHELLS       = 256;
+  float	IT_NAILS        = 512;
+  float	IT_ROCKETS      = 1024;
+  float	IT_CELLS        = 2048;
+  float	IT_AXE          = 4096;
+#endif
 
-float IT_ARMOR1            = 8192;
-float	IT_ARMOR2				= 16384;
-float	IT_ARMOR3				= 32768;
+float IT_ARMOR1         = 8192;
+float	IT_ARMOR2         = 16384;
+float	IT_ARMOR3         = 32768;
 //MED 11/02/96 added new hip weapon removed SUPERHEALTH
 //float IT_SUPERHEALTH       = 65536;
 
@@ -337,6 +365,8 @@ vector	VEC_HULL2_MIN = '-32 -32 -24';
 vector	VEC_HULL2_MAX = '32 32 64';
 
 // protocol bytes
+float SVC_UPDATESTAT = 3; //Ry: From hip_defs.qc
+float SVC_SETVIEW = 5; //Ry: For changing intermission camera [08-11-2022]
 float	SVC_TEMPENTITY		= 23;
 float	SVC_KILLEDMONSTER	= 27;
 float	SVC_FOUNDSECRET		= 28;
@@ -344,7 +374,18 @@ float	SVC_INTERMISSION	= 30;
 float	SVC_FINALE			= 31;
 float	SVC_CDTRACK			= 32;
 float	SVC_SELLSCREEN		= 33;
-float SVC_ACHIEVEMENT    = 52; //Ry: Achievement thing
+float	SVC_CUTSCENE		= 34;
+#ifdef ENGINE_KEX
+  float SVC_ACHIEVEMENT    = 52; //Ry: Achievement thing
+  float	SVC_CHAT = 53; //Ry: Update 4 server commands [08-20-2022]
+  float	SVC_LEVELCOMPLETED = 54;
+  float	SVC_BACKTOLOBBY = 55;
+  float	SVC_LOCALSOUND = 56;
+  float	SVC_PROMPT = 57;
+#endif
+
+float STAT_TOTALMONSTERS = 12;
+float STAT_TOTALSECRETS = 11;
 
 float	TE_SPIKE		= 0;
 float	TE_SUPERSPIKE	= 1;
@@ -358,16 +399,24 @@ float	TE_KNIGHTSPIKE	= 8;
 float	TE_LIGHTNING3	= 9;
 float	TE_LAVASPLASH	= 10;
 float	TE_TELEPORT		= 11;
+float TE_EXPLOSION2   = 12;
+float	TE_BEAM			= 13;  	
 
 // sound channels
 // channel 0 never willingly overrides
 // other channels (1-7) allways override a playing sound on that channel
-float	CHAN_AUTO		= 0;
+float	CHAN_AUTO		  = 0;
 float	CHAN_WEAPON		= 1;
 float	CHAN_VOICE		= 2;
-float	CHAN_ITEM		= 3;
-float	CHAN_BODY		= 4;
-float	CHAN_FOOT		= 5; //Ry: New for footsteps exclusively
+float	CHAN_ITEM		  = 3;
+float	CHAN_BODY		  = 4;
+float	CHAN_POWERUP  = 5; //Ry: For powerups specifically [09-05-2022]
+#ifdef GAME_HIPNOTIC
+  float	CHAN_FOOT		= 6; //Ry: New for footsteps exclusively
+#endif
+#ifdef GAME_ROGUE
+  float	CHAN_RUNE		= 6; //Ry: For runes, so they don't share the item channel
+#endif
 
 float	ATTN_NONE		= 0;
 float	ATTN_NORM		= 1;
@@ -386,11 +435,12 @@ float	UPDATE_TEMP		= 3;
 float	EF_BRIGHTFIELD	= 1;
 float	EF_MUZZLEFLASH 	= 2;
 float	EF_BRIGHTLIGHT 	= 4;
-float	EF_DIMLIGHT 	= 8;
-float	EF_QUADLIGHT 	= 16; //Ry: Remaster effects
+float	EF_DIMLIGHT 	  = 8;
+float	EF_QUADLIGHT 	  = 16; //Ry: Remaster light effects
 float	EF_PENTALIGHT 	= 32;
 float	EF_CANDLELIGHT 	= 64;
-
+float EF_BLUE         = 64; //Ry: Darkplaces light effects
+float EF_RED          = 128;
 
 // messages
 float	MSG_BROADCAST	= 0;		// unreliable to all
@@ -667,11 +717,10 @@ void(string s) changelevel = #70;
 
 void(string var, string val) cvar_set = #72;	// sets cvar.value
 
-void(entity client, string s, ...) centerprint = #73;	// sprint, but in middle
 #ifdef ENGINE_KEX
-  void(entity client, string s, ...) centerprint_new = #0:ex_centerprint;	//Ry: Remaster's version of centerprint
+  void(entity client, string s, ...) centerprint = #0:ex_centerprint;	//Ry: Remaster's version of centerprint
 #else
-  void(entity client, string s, ...) centerprint_new = #73;	//Ry: Just copy the regular function otherwise
+  void(entity client, string s, ...) centerprint = #73;	// sprint, but in middle
 #endif
 
 void(vector pos, string samp, float vol, float atten) ambientsound = #74;
@@ -711,6 +760,11 @@ void(entity e) setspawnparms		= #78;		// set parm1... to the
   // Path monsters to the goal using any available nav nodes on the map
   float walkpathtogoal( float movedist, vector goal ) = #0:ex_walkpathtogoal;
 #endif
+void prompt( entity client, string text, float numChoices ) = #0:ex_prompt;
+void promptchoice( entity client, string text, float impulse ) = #0:ex_promptchoice;
+void clearprompt( entity client ) = #0:ex_clearprompt;
+
+void setcolor( entity client, float color ) = #401;
 
 float checkextension( string s ) = #99;
 

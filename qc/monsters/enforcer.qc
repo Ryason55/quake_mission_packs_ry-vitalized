@@ -51,10 +51,11 @@ void() Laser_Touch =
 		return;
 	}
 
-//MED 01/16/97 added silent command
-
-   if (!(self.spawnflags & SPAWNFLAG_SILENT))
-      sound (self, CHAN_WEAPON, "enforcer/enfstop.wav", 1, ATTN_STATIC);
+  #ifdef GAME_HIPNOTIC
+  //MED 01/16/97 added silent command
+  if (!(self.spawnflags & SPAWNFLAG_SILENT))
+  #endif
+    sound (self, CHAN_WEAPON, "enforcer/enfstop.wav", 1, ATTN_STATIC);
 	org = self.origin - 8*normalize(self.velocity);
 
 	if (other.health)
@@ -88,13 +89,22 @@ void(vector org, vector vec) LaunchLaser =
 	newmis.movetype = MOVETYPE_FLY;
 	newmis.solid = SOLID_BBOX;
 	newmis.effects = EF_DIMLIGHT;
-
+	newmis.classname = "enforcer_laser";
+	
 	setmodel (newmis, "progs/laser.mdl");
-	setsize (newmis, '0 0 0', '0 0 0');
+	setsize (newmis, '0 0 0', '0 0 0');		
+
+  #ifdef GAME_ROGUE
+    if (self.classname == "monster_morph")
+    {
+      if (!self.trigger_field) //Ry: Using this instead of Owner [11-10-2022]
+        newmis.skin = 1;
+    }
+  #endif
 
 	setorigin (newmis, org);
 
-	newmis.velocity = vec2 * 600;
+	newmis.velocity = vec2 * ProjectileSpeed(self,600);
 	newmis.angles = vectoangles(newmis.velocity);
 
 	newmis.nextthink = time + 5;
@@ -259,7 +269,7 @@ void(entity attacker, float damage)	enf_pain =
 void()   enf_die1 =[ $death1, enf_die2 ] {};
 void()	enf_die2	=[	$death2,	enf_die3	] {};
 void()	enf_die3	=[	$death3,	enf_die4	]
-{self.solid = SOLID_NOT;self.ammo_cells = 5;DropBackpack(TRUE);}; //Ry: Added new argument for DropBackpack
+{self.solid = SOLID_NOT;self.AMMO_CELLS = 5;DropBackpack(TRUE);}; //Ry: Added new argument for DropBackpack
 void()	enf_die4	=[	$death4,	enf_die5	] {ai_forward(14);};
 void()	enf_die5	=[	$death5,	enf_die6	] {ai_forward(2);};
 void()	enf_die6	=[	$death6,	enf_die7	] {};
@@ -282,7 +292,7 @@ void()   enf_die14   =[ $death14,   enf_die14   ]
 void()   enf_fdie1   =[ $fdeath1,   enf_fdie2   ] {};
 void()	enf_fdie2	=[	$fdeath2,	enf_fdie3	] {};
 void()	enf_fdie3	=[	$fdeath3,	enf_fdie4	]
-{self.solid = SOLID_NOT;self.ammo_cells = 5;DropBackpack(TRUE);};
+{self.solid = SOLID_NOT;self.AMMO_CELLS = 5;DropBackpack(TRUE);};
 void()	enf_fdie4	=[	$fdeath4,	enf_fdie5	] {};
 void()	enf_fdie5	=[	$fdeath5,	enf_fdie6	] {};
 void()	enf_fdie6	=[	$fdeath6,	enf_fdie7	] {};
@@ -303,7 +313,7 @@ void()   enf_fdie11  =[ $fdeath11,  enf_fdie11  ]
 void() enf_die =
 {
 // check for gib
-	if (self.health < -35)
+	if ( self.health < self.gib_health ) //Ry: Compare to the saved var now [07-31-2022]
 	{
 		sound (self, CHAN_VOICE, "player/udeath.wav", 1, ATTN_NORM);
 		ThrowHead ("progs/h_mega.mdl", self.health);
@@ -327,7 +337,7 @@ void() enf_die =
 */
 void() monster_enforcer =
 {
-	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
+	if (!EntityValidForMode(ENTTYPE_MONSTER)) //Ry: New function to handle func_spawn and horde mode
 		return;
 
 	precache_model2 ("progs/enforcer.mdl");
@@ -347,7 +357,9 @@ void() monster_enforcer =
   
   self.netname = "Enforcer"; //Ry: Name for Deathmatch
   
-	self.allowPathFind = TRUE; //Ry: For Remaster pathfinding
+  #ifdef ENGINE_KEX
+    self.allowPathFind = USEPATH_ALLOW; //Ry: Can use Remaster pathing [08-01-2022]
+  #endif
 	self.combat_style = CS_RANGED;
 
 	self.solid = SOLID_SLIDEBOX;
@@ -357,6 +369,7 @@ void() monster_enforcer =
 
 	setsize (self, '-16 -16 -24', '16 16 40');
 	self.health = 80;
+  self.gib_health = -35; //Ry: Var for gib health [07-31-2022]
 
 	self.th_stand = enf_stand1;
 	self.th_walk = enf_walk1;

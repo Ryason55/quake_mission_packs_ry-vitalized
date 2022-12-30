@@ -63,9 +63,13 @@ float() CheckAttack =
 
 	traceline (spot1, spot2, FALSE, self);
 
-//MED 10/17/96 added charmed stuff
-   if ((trace_ent != targ) && (!self.charmed))
-      return FALSE;     // don't have a clear shot
+  #ifdef GAME_HIPNOTIC
+    //MED 10/17/96 added charmed stuff
+    if ((trace_ent != targ) && (!self.charmed))
+  #else
+    if (trace_ent != targ)
+  #endif
+    return FALSE;     // don't have a clear shot
 
 	if (trace_inopen && trace_inwater)
 		return FALSE;			// sight line crossed contents

@@ -161,7 +161,7 @@ void() func_plat =
 
 {
 
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
   {
     remove(self);
     return;
@@ -307,7 +307,7 @@ sounds
 */
 void() func_train =
 {	
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
   {
     remove(self);
     return;
@@ -357,7 +357,7 @@ This is used for the final bos
 */
 void() misc_teleporttrain =
 {	
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
   {
     remove(self);
     return;

@@ -148,17 +148,19 @@ void() finale_1 =
 	// wait for 1 second
 	timer = spawn();
 	timer.nextthink = time + 1;
-	timer.think = finale_2;	
-	if ((campaign && (world.model == "maps/end.bsp"))) //Ry: Shub achievement
-	{
-		WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-		WriteString(MSG_ALL, "ACH_DEFEAT_SHUB");
-		if ((skill == 3))
-		{
-			WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
-			WriteString(MSG_ALL, "ACH_DEFEAT_SHUB_NIGHTMARE");
-		}
-	}
+	timer.think = finale_2;
+  #ifdef ENGINE_KEX
+    if ((campaign && (world.model == "maps/end.bsp"))) //Ry: Shub achievement
+    {
+      WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+      WriteString(MSG_ALL, "ACH_DEFEAT_SHUB");
+      if ((skill == 3))
+      {
+        WriteByte(MSG_ALL, SVC_ACHIEVEMENT);
+        WriteString(MSG_ALL, "ACH_DEFEAT_SHUB_NIGHTMARE");
+      }
+    }
+  #endif
 };
 
 void() finale_2 =
@@ -232,7 +234,11 @@ void() finale_4 =
 
 	// start the end text
 	WriteByte (MSG_ALL, SVC_FINALE);
-	WriteString (MSG_ALL, "Congratulations and well done! You have\nbeaten the hideous Shub-Niggurath, and\nher hundreds of ugly changelings and\nmonsters. You have proven that your\nskill and your cunning are greater than\nall the powers of Quake. You are the\nmaster now. Id Software salutes you.");
+  #ifdef ENGINE_KEX
+    WriteString (MSG_ALL, "$qc_finale_end");
+  #else
+    WriteString (MSG_ALL, "Congratulations and well done! You have\nbeaten the hideous Shub-Niggurath, and\nher hundreds of ugly changelings and\nmonsters. You have proven that your\nskill and your cunning are greater than\nall the powers of Quake. You are the\nmaster now. Id Software salutes you.");
+  #endif
 
 // put a player model down
 	n = spawn();
@@ -249,9 +255,13 @@ void() finale_4 =
 	WriteByte (MSG_ALL, 3);
 	WriteByte (MSG_ALL, 3);
 	lightstyle(0, "m");	
-	local entity timer = spawn();
-	timer.nextthink = (time + 1);
-	timer.think = finale_check; //Ry: From here, logic in client.qc will take over, allowing the player to exit 5 seconds after the text has finished
+  #ifdef ENGINE_KEX
+    local entity timer = spawn();
+    timer.nextthink = (time + 1);
+    timer.think = finale_check; //Ry: From here, logic in client.qc will take over, allowing the player to exit 5 seconds after the text has finished
+  #else
+    intermission_exittime = time + 38; //Ry: Timed this to be about 5 seconds after the text finishes [07-23-2022]
+  #endif
 };
 
 //============================================================================
@@ -268,7 +278,7 @@ void (entity attacker, float damage) nopain =
 */
 void() monster_oldone =
 {
-	if (!EntityValidForMode(TRUE,FALSE)) //Ry: New function to handle func_spawn and horde mode
+	if (!EntityValidForMode(ENTTYPE_MONSTER)) //Ry: New function to handle func_spawn and horde mode
 		return;
 
 	precache_model2 ("progs/oldone.mdl");

@@ -51,7 +51,7 @@ Variable sized single use trigger that requires a key to trigger targets.  Must 
 
 void() trigger_usekey =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
   PrepareKeyMechanismSounds(); //Ry: Global function for this now
@@ -85,7 +85,7 @@ players.
 */
 void() trigger_remove =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
   self.cnt = FL_CLIENT|FL_MONSTER;
@@ -128,7 +128,7 @@ set the gravity of a player
 */
 void() trigger_setgravity =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
 	InitTrigger ();
@@ -158,7 +158,7 @@ void() trigger_command_use =
 
 void() trigger_command =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
   self.use = oncount_use;
@@ -213,7 +213,7 @@ void() trigger_waterfall_touch =
 
 void() trigger_waterfall =
 {
-  if (!EntityValidForMode(FALSE,FALSE)) //Ry: For hybrid horde/campaign maps
+  if (!EntityValidForMode(ENTTYPE_LEVEL)) //Ry: For hybrid horde/campaign maps
     return;
 
   InitTrigger ();

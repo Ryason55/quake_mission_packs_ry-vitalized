@@ -1,0 +1,25 @@
+// Overview Of Team Properties:
+
+// value:			value of the team as set in QuakeC code
+// name:			name of the team ( for debugging )
+
+// This translates non-zero based teams set in QuakeC, into 0 based team numbers
+// internally for ease of use and debugging in the bot code. Teams will be 
+// numbered in the order they are defined in this file ( 0 - N ).
+
+// NOTE: There are a max of four teams supported by all of the bot systems!
+
+{
+  value				5
+  name 				"Red Team"
+}
+
+{
+  value				3
+  name 				"Blue Team"
+}
+
+{
+  value				13
+  name 				"Yellow Team"
+}

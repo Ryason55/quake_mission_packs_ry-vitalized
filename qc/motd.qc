@@ -1,131 +1,151 @@
 // Ry: MOTD functions lifted from Dissolution to fit my purposes
 
-.float motd_time;
-.float motd_count;
-.float motd_cmd;
-
-//Ry: New sub, located in ry_subs.qc
-void(entity player, float type, string message1, string message2 = "", string message3 = "", string message4 = "", string message5 = "", string message6 = "") FilteredCenterPrint;
-
 void() MOTD =
 {
-  local string thismod, mode, features1, features2, features3;
-  if (!self.motd_cmd)
+  local string mode, info1, info2;
+	if (self.motd_count > 0)
   {
-    stuffcmd(self,"RyModJoin\n"); //Ry: If the client has stuffcmd allowed, call this customizable alias function
-    self.motd_cmd = TRUE;
-  }
-	if (self.motd_count < 3) { //was 5
 		self.motd_time = time + 1;
-		self.motd_count = self.motd_count + 1;
-    thismod = "Armagon Ry-vitalized V2.0";
+		self.motd_count -= 1;
     if (deathmatch)
     {
-      mode = " Deathmatch";
-      features1 = "\nFeatures Ring Outs, powerup drops, ";
-
-      if (footsteps)
-      {
-        if (exitwarp)
-          features2 = "exit warp, footsteps, ";
-        else
-          features2 = "footsteps, ";
-      }
-      else if (exitwarp)
-      {
-        features2 = "exit warp, ";
-      }
-
-      /*if (wide_lightning)
-      {
-        if (wide_spikes)
+      mode = "\nDeathmatch";
+      #ifdef GAME_ROGUE
+        if (dmatchtag == 2)
+          mode = "\nDeathmatch Tag";
+        if (teamplay >= TEAM_CTF && teamplay <= TEAM_CTF_ALT)
         {
-          features3 = "wide shaft/spikes, ";
+          if (teamplay == TEAM_CTF_ALT)
+            mode = "\nThree Team Capture the Flag";
+          else if (teamplay == TEAM_CTF_ONEFLAG)
+            mode = "\nOne Flag Capture the Flag";
+          else
+            mode = "\nCapture the Flag";
+          if (self.teamselecttime)
+          {
+             //Ry: Used if the engine doesn't support prompts
+            if (teamplay == TEAM_CTF_ALT)
+              info1 = "\n\nPress 1 for RED team\nPress 2 for BLUE team\nPress 3 for YELLOW team\nPress JUMP for automatic team";
+            else
+              info1 = "\n\nPress 1 for RED team\nPress 2 for BLUE team\nPress JUMP for automatic team";
+          }
+          else
+          {
+            if (self.steam == TEAM1)
+              info1 = "\n\nYou are on the RED team";
+            else if (self.steam == TEAM2)
+              info1 = "\n\nYou are on the BLUE team";
+            else if (self.steam == TEAM3)
+              info1 = "\n\nYou are on the YELLOW team";
+          }
         }
         else
         {
-          features3 = "wide shaft, ";
+          if (grappleenabled)
+            if (runespawn)
+              info1 = "\n\nGrappling Hook enabled\nRunes enabled";
+            else
+              info1 = "\n\nGrappling Hook enabled";
+          else if (runespawn)
+            info1 = "\n\nRunes enabled";
         }
-      }
-      else if (wide_spikes)
-      {
-        features3 = "wide spikes, ";
-      }
-      if (features3 && !features2)
-      {
-        features2 = features3;
-        features3 = string_null;
-      }*/
-
-      if (!features2)
-        features2 = "and various other changes";
+      #endif
+    }
+    else if (coop || horde) //Ry: Show Difficulty and Friendly Fire status to players on join in Co-op modes
+    {
+      if (horde)
+        mode = " Horde Mode";
       else
-        features3 = "and various other changes";
-    }
-    else if (horde)
-    {
-      mode = " Horde Mode";
-    }
-    else if (coop)
-    {
-      mode = " Co-op";
-    }
-    
-    if (coop) //Ry: Show Difficulty and Friendly Fire status to players on join in Co-op modes
-    {
+        mode = " Co-op";
+      //Ry: Don't show difficulty on START map, since it's yet to be selected
       if ( horde || (world.model != "maps/start.bsp") )
       {
         if (skill == 0)
-          features1 = "\nEasy difficulty";
+          info1 = "\nEasy difficulty";
         else if (skill == 1)
-          features1 = "\nNormal difficulty";
+          info1 = "\nNormal difficulty";
         else if (skill == 2)
-          features1 = "\nHard difficulty";
+          info1 = "\nHard difficulty";
         else if (skill == 3)
-          features1 = "\nNightmare difficulty";
-        if (!teamplay)
-          features2 = ", FF Enabled";
+        {
+          if (copper_nightmare)
+            info1 = "\nCopper Nightmare difficulty";
+          else
+            info1 = "\nNightmare difficulty";
+        }
       }
-      else if (!teamplay)
-        features1 = "\nFF Enabled";
+      if (horde && !horde_ent) //Ry: Warning message just in case [2022-12-27]
+      {
+        info2 = "\n\nMap doesn't support Horde Mode!";
+      }
+      else
+      {
+        if (fastmonsters)
+          if (!teamplay)
+            info2 = "\n\nFast Monsters enabled\nFriendly Fire enabled";
+          else
+            info2 = "\n\nFast Monsters enabled";
+        else if (!teamplay)
+          info2 = "\n\nFriendly Fire enabled";
+      }
     }
-    
-    FilteredCenterPrint(self, CPRINT_MOTD,thismod,mode,features1,features2,features3);
+
+    #ifdef ENGINE_KEX
+      if (info1)
+        FilteredCenterPrint(self, motd_priority, "{}{}{}{}", THISMOD, mode, info1, info2);
+      else if (info2)
+        FilteredCenterPrint(self, motd_priority, "{}{}{}", THISMOD, mode, info2);
+      else
+        FilteredCenterPrint(self, motd_priority, "{}{}", THISMOD, mode);
+    #else
+      if (info1)
+        FilteredCenterPrint(self, motd_priority, THISMOD, mode, info1, info2);
+      else
+        FilteredCenterPrint(self, motd_priority, THISMOD, mode, info2);
+    #endif
+
+    if (self.motd_count <= 0)
+      self.motd_time = 0;
 		return;
 	}
-	self.motd_time = 0;
-  if ((self.mapsfinished < 1) && (self.playerprobe == FALSE))
-  {
-    sprint(self,"Toggle player name display by double-tapping [Axe]\n");
-    sprint(self,"(Do not use with Accessibility options)\n");
-  }
 };
 
 void() CheckMOTD =
 {
-//	if (self.motd_time && self.motd_time < time)
-	if (self.motd_time)
+	if (self.motd_time && self.motd_count)
 	{ 
-    if (!coop || self.mapsfinished < 1) //Ry: In Co-op, only show the message on the first map
+    if (!coop || horde || self.mapsfinished < 1) //Ry: In Co-op, only show the message on the first map
     {
-      if(self.motd_time < time)
+      #if defined(ENGINE_KEX) || defined(GAME_ROGUE)
+        if (!self.motd_cmd && (self.motd_time <= (time + 2.9)))
+        {
+          #ifdef ENGINE_KEX
+            stuffcmd(self,"RyModJoin\n"); //Ry: If the client has stuffcmd allowed, call this customizable alias function
+          #endif
+          #ifdef GAME_ROGUE
+            SendTeamplayValue(self);
+          #endif
+          self.motd_cmd = TRUE;
+        }
+      #endif
+      if (self.motd_time < time)
         MOTD();
     }
     else
       self.motd_time = 0;
-      
 	}
 };
 
 void() SetMOTD = 
 {
-  if (deathmatch || coop)
+  if (deathmatch || coop || horde)
   {
     self.motd_time = time + 3;
-    if ( teamplay == 3 || coop )
+    #ifdef ENGINE_KEX
       self.motd_count = 2;
-    else
-      self.motd_count = 0;
+    #else
+      self.motd_count = 3;
+    #endif
   }
 };
 
