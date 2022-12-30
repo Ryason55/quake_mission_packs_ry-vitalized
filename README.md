@@ -105,6 +105,7 @@ QuakeC Changes
 
 
 ----- :new: Horde Mode -----  
+- A number of campaign maps have been modified to include Horde layouts, which can be started from the menu if you're playing one of the Ry-vitalized games.  
 - Weapon items and pre-placed health/armor behave similarly to my Co-op implementation, staying around until everyone has picked them up, with the latter demoting each pick.  
 - When you die, you can press Jump to spectate from fixed points.  
 - When you respawn, you no longer need to re-collect the weapons on the map, and you keep a small amount of ammo.  
@@ -119,9 +120,12 @@ QuakeC Changes
   - [SoA] The only unique boss squad is `armagon`.  
   - [DoE] Unique boss squads currently include `guardian aztec`, `guardian egypt`, `guardian greek`, and `guardian` (a random guardian). Overlord and Dragon are planned, but I'd have to make sure they work right when spawned this way.  
 
+Notes:
+- A couple times I've seen a Rottweiler not die properly, and continue to try and attack without collision until it does a jump attack. Haven't figured out what causes it yet, but it is marked as dead for the purposes of advancing the wave. Also not sure if this is a Horde-specific problem.  
+
 
 ----- :new: [DoE] Capture the Flag -----  
-- Regular CTF can now be initiated from the menu in Remaster.  
+- Regular CTF can now be initiated from the menu in Remaster if you're playing one of the Ry-vitalized games.  
 - Implemented team selection on join, similar to Remaster's Threewave CTF.  
 - Team colors have been modified to match the banners in the levels.  
 - Scoring in CTF is now based off of captures instead of frags.  
@@ -205,7 +209,7 @@ Notes:
 - Quad Damage and Pentagram powerup items now innately glow.  
 - Players under the effect of Quad or Pentagram will be lit up with the appropriate color (Pentagram takes priority).  
 - [SoA] Shield of Empathy and Horn of Conjuring now have the same hitbox height as other powerups.  
-- :new: Cooperative: Powerups used for traversal (Biosuit, Wetsuit, Anti-Grav Belt) can now be collected by every player.  
+- :new: Cooperative: Powerups used for traversal (Biosuit, Wetsuit, Anti-Grav Belt) can now be collected by every player one time.  
 
 
 ----- Ring of Shadows -----  
@@ -256,7 +260,7 @@ Notes:
 - Added a "Busy" mechanic, where certain monsters in the middle of an attack will not immediately turn on whoever hurts them until either after the attack, or if a pain state is triggered. Currently implemented for the Vore, Shambler, and Armagon.  
 - Fixed the "statue" bug that can rarely occur in vanilla when initializing a monster.  
 - Most monsters when fighting a Zombie will give up on the Zombie when it gets knocked down.  
-- [SoA] Gremlins, Armagon, and any ground-based monster summoned under the effect of the Horn of Conjuring now use Remaster's bot pathing to navigate.  
+- [SoA] Gremlins, as well as ground-based monsters summoned under the effect of the Horn of Conjuring, now use Remaster's bot pathing to navigate.  
 
 
 ----- Zombie -----  
@@ -330,7 +334,7 @@ Notes:
 - :new: Armagon will keep trying to aim at the player if he's in the middle of an attack.  
 - :new: Anything caught underneath a falling Armagon will be crushed. Relevant for Deathmatch and Horde variations of HIPEND.  
 - :new: Armagon now has similar telefrag priority to players.  
-- :new: Armagon now acknowledges NoTarget when looking for players.  
+- :new: Armagon now respects NoTarget when looking for players.  
 
 
 ----- :new: [DoE] Overlord -----  
@@ -749,7 +753,10 @@ https://www.mediafire.com/file/d5wd846r2wa8fyc/QuakeSoA_MjolnirModelFixes_V1.0.z
 Notes:  
 - Currently, any changes to item spawn behavior in Deathmatch only apply to `deathmatch 3`, which needs to be set manually in the console.  
 - Horde versions of maps can be accessed by setting `horde 1` in the console, and using `map ___` to start a compatible level. Note that Quakespasm doesn't unset `horde` when starting a new game from the menu.  
-- Other source ports and derivatives haven't been extensively tested. One notable thing is Remaster-only cvars, like `sv_cheats` and `horde`, may be absent from other source ports.  
+- Other source ports and derivatives haven't been extensively tested. What is known is:  
+  - Engines without ENT file support (like WinQuake) won't have the level changes.  
+  - Remaster-only cvars, like `sv_cheats` and `horde`, may be absent in other source ports, even in some Quakespasm-derivatives.  
+  - The updated Mjolnir item model doesn't rotate in Darkplaces.  
 
 
 Known Issues
