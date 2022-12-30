@@ -1,0 +1,4689 @@
+{
+ "classname" "worldspawn"
+ "message" "The Catacombs"
+ "sounds" "3"
+ "wad" "hipnotic/gfx/dabugs.wad"
+ "worldtype" "0"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "1776 924 32"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "1776 1156 32"
+}
+{
+ "classname" "item_armorInv"
+ "light" "175"
+ "origin" "1632 1152 264"
+ "spawnflags" "1792"
+}
+{
+ "classname" "item_spikes"
+ "origin" "720 1616 40"
+ "spawnflags" "1"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "-144 1528 -64"
+}
+{
+ "classname" "light"
+ "origin" "1120 880 224"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1792 992 176"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1792 1152 336"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "1776 864 20"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1208 1416 -68"
+}
+{
+ "classname" "func_button"
+ "angle" "-2"
+ "model" "*1"
+ "sounds" "2"
+ "spawnflags" "2048"
+ "target" "4302"
+ "wait" "-1"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "752 1152 120"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1936 992 48"
+}
+{
+ "classname" "func_door"
+ "angle" "180"
+ "lip" "0"
+ "model" "*2"
+ "sounds" "1"
+ "targetname" "secretsteps"
+ "wait" "-1"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "270"
+ "origin" "1216 1368 -128"
+ "spawnflags" "1280"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "200"
+ "origin" "1920 1312 -84"
+}
+{
+ "classname" "func_door"
+ "angle" "180"
+ "lip" "0"
+ "model" "*3"
+ "targetname" "secretsteps"
+ "wait" "-1"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1736 736 28"
+}
+{
+ "classname" "func_door"
+ "angle" "270"
+ "model" "*4"
+ "sounds" "1"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "648 1312 160"
+}
+{
+ "classname" "func_door"
+ "angle" "90"
+ "model" "*5"
+ "sounds" "1"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "584 832 296"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2136 992 48"
+}
+{
+ "classname" "monster_zombie"
+ "origin" "1776 1096 28"
+ "spawnflags" "2"
+}
+{
+ "classname" "light"
+ "origin" "1440 880 224"
+}
+{
+ "classname" "item_health"
+ "origin" "-768 2432 128"
+ "spawnflags" "1"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "648 992 160"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "320 1472 256"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-128 896 292"
+}
+{
+ "classname" "func_door"
+ "angle" "-2"
+ "lip" "0"
+ "model" "*6"
+ "sounds" "3"
+ "targetname" "4302"
+ "wait" "-1"
+ "spawnflags" "2048"
+ "speed" "75"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1792 960 336"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "576 1472 256"
+}
+{
+ "classname" "light"
+ "origin" "1120 1424 224"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "1776 1096 20"
+}
+{
+ "classname" "info_player_start"
+ "angle" "90"
+ "origin" "-752 2440 656"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2056 1312 -68"
+}
+{
+ "classname" "item_key1"
+ "light" "175"
+ "origin" "1616 1152 288"
+ "spawnflags" "2048"
+}
+{
+ "classname" "light"
+ "light" "125"
+ "origin" "128 744 80"
+}
+{
+ "classname" "light"
+ "light" "300"
+ "origin" "2016 2272 8"
+}
+{
+ "classname" "light"
+ "light" "220"
+ "origin" "984 1152 336"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1936 992 176"
+}
+{
+ "classname" "light"
+ "light" "300"
+ "origin" "-48 792 8"
+}
+{
+ "classname" "trigger_once"
+ "model" "*7"
+ "target" "secretsteps"
+}
+{
+ "classname" "weapon_supernailgun"
+ "light" "175"
+ "origin" "-96 480 16"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "224 2248 56"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-48 2688 160"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-192 384 88"
+}
+{
+ "classname" "item_health"
+ "origin" "-176 272 16"
+ "light" "175"
+}
+{
+ "classname" "item_health"
+ "origin" "-112 272 16"
+ "light" "175"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "368 1744 288"
+}
+{
+ "classname" "light"
+ "light" "100"
+ "origin" "1144 1504 -76"
+}
+{
+ "classname" "monster_hell_knight"
+ "angle" "180"
+ "origin" "744 1000 64"
+ "spawnflags" "1281"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-64 2184 232"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "0"
+ "origin" "-192 384 48"
+}
+{
+ "classname" "item_shells"
+ "light" "150"
+ "origin" "432 1976 0"
+ "spawnflags" "1"
+}
+{
+ "classname" "light"
+ "light" "125"
+ "origin" "0 384 80"
+}
+{
+ "classname" "item_health"
+ "origin" "472 1760 0"
+ "spawnflags" "2"
+ "light" "150"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "0"
+ "origin" "896 1152 256"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "704 1152 288"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "896 1152 336"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1936 736 48"
+}
+{
+ "classname" "monster_hell_knight"
+ "angle" "360"
+ "origin" "-560 2030 56"
+ "spawnflags" "256"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-72 2016 376"
+}
+{
+ "classname" "light"
+ "light" "220"
+ "origin" "896 1152 80"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1464 1152 248"
+}
+{
+ "classname" "light"
+ "light" "160"
+ "origin" "2344 1992 -464"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1656 2072 108"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2016 1672 -68"
+}
+{
+ "classname" "func_door"
+ "angle" "180"
+ "lip" "0"
+ "model" "*8"
+ "targetname" "secretsteps"
+ "wait" "-1"
+}
+{
+ "classname" "trigger_secret"
+ "model" "*9"
+ "sounds" "1"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "936 1472 80"
+ "style" "5"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "128 512 80"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1792 768 336"
+}
+{
+ "classname" "monster_zombie"
+ "origin" "1776 864 28"
+ "spawnflags" "2"
+}
+{
+ "classname" "light"
+ "origin" "-264 2424 136"
+}
+{
+ "classname" "item_spikes"
+ "origin" "-176 464 16"
+ "spawnflags" "1"
+ "light" "175"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "938 938 276"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "938 1370 276"
+}
+{
+ "classname" "func_door"
+ "angle" "-1"
+ "lip" "0"
+ "model" "*10"
+ "sounds" "1"
+ "targetname" "4310"
+ "wait" "-1"
+ "spawnflags" "2048"
+ "speed" "50"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-728 2720 264"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-428 2572 -40"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-496 2360 -40"
+}
+{
+ "classname" "light"
+ "light" "300"
+ "origin" "-320 2024 8"
+}
+{
+ "classname" "light"
+ "light" "300"
+ "origin" "-56 2024 48"
+}
+{
+ "classname" "light"
+ "origin" "320 2360 16"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "376 1984 -48"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-524 2680 152"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "-390 2970 228"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1792 1792 -68"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-168 2692 8"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "1216 1940 -80"
+ "style" "11"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "200"
+ "origin" "1300 1504 -84"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "200"
+ "origin" "1116 1504 -84"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "1216 1792 92"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1280 1856 -60"
+}
+{
+ "classname" "light"
+ "light" "75"
+ "origin" "1152 1856 -60"
+}
+{
+ "classname" "light"
+ "light" "75"
+ "origin" "1280 1728 -60"
+}
+{
+ "classname" "light"
+ "light" "75"
+ "origin" "1152 1728 -60"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1208 1592 -68"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1208 1224 -68"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "270"
+ "origin" "1216 1488 -128"
+ "spawnflags" "1280"
+}
+{
+ "classname" "item_health"
+ "origin" "1200 1776 120"
+ "spawnflags" "2"
+ "light" "150"
+}
+{
+ "classname" "item_rockets"
+ "origin" "1296 1680 0"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_spikes"
+ "origin" "1104 1680 0"
+ "spawnflags" "1"
+}
+{
+ "classname" "monster_knight"
+ "angle" "135"
+ "origin" "80 2784 96"
+ "spawnflags" "1536"
+}
+{
+ "classname" "item_shells"
+ "origin" "-928 2496 128"
+ "spawnflags" "1"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_zombie"
+ "origin" "1816 1792 -176"
+ "spawnflags" "2"
+ "angle" "180"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1392 1792 -68"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_zombie"
+ "origin" "1432 1792 -176"
+ "spawnflags" "2"
+ "angle" "180"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_zombie"
+ "origin" "1608 1792 -176"
+ "spawnflags" "2"
+ "angle" "180"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_zombie"
+ "origin" "1520 1792 -176"
+ "spawnflags" "258"
+ "angle" "180"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "200"
+ "origin" "1696 1704 -84"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "200"
+ "origin" "1696 1876 -84"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1600 1792 -68"
+}
+{
+ "classname" "light"
+ "light" "100"
+ "origin" "1696 1848 -76"
+}
+{
+ "classname" "light"
+ "light" "100"
+ "origin" "1696 1736 -76"
+}
+{
+ "classname" "light"
+ "light" "100"
+ "origin" "1272 1504 -76"
+}
+{
+ "classname" "func_door_secret"
+ "angle" "90"
+ "model" "*11"
+ "spawnflags" "8"
+ "targetname" "2700"
+}
+{
+ "classname" "func_button"
+ "angle" "-1"
+ "model" "*12"
+ "target" "2700"
+ "lip" "24"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "0"
+ "origin" "-192 384 40"
+ "targetname" "secdrtele"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*13"
+ "target" "secdrtele"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "1780 632 76"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "488 1776 56"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "180"
+ "origin" "-6 2938 156"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "180"
+ "origin" "154 2594 108"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*14"
+ "target" "back"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "270"
+ "origin" "696 1568 52"
+ "targetname" "back"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "-336 384 64"
+ "style" "5"
+}
+{
+ "classname" "monster_zombie"
+ "origin" "1976 1968 -176"
+ "spawnflags" "2"
+ "angle" "270"
+}
+{
+ "classname" "monster_zombie"
+ "origin" "2056 1968 -176"
+ "spawnflags" "2"
+ "angle" "270"
+}
+{
+ "classname" "item_spikes"
+ "origin" "88 1488 208"
+ "spawnflags" "1"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2016 2408 160"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2016 2136 160"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "135"
+ "origin" "144 808 40"
+ "spawnflags" "1536"
+ "target" "3200"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2016 2344 160"
+}
+{
+ "classname" "light"
+ "light" "100"
+ "origin" "1936 1568 -76"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2016 2200 160"
+}
+{
+ "classname" "trigger_once"
+ "model" "*15"
+ "target" "3100"
+ "spawnflags" "2048"
+}
+{
+ "classname" "monster_hell_knight"
+ "angle" "180"
+ "origin" "744 1312 64"
+ "spawnflags" "1281"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "88 2680 96"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "-168 2888 144"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "-344 2888 216"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-592 2888 184"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "250"
+ "origin" "1564 2808 136"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2016 2792 24"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "45"
+ "origin" "1592 2576 88"
+ "spawnflags" "1025"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "180"
+ "origin" "1704 2272 88"
+ "spawnflags" "1537"
+}
+{
+ "classname" "light"
+ "light" "300"
+ "origin" "1706 2560 160"
+}
+{
+ "classname" "light"
+ "light" "160"
+ "origin" "1936 2136 -408"
+}
+{
+ "classname" "func_door"
+ "angle" "90"
+ "model" "*16"
+ "targetname" "7700"
+ "wait" "-1"
+}
+{
+ "classname" "trigger_multiple"
+ "model" "*17"
+ "target" "7700"
+}
+{
+ "classname" "light"
+ "light" "160"
+ "origin" "1928 2328 -504"
+}
+{
+ "classname" "ambient_drip"
+ "origin" "1242 1794 -72"
+}
+{
+ "classname" "ambient_drip"
+ "origin" "2018 1794 -72"
+}
+{
+ "classname" "item_health"
+ "origin" "-920 2456 128"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "344 992 84"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_ogre"
+ "angle" "180"
+ "origin" "2552 1988 -488"
+ "spawnflags" "256"
+ "target" "ry_lavaogrekill"
+}
+{
+ "classname" "monster_demon1"
+ "angle" "90"
+ "origin" "1632 2016 44"
+ "spawnflags" "769"
+}
+{
+ "classname" "func_door"
+ "angle" "90"
+ "lip" "32"
+ "model" "*18"
+ "sounds" "4"
+ "targetname" "blahblah"
+}
+{
+ "classname" "func_door"
+ "angle" "270"
+ "lip" "32"
+ "model" "*19"
+ "sounds" "4"
+ "targetname" "blahblah"
+}
+{
+ "classname" "light"
+ "light" "600"
+ "origin" "1496 2160 72"
+ "target" "4400"
+}
+{
+ "classname" "light"
+ "origin" "-752 2448 432"
+}
+// Entity with 0 changes to old fields
+{
+ "classname" "func_button"
+ "angle" "360"
+ "model" "*20"
+ "target" "blahblah"
+ "lip" "0"
+ "speed" "20"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1216 1912 44"
+}
+{
+ "classname" "light"
+ "light" "100"
+ "origin" "1952 1312 -76"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2016 2680 24"
+}
+{
+ "classname" "item_health"
+ "origin" "2024 2256 -592"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "180"
+ "origin" "2016 1792 -168"
+}
+{
+ "classname" "ambient_drip"
+ "origin" "962 1810 -116"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "180"
+ "origin" "1312 1792 24"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "180"
+ "origin" "2152 2272 88"
+}
+{
+ "classname" "item_health"
+ "origin" "2064 1232 -128"
+ "spawnflags" "1024"
+}
+{
+ "classname" "light"
+ "light" "100"
+ "origin" "2104 1568 -76"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2016 1464 -68"
+}
+{
+ "classname" "monster_zombie"
+ "origin" "960 2136 -176"
+ "spawnflags" "2"
+ "angle" "270"
+}
+{
+ "classname" "ambient_drip"
+ "origin" "962 2090 -116"
+}
+{
+ "classname" "monster_zombie"
+ "origin" "960 2192 -176"
+ "spawnflags" "258"
+ "angle" "270"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "2032 2200 -88"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-184 1712 88"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "160 1152 300"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "info_player_deathmatch"
+ "angle" "90"
+ "origin" "-752 2432 648"
+}
+{
+ "classname" "trigger_once"
+ "model" "*21"
+ "target" "4300"
+ "spawnflags" "2048"
+}
+{
+ "classname" "light"
+ "light" "100"
+ "origin" "1104 1792 -96"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-936 1304 112"
+}
+{
+ "classname" "item_cells"
+ "origin" "2136 2320 64"
+ "spawnflags" "1793"
+}
+{
+ "classname" "item_health"
+ "origin" "2136 2200 64"
+ "spawnflags" "1024"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "270"
+ "origin" "2016 2752 -56"
+ "spawnflags" "769"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_zombie"
+ "origin" "1704 1792 -176"
+ "spawnflags" "258"
+ "angle" "180"
+}
+{
+ "classname" "monster_zombie"
+ "origin" "2016 1968 -176"
+ "spawnflags" "770"
+ "angle" "270"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "270"
+ "origin" "512 2288 24"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "0"
+ "origin" "-816 2440 656"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "270"
+ "origin" "-752 2512 656"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "180"
+ "origin" "-680 2440 656"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "90"
+ "origin" "-752 2376 656"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "315"
+ "origin" "-800 2488 656"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "45"
+ "origin" "-792 2400 656"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "225"
+ "origin" "-704 2488 656"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "135"
+ "origin" "-704 2400 656"
+}
+{
+ "classname" "item_health"
+ "origin" "984 2512 -152"
+ "light" "100"
+}
+{
+ "classname" "func_door"
+ "angle" "270"
+ "model" "*22"
+ "sounds" "1"
+ "spawnflags" "2056"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "180"
+ "origin" "2152 2272 72"
+ "targetname" "outdiasdest"
+}
+{
+ "classname" "item_cells"
+ "origin" "904 2512 -152"
+ "spawnflags" "1"
+ "light" "100"
+}
+{
+ "classname" "monster_zombie"
+ "origin" "960 1928 -176"
+ "spawnflags" "258"
+ "angle" "270"
+}
+{
+ "classname" "light"
+ "light" "100"
+ "origin" "960 2528 -76"
+}
+{
+ "classname" "trigger_secret"
+ "model" "*23"
+ "sounds" "1"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "2016 2336 -88"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "200"
+ "origin" "1044 1888 -84"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "200"
+ "origin" "876 1888 -84"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "200"
+ "origin" "1044 2328 -84"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "200"
+ "origin" "876 2328 -84"
+}
+{
+ "classname" "func_door"
+ "angle" "90"
+ "model" "*24"
+ "sounds" "1"
+ "spawnflags" "2056"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "960 2440 -76"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "960 1784 -76"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2136 992 176"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-784 1168 184"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-264 1144 120"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-632 1088 96"
+}
+{
+ "classname" "item_spikes"
+ "origin" "944 2512 -152"
+ "spawnflags" "1025"
+ "light" "100"
+}
+{
+ "classname" "item_health"
+ "origin" "1744 1104 128"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2032 624 88"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-696 1968 32"
+ "spawnflags" "1"
+ "light" "160"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1936 736 176"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1792 528 176"
+}
+{
+ "classname" "trigger_once"
+ "model" "*25"
+ "killtarget" "coffintop"
+ "targetname" "blahblah"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2136 736 176"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "45"
+ "origin" "-152 2232 24"
+}
+{
+ "classname" "func_plat"
+ "delay" "4"
+ "height" "104"
+ "model" "*26"
+ "sounds" "2"
+ "speed" "50"
+}
+{
+ "classname" "light"
+ "origin" "-480 2040 80"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-880 1528 208"
+}
+{
+ "classname" "light"
+ "light" "160"
+ "origin" "1792 1032 320"
+}
+{
+ "classname" "item_rockets"
+ "origin" "2000 1232 -128"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2000 624 176"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1800 736 176"
+}
+{
+ "classname" "item_health"
+ "origin" "1808 1104 128"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-920 1624 120"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-624 1704 152"
+}
+{
+ "classname" "func_train"
+ "model" "*27"
+ "spawnflags" "2048"
+ "speed" "20"
+ "target" "rock1dest2"
+ "targetname" "rockslide"
+}
+{
+ "classname" "path_corner"
+ "origin" "2032 2120 -864"
+ "target" "rock1dest3"
+ "targetname" "rock1dest2"
+}
+{
+ "classname" "path_corner"
+ "origin" "2032 2120 -816"
+ "target" "rock1dest2"
+ "targetname" "rock1dest3"
+}
+{
+ "classname" "func_train"
+ "model" "*28"
+ "spawnflags" "2048"
+ "speed" "30"
+ "target" "rock2dest1"
+ "targetname" "rockslide"
+}
+{
+ "classname" "path_corner"
+ "origin" "2112 1968 -864"
+ "target" "rock2dest1"
+ "targetname" "rock2dest2"
+}
+{
+ "classname" "path_corner"
+ "origin" "2112 1968 -816"
+ "target" "rock2dest2"
+ "targetname" "rock2dest1"
+}
+{
+ "classname" "func_train"
+ "model" "*29"
+ "spawnflags" "2048"
+ "speed" "55"
+ "target" "rock3dest1"
+ "targetname" "rockslide"
+}
+{
+ "classname" "path_corner"
+ "origin" "2344 1936 -800"
+ "target" "rock3dest2"
+ "targetname" "rock3dest1"
+}
+{
+ "classname" "path_corner"
+ "origin" "2344 1936 -864"
+ "target" "rock3dest1"
+ "targetname" "rock3dest2"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2192 2368 -560"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2088 2168 -560"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2176 2112 -592"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2136 1968 -560"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2272 1992 -560"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2040 2168 -640"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2048 2064 -640"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2056 2008 -640"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2160 2000 -640"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2160 1920 -640"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2304 1976 -640"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2280 1896 -640"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2384 1976 -640"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2008 2072 -752"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2000 2160 -752"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2072 2152 -752"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2064 2008 -752"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2128 2024 -752"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2128 1920 -752"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2288 1976 -752"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2288 1904 -752"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2384 1976 -752"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2384 1880 -752"
+}
+{
+ "classname" "item_shells"
+ "origin" "640 1616 40"
+ "spawnflags" "1"
+}
+{
+ "classname" "trigger_once"
+ "model" "*30"
+ "target" "1100"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "45"
+ "origin" "-728 2384 488"
+ "targetname" "1121"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2392 1976 -696"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "2280 1944 -696"
+}
+{
+ "classname" "trigger_once"
+ "model" "*31"
+ "target" "rockslide"
+ "spawnflags" "2048"
+}
+{
+ "classname" "light"
+ "light" "165"
+ "origin" "416 1472 256"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "368 832 296"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "704 1472 288"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-832 1168 96"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "180"
+ "origin" "3280 2824 -472"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*32"
+ "target" "outdiasdest"
+}
+{
+ "classname" "item_health"
+ "origin" "1680 2576 -152"
+ "light" "175"
+}
+// Entity with 0 changes to old fields
+{
+ "classname" "func_button"
+ "angle" "270"
+ "model" "*33"
+ "target" "outquad"
+ "speed" "20"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-96 1392 212"
+}
+{
+ "classname" "monster_zombie"
+ "origin" "2016 1592 -176"
+ "spawnflags" "2"
+ "angle" "90"
+}
+{
+ "classname" "item_spikes"
+ "origin" "1984 2304 -592"
+ "spawnflags" "1"
+}
+{
+ "classname" "monster_zombie"
+ "origin" "2016 1640 -176"
+ "spawnflags" "2"
+ "angle" "90"
+}
+{
+ "classname" "light"
+ "origin" "1440 1424 224"
+}
+{
+ "classname" "light"
+ "light" "220"
+ "origin" "1272 1072 -24"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2016 2400 -72"
+}
+{
+ "classname" "item_spikes"
+ "origin" "1808 1040 128"
+ "spawnflags" "1"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1792 448 336"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1792 576 336"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1976 1792 -68"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1976 2080 -88"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "2056 2080 -88"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "200"
+ "origin" "1896 1568 -84"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "200"
+ "origin" "2136 1568 -84"
+}
+{
+ "classname" "func_wall"
+ "model" "*34"
+ "targetname" "coffintop"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "1736 992 28"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1664 1152 336"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-64 1224 48"
+}
+{
+ "classname" "light"
+ "light" "300"
+ "origin" "-136 1632 8"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-16 1808 8"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "-790 1986 100"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "-680 1984 80"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-928 1664 224"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "80 1704 136"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "96 1480 256"
+}
+{
+ "classname" "func_door"
+ "angle" "-1"
+ "lip" "24"
+ "model" "*35"
+ "sounds" "1"
+ "speed" "80"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "250"
+ "origin" "-574 1034 124"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "1776 692 32"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2184 1352 -48"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2184 1248 -48"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2232 1200 0"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2184 1152 48"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2184 1040 48"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2360 1200 0"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "128 1160 56"
+}
+{
+ "classname" "light"
+ "light" "250"
+ "origin" "128 1048 56"
+}
+{
+ "classname" "monster_hell_knight"
+ "angle" "180"
+ "origin" "128 1096 232"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_hell_knight"
+ "angle" "180"
+ "origin" "128 1248 232"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_hell_knight"
+ "angle" "180"
+ "origin" "128 1008 232"
+ "spawnflags" "768"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "368 704 88"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "696 1600 80"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "688 712 88"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "180"
+ "origin" "128 772 348"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "180"
+ "origin" "128 1530 348"
+}
+{
+ "classname" "light"
+ "origin" "320 1112 284"
+}
+{
+ "classname" "light"
+ "light" "100"
+ "origin" "1656 2272 -76"
+}
+{
+ "classname" "func_door"
+ "angle" "-2"
+ "model" "*36"
+ "sounds" "3"
+ "targetname" "outquad"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "200"
+ "origin" "1628 2464 -80"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "200"
+ "origin" "1628 2272 -80"
+}
+{
+ "classname" "light"
+ "light" "160"
+ "origin" "2056 2360 -464"
+}
+{
+ "classname" "light"
+ "light" "160"
+ "origin" "2168 2288 -360"
+}
+{
+ "classname" "light"
+ "light" "160"
+ "origin" "1936 1928 -280"
+}
+{
+ "classname" "light"
+ "light" "160"
+ "origin" "2152 2168 -464"
+}
+{
+ "classname" "light"
+ "light" "160"
+ "origin" "1992 2040 -488"
+}
+{
+ "classname" "light"
+ "light" "100"
+ "origin" "1656 2464 -76"
+}
+{
+ "classname" "light"
+ "light" "135"
+ "origin" "1664 2176 -68"
+}
+{
+ "classname" "light"
+ "light" "135"
+ "origin" "1696 2368 -68"
+}
+{
+ "classname" "light"
+ "light" "135"
+ "origin" "1696 2560 -68"
+}
+{
+ "classname" "item_rockets"
+ "origin" "1680 2512 -152"
+ "spawnflags" "2048"
+}
+{
+ "classname" "func_door"
+ "angle" "-1"
+ "lip" "64"
+ "model" "*37"
+ "sounds" "3"
+ "targetname" "outquad"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1706 2560 96"
+}
+{
+ "classname" "light"
+ "light" "160"
+ "origin" "2152 2008 -368"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "64 784 256"
+}
+{
+ "classname" "light_flame_large_yellow"
+ "light" "500"
+ "origin" "2999 2823 -292"
+}
+{
+ "classname" "light"
+ "light" "160"
+ "origin" "2584 2080 -384"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "2848 1952 -422"
+}
+{
+ "classname" "light"
+ "origin" "3228 2080 -432"
+}
+{
+ "classname" "trigger_once"
+ "model" "*38"
+ "target" "4waydoor"
+ "delay" "1"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2912 2592 -392"
+}
+{
+ "classname" "light"
+ "light" "220"
+ "origin" "3300 2440 -402"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2690 1952 -412"
+}
+{
+ "classname" "light"
+ "light" "160"
+ "origin" "2520 1944 -312"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "3000 2824 -592"
+ "style" "2"
+}
+{
+ "classname" "func_door"
+ "angle" "90"
+ "model" "*39"
+ "sounds" "1"
+ "targetname" "4waydoor"
+ "wait" "-1"
+ "spawnflags" "2048"
+ "speed" "128"
+}
+{
+ "classname" "func_door"
+ "angle" "0"
+ "model" "*40"
+ "sounds" "1"
+ "targetname" "4waydoor"
+ "wait" "-1"
+ "spawnflags" "2048"
+ "speed" "128"
+}
+{
+ "classname" "func_door"
+ "angle" "270"
+ "model" "*41"
+ "sounds" "1"
+ "targetname" "4waydoor"
+ "wait" "-1"
+ "spawnflags" "2048"
+ "speed" "128"
+}
+{
+ "classname" "func_door"
+ "angle" "180"
+ "model" "*42"
+ "sounds" "1"
+ "targetname" "4waydoor"
+ "wait" "-1"
+ "spawnflags" "2048"
+ "speed" "128"
+}
+{
+ "classname" "item_key2"
+ "light" "250"
+ "origin" "3008 3088 -488"
+ "spawnflags" "2048"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "3104 2592 -392"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2768 2720 -392"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "3232 2720 -392"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "3232 2912 -392"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2768 2912 -392"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "3008 3088 -440"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "3232 2464 -392"
+}
+{
+ "classname" "weapon_lightning"
+ "light" "200"
+ "origin" "3344 2576 -480"
+}
+{
+ "classname" "item_health"
+ "origin" "3328 2496 -480"
+ "light" "200"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2064 816 176"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "90"
+ "origin" "2016 608 152"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "270"
+ "origin" "3312 2784 -456"
+ "spawnflags" "1536"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "1686 1946 84"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "922 1946 84"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "922 2566 84"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "1510 2566 84"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1488 2496 72"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1284 2256 120"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1600 2272 132"
+}
+{
+ "classname" "weapon_rocketlauncher"
+ "light" "200"
+ "origin" "1280 2256 -124"
+ "spawnflags" "1792"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1696 2272 132"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "180"
+ "origin" "1664 1152 256"
+}
+{
+ "classname" "monster_wizard"
+ "angle" "45"
+ "origin" "1792 944 152"
+}
+{
+ "classname" "func_door"
+ "angle" "360"
+ "lip" "0"
+ "model" "*43"
+ "targetname" "secretlight"
+}
+{
+ "classname" "trigger_multiple"
+ "model" "*44"
+ "target" "secretlight"
+ "health" "1"
+}
+{
+ "classname" "trigger_secret"
+ "model" "*45"
+ "targetname" "secretlight"
+}
+{
+ "classname" "func_wall"
+ "model" "*46"
+ "spawnflags" "2048"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "992 2672 -64"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "250"
+ "origin" "578 3066 124"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "250"
+ "origin" "922 2890 44"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "250"
+ "origin" "386 2862 156"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "352 2960 144"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "472 2928 144"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "656 2944 80"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "784 2896 48"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "928 2768 -16"
+}
+{
+ "classname" "func_wall"
+ "model" "*47"
+ "spawnflags" "2048"
+}
+{
+ "classname" "light"
+ "light" "175"
+ "origin" "2016 1996 -32"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1152 2496 -84"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1408 2496 -84"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "270"
+ "origin" "1312 2536 24"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "270"
+ "origin" "960 2528 -128"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "45"
+ "origin" "-792 2360 152"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "360"
+ "origin" "-752 1984 56"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "180"
+ "origin" "128 1200 232"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "270"
+ "origin" "696 1568 68"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "180"
+ "origin" "96 856 40"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "-1232 2448 472"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "-1232 2528 472"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "-1232 2608 472"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "-1232 2688 472"
+ "spawnflags" "768"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "45"
+ "origin" "-808 2424 440"
+ "targetname" "1122"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "45"
+ "origin" "-776 2488 488"
+ "targetname" "1120"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "45"
+ "origin" "-704 2472 392"
+ "targetname" "1123"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*48"
+ "target" "1123"
+ "spawnflags" "2"
+ "targetname" "1104"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*49"
+ "target" "1121"
+ "spawnflags" "2"
+ "targetname" "1102"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*50"
+ "target" "1120"
+ "spawnflags" "2"
+ "targetname" "1101"
+}
+{
+ "classname" "trigger_relay"
+ "origin" "-1264 2744 456"
+ "target" "1101"
+ "targetname" "1100"
+}
+{
+ "classname" "trigger_relay"
+ "origin" "-1080 2744 456"
+ "target" "1107"
+ "targetname" "1100"
+ "delay" "12"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "-1104 2448 472"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "-1104 2528 472"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "-1104 2608 472"
+ "spawnflags" "768"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "-1104 2688 472"
+ "spawnflags" "768"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*51"
+ "target" "1123"
+ "spawnflags" "2"
+ "targetname" "1108"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*52"
+ "target" "1121"
+ "spawnflags" "2"
+ "targetname" "1106"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*53"
+ "target" "1120"
+ "spawnflags" "2"
+ "targetname" "1105"
+}
+{
+ "classname" "trigger_relay"
+ "origin" "-1240 2744 456"
+ "target" "1102"
+ "targetname" "1100"
+ "delay" "2"
+}
+{
+ "classname" "trigger_relay"
+ "origin" "-1216 2744 456"
+ "target" "1103"
+ "targetname" "1100"
+ "delay" "3"
+}
+{
+ "classname" "trigger_relay"
+ "origin" "-1128 2744 456"
+ "target" "1105"
+ "targetname" "1100"
+ "delay" "8"
+}
+{
+ "classname" "trigger_relay"
+ "origin" "-1104 2744 456"
+ "target" "1106"
+ "targetname" "1100"
+ "delay" "10"
+}
+{
+ "classname" "trigger_relay"
+ "origin" "-1192 2744 456"
+ "target" "1104"
+ "targetname" "1100"
+ "delay" "5"
+}
+{
+ "classname" "trigger_relay"
+ "origin" "-1056 2744 456"
+ "target" "1108"
+ "targetname" "1100"
+ "delay" "15"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*54"
+ "target" "1122"
+ "spawnflags" "2"
+ "targetname" "1103"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*55"
+ "target" "1122"
+ "spawnflags" "2"
+ "targetname" "1107"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-752 2448 216"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-872 2536 392"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-720 2632 392"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "-526 2718 204"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-880 2448 176"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-344 2160 -40"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "weapon_laser_gun"
+ "origin" "-472 2648 136"
+}
+{
+ "classname" "item_cells"
+ "origin" "-904 2416 128"
+ "spawnflags" "1"
+}
+{
+ "classname" "weapon_supershotgun"
+ "origin" "-168 2888 96"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "528 2216 256"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "120 2024 288"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "424 2144 224"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-40 656 48"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "552 1848 208"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "208 1736 312"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "24 1680 248"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-24 1888 248"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-264 2080 336"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "168 2128 136"
+}
+{
+ "classname" "func_wall"
+ "model" "*56"
+ "spawnflags" "3584"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "32 2464 48"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-24 2304 192"
+}
+{
+ "classname" "func_spawn"
+ "angle" "225"
+ "origin" "8 2312 192"
+ "spawnclassname" "monster_ogre"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_ogre"
+ "spawnsilent" "1"
+ "targetname" "1110"
+}
+{
+ "classname" "trigger_once"
+ "model" "*57"
+ "target" "1110"
+ "spawnflags" "2048"
+}
+{
+ "classname" "weapon_rocketlauncher"
+ "origin" "296 2128 56"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "296 2128 104"
+}
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "512 2272 24"
+ "spawnclassname" "monster_demon1"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_demon1"
+ "spawnsilent" "1"
+ "targetname" "1200"
+}
+{
+ "classname" "item_cells"
+ "origin" "-200 2160 0"
+ "spawnflags" "1"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-184 2176 48"
+}
+{
+ "classname" "trigger_once"
+ "model" "*58"
+ "target" "1200"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-648 2752 152"
+}
+{
+ "classname" "monster_hell_knight"
+ "angle" "360"
+ "origin" "-592 1990 56"
+ "spawnflags" "768"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_knight"
+ "angle" "360"
+ "origin" "-608 2032 56"
+ "spawnflags" "1536"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-824 1656 48"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-448 1144 288"
+}
+{
+ "classname" "item_health"
+ "origin" "-648 1072 48"
+}
+{
+ "classname" "item_cells"
+ "origin" "-936 1608 72"
+ "spawnflags" "1"
+}
+{
+ "classname" "func_spawn"
+ "angle" "135"
+ "origin" "-760 1600 176"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2048"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "1351"
+}
+{
+ "classname" "func_spawn"
+ "angle" "225"
+ "origin" "-640 1768 56"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "1351"
+}
+{
+ "classname" "func_spawn"
+ "angle" "180"
+ "origin" "-384 1696 56"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "1351"
+}
+{
+ "classname" "func_spawn"
+ "angle" "180"
+ "origin" "-544 1736 56"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "1351"
+}
+{
+ "classname" "func_spawn"
+ "angle" "180"
+ "origin" "-624 1696 64"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "1351"
+}
+{
+ "classname" "trigger_once"
+ "model" "*59"
+ "target" "1351"
+ "spawnflags" "2048"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-648 1792 48"
+}
+{
+ "classname" "info_rotate"
+ "origin" "12 1060 12"
+ "targetname" "3202"
+}
+{
+ "classname" "func_rotate_door"
+ "angles" "-90 0 0"
+ "origin" "12 1060 12"
+ "sounds" "1"
+ "speed" "3"
+ "target" "3201"
+ "targetname" "3200"
+}
+{
+ "classname" "rotate_object"
+ "model" "*60"
+ "origin" "12 1060 12"
+ "target" "3202"
+ "targetname" "3201"
+}
+{
+ "classname" "func_movewall"
+ "model" "*61"
+ "targetname" "3201"
+}
+{
+ "classname" "func_movewall"
+ "model" "*62"
+ "targetname" "3201"
+}
+{
+ "classname" "func_movewall"
+ "model" "*63"
+ "targetname" "3201"
+}
+{
+ "classname" "func_movewall"
+ "model" "*64"
+ "targetname" "3201"
+}
+{
+ "classname" "func_movewall"
+ "model" "*65"
+ "targetname" "3201"
+}
+{
+ "classname" "func_movewall"
+ "model" "*66"
+ "targetname" "3201"
+}
+{
+ "classname" "func_movewall"
+ "model" "*67"
+ "targetname" "3201"
+}
+{
+ "classname" "monster_shalrath"
+ "angle" "135"
+ "origin" "92 812 40"
+ "spawnflags" "768"
+ "target" "3200"
+}
+{
+ "classname" "monster_hell_knight"
+ "angle" "135"
+ "origin" "88 816 40"
+ "spawnflags" "1280"
+ "target" "3200"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "-904 1232 96"
+ "spawnflags" "256"
+ "angle" "315"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "-872 1160 96"
+ "spawnflags" "256"
+ "angle" "45"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "-776 1112 96"
+ "spawnflags" "256"
+ "angle" "135"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "-704 1112 96"
+ "angle" "135"
+}
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "80 2312 192"
+ "spawnclassname" "monster_ogre"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_ogre"
+ "spawnsilent" "1"
+ "targetname" "1110"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "0 2880 144"
+}
+{
+ "classname" "item_health"
+ "origin" "-24 2872 64"
+}
+{
+ "classname" "item_health"
+ "origin" "16 2840 64"
+}
+{
+ "classname" "monster_hell_knight"
+ "angle" "135"
+ "origin" "40 2744 96"
+ "spawnflags" "1280"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "448 1992 48"
+}
+{
+ "classname" "trigger_secret"
+ "model" "*68"
+ "sounds" "1"
+}
+{
+ "classname" "item_cells"
+ "origin" "240 1704 184"
+ "spawnflags" "1"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "512 2128 104"
+}
+{
+ "classname" "item_cells"
+ "origin" "-280 1064 72"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_cells"
+ "origin" "-280 1192 72"
+ "spawnflags" "1"
+}
+{
+ "classname" "func_spawn"
+ "angle" "180"
+ "origin" "232 1232 24"
+ "spawnclassname" "monster_hell_knight"
+ "spawnflags" "3584"
+ "spawnfunction" "monster_hell_knight"
+ "spawnsilent" "1"
+ "targetname" "5600"
+}
+{
+ "classname" "func_spawn"
+ "angle" "180"
+ "origin" "232 1152 24"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "3328"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "5600"
+}
+{
+ "classname" "func_spawn"
+ "angle" "180"
+ "origin" "224 1080 24"
+ "spawnclassname" "monster_shambler"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shambler"
+ "spawnsilent" "1"
+ "targetname" "5600"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "336 1248 116"
+}
+{
+ "classname" "light"
+ "origin" "368 1280 324"
+}
+{
+ "classname" "item_rockets"
+ "origin" "416 1368 0"
+}
+{
+ "classname" "item_rockets"
+ "origin" "320 1368 0"
+}
+{
+ "classname" "item_armor2"
+ "origin" "384 1384 0"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "384 1368 76"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "280 816 232"
+ "spawnclassname" "monster_hell_knight"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_hell_knight"
+ "spawnsilent" "1"
+ "targetname" "8080"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "432 824 232"
+ "spawnclassname" "monster_hell_knight"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_hell_knight"
+ "spawnsilent" "1"
+ "targetname" "8080"
+}
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "432 1488 232"
+ "spawnclassname" "monster_hell_knight"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_hell_knight"
+ "spawnsilent" "1"
+ "targetname" "8080"
+}
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "296 1488 232"
+ "spawnclassname" "monster_hell_knight"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_hell_knight"
+ "spawnsilent" "1"
+ "targetname" "8080"
+}
+{
+ "classname" "trigger_once"
+ "model" "*69"
+ "target" "8080"
+ "spawnflags" "2048"
+}
+{
+ "classname" "func_spawn"
+ "angle" "360"
+ "origin" "136 1320 232"
+ "spawnclassname" "monster_hell_knight"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_hell_knight"
+ "spawnsilent" "1"
+ "targetname" "8080"
+}
+{
+ "classname" "func_spawn"
+ "angle" "360"
+ "origin" "128 976 232"
+ "spawnclassname" "monster_hell_knight"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_hell_knight"
+ "spawnsilent" "1"
+ "targetname" "8080"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "824 1152 120"
+}
+{
+ "classname" "item_health"
+ "origin" "672 696 40"
+}
+{
+ "classname" "item_health"
+ "origin" "352 688 40"
+}
+{
+ "classname" "monster_knight"
+ "angle" "180"
+ "origin" "744 1312 64"
+ "spawnflags" "1536"
+}
+{
+ "classname" "monster_knight"
+ "angle" "180"
+ "origin" "744 1000 64"
+ "spawnflags" "1536"
+}
+{
+ "classname" "monster_shalrath"
+ "angle" "180"
+ "origin" "728 1312 64"
+ "spawnflags" "768"
+}
+{
+ "classname" "monster_shalrath"
+ "angle" "180"
+ "origin" "728 1000 64"
+ "spawnflags" "768"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "270"
+ "origin" "696 1360 264"
+ "spawnflags" "769"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "90"
+ "origin" "696 960 264"
+ "spawnflags" "257"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "-182 1054 92"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "origin" "-182 1250 92"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "180"
+ "origin" "98 1054 92"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "180"
+ "origin" "98 1242 92"
+}
+{
+ "classname" "trigger_once"
+ "model" "*70"
+ "target" "5600"
+ "spawnflags" "2048"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-184 1384 44"
+}
+{
+ "classname" "item_health"
+ "origin" "-200 1368 0"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-404 2604 280"
+}
+{
+ "classname" "trigger_once"
+ "model" "*71"
+ "target" "1800"
+ "spawnflags" "2048"
+}
+{
+ "classname" "func_spawn"
+ "angle" "45"
+ "origin" "-680 1928 56"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "1800"
+}
+{
+ "classname" "func_spawn"
+ "angle" "45"
+ "origin" "-832 1672 112"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2048"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "1800"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-652 1856 56"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "1800"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "984 1360 88"
+ "style" "32"
+ "spawnflags" "1"
+ "targetname" "4310"
+}
+{
+ "classname" "light"
+ "origin" "1512 1144 128"
+}
+{
+ "classname" "func_spawn"
+ "angle" "225"
+ "origin" "1548 1344 80"
+ "spawnclassname" "monster_knight"
+ "spawnflags" "3584"
+ "spawnfunction" "monster_knight"
+ "spawnsilent" "1"
+ "targetname" "4300"
+ "target" "4301"
+}
+{
+ "classname" "func_spawn"
+ "angle" "135"
+ "origin" "1560 976 80"
+ "spawnclassname" "monster_knight"
+ "spawnflags" "3584"
+ "spawnfunction" "monster_knight"
+ "spawnsilent" "1"
+ "targetname" "4300"
+ "target" "4301"
+}
+{
+ "classname" "func_spawn"
+ "angle" "315"
+ "origin" "1032 1328 256"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "3328"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "4300"
+ "target" "4301"
+}
+{
+ "classname" "func_spawn"
+ "angle" "225"
+ "origin" "1560 1328 256"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "3328"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "4300"
+ "target" "4301"
+}
+{
+ "classname" "func_spawn"
+ "angle" "135"
+ "origin" "1544 960 256"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "3328"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "4300"
+ "target" "4301"
+}
+{
+ "classname" "func_spawn"
+ "angle" "45"
+ "origin" "1016 976 256"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "3328"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "4300"
+ "target" "4301"
+}
+{
+ "classname" "func_spawn"
+ "angle" "225"
+ "origin" "1560 1344 80"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "4300"
+ "target" "4301"
+}
+{
+ "classname" "func_spawn"
+ "angle" "135"
+ "origin" "1560 960 80"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "4300"
+ "target" "4301"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "1288 1376 96"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "1280 928 96"
+}
+{
+ "classname" "item_spikes"
+ "origin" "1272 1360 56"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_shells"
+ "origin" "1264 912 56"
+ "spawnflags" "1"
+}
+{
+ "classname" "func_door"
+ "angle" "-2"
+ "lip" "0"
+ "model" "*72"
+ "sounds" "1"
+ "targetname" "4310"
+ "wait" "-1"
+ "spawnflags" "2048"
+ "speed" "50"
+}
+{
+ "classname" "func_door"
+ "angle" "-2"
+ "lip" "0"
+ "model" "*73"
+ "sounds" "1"
+ "targetname" "4310"
+ "wait" "-1"
+ "spawnflags" "2048"
+ "speed" "50"
+}
+{
+ "classname" "func_door"
+ "angle" "-1"
+ "lip" "0"
+ "model" "*74"
+ "sounds" "1"
+ "targetname" "4310"
+ "wait" "-1"
+ "spawnflags" "2048"
+ "speed" "50"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "984 936 88"
+ "style" "32"
+ "spawnflags" "1"
+ "targetname" "4310"
+}
+{
+ "classname" "weapon_proximity_gun"
+ "origin" "896 1152 40"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "270"
+ "origin" "1208 1560 -128"
+ "spawnflags" "768"
+}
+{
+ "classname" "monster_hell_knight"
+ "angle" "270"
+ "origin" "1232 1600 -128"
+ "spawnflags" "1536"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "90"
+ "origin" "2016 1336 -104"
+ "spawnflags" "1536"
+}
+{
+ "classname" "monster_shalrath"
+ "angle" "135"
+ "origin" "2120 1312 -104"
+ "spawnflags" "768"
+}
+{
+ "classname" "monster_shalrath"
+ "angle" "90"
+ "origin" "2000 1344 -104"
+ "spawnflags" "256"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "1944 664 152"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "3584"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "6700"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "2080 600 152"
+ "spawnclassname" "monster_demon1"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_demon1"
+ "spawnsilent" "1"
+ "targetname" "6700"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "1952 592 152"
+ "spawnclassname" "monster_demon1"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_demon1"
+ "spawnsilent" "1"
+ "targetname" "6700"
+}
+{
+ "classname" "item_health"
+ "origin" "1760 616 28"
+ "spawnflags" "2"
+}
+{
+ "classname" "monster_wizard"
+ "angle" "45"
+ "origin" "1840 792 152"
+ "spawnflags" "768"
+}
+{
+ "classname" "monster_wizard"
+ "angle" "45"
+ "origin" "1800 712 152"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_wizard"
+ "angle" "90"
+ "origin" "2120 672 152"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_wizard"
+ "angle" "45"
+ "origin" "1992 784 40"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_wizard"
+ "angle" "45"
+ "origin" "2008 920 40"
+ "spawnflags" "768"
+}
+{
+ "classname" "trigger_once"
+ "model" "*75"
+ "target" "6700"
+ "spawnflags" "2048"
+}
+{
+ "classname" "func_spawn"
+ "angle" "360"
+ "origin" "1872 2376 -128"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "3072"
+ "spawnfunction" "monster_gremlin"
+ "targetname" "3100"
+}
+{
+ "classname" "func_spawn"
+ "angle" "180"
+ "origin" "2176 2352 -128"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "3072"
+ "spawnfunction" "monster_gremlin"
+ "targetname" "3100"
+}
+{
+ "classname" "func_spawn"
+ "angle" "135"
+ "origin" "2192 2288 -128"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "3328"
+ "spawnfunction" "monster_gremlin"
+ "targetname" "3100"
+}
+{
+ "classname" "func_spawn"
+ "angle" "45"
+ "origin" "1872 2224 -128"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "3072"
+ "spawnfunction" "monster_gremlin"
+ "targetname" "3100"
+}
+{
+ "classname" "func_spawn"
+ "angle" "135"
+ "origin" "2120 2144 -128"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "3328"
+ "spawnfunction" "monster_gremlin"
+ "targetname" "3100"
+}
+{
+ "classname" "func_spawn"
+ "angle" "45"
+ "origin" "1912 2144 -128"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "3328"
+ "spawnfunction" "monster_gremlin"
+ "targetname" "3100"
+}
+{
+ "classname" "func_spawn"
+ "angle" "45"
+ "origin" "1872 2304 -128"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "3328"
+ "spawnfunction" "monster_gremlin"
+ "targetname" "3100"
+}
+{
+ "classname" "func_spawn"
+ "angle" "135"
+ "origin" "2192 2216 -128"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "3072"
+ "spawnfunction" "monster_gremlin"
+ "targetname" "3100"
+}
+{
+ "classname" "weapon_mjolnir"
+ "origin" "2040 2272 -72"
+ "spawnflags" "2048"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "2016 1952 -160"
+ "spawnclassname" "monster_demon1"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_demon1"
+ "targetname" "3100"
+}
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "2024 2512 -128"
+ "spawnclassname" "monster_demon1"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_demon1"
+ "targetname" "3100"
+}
+{
+ "classname" "item_artifact_empathy_shields"
+ "origin" "1712 2272 -120"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "45"
+ "origin" "1592 2656 88"
+ "spawnflags" "1281"
+}
+{
+ "classname" "monster_demon1"
+ "angle" "45"
+ "origin" "1592 2616 88"
+ "spawnflags" "768"
+}
+{
+ "classname" "monster_demon1"
+ "angle" "180"
+ "origin" "1720 2264 88"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "1400 2048 40"
+ "spawnflags" "769"
+ "angle" "90"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "1272 2048 40"
+ "spawnflags" "1"
+ "angle" "90"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "1192 2048 40"
+ "spawnflags" "257"
+ "angle" "90"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "1016 2184 40"
+ "spawnflags" "257"
+ "angle" "360"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "1016 2272 40"
+ "spawnflags" "769"
+ "angle" "360"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "1016 2368 40"
+ "spawnflags" "257"
+ "angle" "360"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "1160 2464 40"
+ "spawnflags" "1"
+ "angle" "270"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "1240 2464 40"
+ "spawnflags" "257"
+ "angle" "270"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "1320 2464 40"
+ "spawnflags" "769"
+ "angle" "270"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "1396 2464 40"
+ "spawnflags" "257"
+ "angle" "270"
+}
+{
+ "classname" "func_wall"
+ "model" "*76"
+}
+{
+ "classname" "func_rotate_door"
+ "angles" "0 90 0"
+ "origin" "1460 2220 -104"
+ "target" "2901"
+ "targetname" "2900"
+}
+{
+ "classname" "rotate_object"
+ "model" "*77"
+ "origin" "1460 2224 -108"
+ "target" "2902"
+ "targetname" "2901"
+}
+{
+ "classname" "trigger_once"
+ "model" "*78"
+ "target" "2900"
+ "message" "The Coffin is Your Exit!"
+ "sounds" "3"
+}
+{
+ "classname" "func_movewall"
+ "model" "*79"
+ "targetname" "2901"
+}
+{
+ "classname" "func_movewall"
+ "model" "*80"
+ "targetname" "2901"
+}
+{
+ "classname" "func_movewall"
+ "model" "*81"
+ "targetname" "2901"
+}
+{
+ "classname" "func_movewall"
+ "model" "*82"
+ "targetname" "2901"
+}
+{
+ "classname" "info_rotate"
+ "origin" "1460 2224 -108"
+ "targetname" "2902"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1480 2256 -32"
+ "style" "11"
+ "spawnflags" "2048"
+}
+{
+ "classname" "func_wall"
+ "model" "*83"
+}
+{
+ "classname" "func_spawn"
+ "angle" "315"
+ "origin" "592 736 64"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2305"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "8080"
+}
+{
+ "classname" "func_spawn"
+ "angle" "45"
+ "origin" "632 672 64"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2049"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "8080"
+}
+{
+ "classname" "func_spawn"
+ "angle" "225"
+ "origin" "732 760 64"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2817"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "8080"
+}
+{
+ "classname" "func_spawn"
+ "angle" "225"
+ "origin" "724 836 64"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2305"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "8080"
+}
+{
+ "classname" "func_spawn"
+ "angle" "315"
+ "origin" "664 768 64"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2817"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "8080"
+}
+{
+ "classname" "item_cells"
+ "origin" "680 1616 40"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_health"
+ "origin" "512 688 40"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "180"
+ "origin" "756 712 160"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "180"
+ "origin" "316 704 160"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "528 704 88"
+}
+{
+ "classname" "func_spawn"
+ "angle" "360"
+ "origin" "168 1472 232"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "8900"
+}
+{
+ "classname" "item_spikes"
+ "origin" "56 1456 208"
+ "spawnflags" "1"
+}
+{
+ "classname" "func_spawn"
+ "angle" "360"
+ "origin" "360 1480 232"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "8900"
+}
+{
+ "classname" "func_spawn"
+ "angle" "360"
+ "origin" "128 1440 232"
+ "spawnclassname" "monster_ogre"
+ "spawnflags" "3584"
+ "spawnfunction" "monster_ogre"
+ "spawnsilent" "1"
+ "targetname" "8900"
+}
+{
+ "classname" "func_spawn"
+ "angle" "360"
+ "origin" "320 832 232"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "8900"
+}
+{
+ "classname" "func_spawn"
+ "angle" "360"
+ "origin" "152 840 232"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "8900"
+}
+{
+ "classname" "func_spawn"
+ "angle" "360"
+ "origin" "176 864 232"
+ "spawnclassname" "monster_ogre"
+ "spawnflags" "3584"
+ "spawnfunction" "monster_ogre"
+ "spawnsilent" "1"
+ "targetname" "8900"
+}
+{
+ "classname" "item_health"
+ "origin" "-84 368 16"
+ "spawnflags" "1794"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "180"
+ "origin" "-192 498 128"
+}
+{
+ "classname" "monster_hell_knight"
+ "angle" "225"
+ "origin" "-144 440 96"
+ "spawnflags" "256"
+}
+{
+ "classname" "monster_hell_knight"
+ "angle" "315"
+ "origin" "-252 472 96"
+ "spawnflags" "768"
+}
+{
+ "classname" "monster_hell_knight"
+ "angle" "45"
+ "origin" "-248 300 96"
+ "spawnflags" "768"
+}
+{
+ "classname" "monster_hell_knight"
+ "angle" "135"
+ "origin" "-136 336 96"
+ "spawnflags" "256"
+}
+{
+ "classname" "item_health"
+ "origin" "-208 368 24"
+ "spawnflags" "2050"
+}
+{
+ "classname" "trigger_once"
+ "model" "*84"
+ "target" "8900"
+ "spawnflags" "2048"
+}
+{
+ "classname" "item_health"
+ "origin" "672 848 232"
+}
+{
+ "classname" "item_health"
+ "origin" "680 1416 232"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "180"
+ "origin" "696 1652 160"
+}
+{
+ "classname" "light_torch_small_walltorch"
+ "light" "180"
+ "origin" "212 832 160"
+}
+{
+ "classname" "func_spawn"
+ "angle" "360"
+ "origin" "1120 1776 24"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "3300"
+}
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "1308 1848 24"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "3300"
+}
+{
+ "classname" "func_spawn"
+ "angle" "180"
+ "origin" "1312 1784 24"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "3300"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "1216 1704 24"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "3300"
+}
+{
+ "classname" "light"
+ "light" "120"
+ "origin" "2088 2528 136"
+}
+{
+ "classname" "item_armorInv"
+ "origin" "1488 2496 0"
+}
+{
+ "classname" "light"
+ "light" "160"
+ "origin" "1952 2296 -328"
+}
+{
+ "classname" "light"
+ "light" "160"
+ "origin" "2032 1928 -592"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2536 2096 -592"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "2504 1856 -592"
+}
+{
+ "classname" "light"
+ "light" "160"
+ "origin" "2592 2136 -496"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "trap_lightning_triggered"
+ "origin" "3192 2220 -492"
+ "spawnflags" "2048"
+ "target" "2306"
+ "targetname" "2300b"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "trap_lightning_triggered"
+ "origin" "3192 2292 -492"
+ "spawnflags" "2048"
+ "target" "2304"
+ "targetname" "2300b"
+}
+{
+ "classname" "info_notnull"
+ "origin" "3232 2356 -492"
+ "spawnflags" "2048"
+ "targetname" "2301"
+}
+{
+ "classname" "trap_lightning_triggered"
+ "origin" "2804 1912 -492"
+ "spawnflags" "2048"
+ "target" "2303"
+ "targetname" "2300"
+}
+{
+ "classname" "trap_lightning_triggered"
+ "origin" "2884 2008 -492"
+ "spawnflags" "2048"
+ "target" "2302"
+ "targetname" "2300"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "trap_lightning_triggered"
+ "origin" "3384 2356 -492"
+ "spawnflags" "2048"
+ "target" "2301"
+ "targetname" "2300b"
+}
+{
+ "classname" "info_notnull"
+ "origin" "2884 1908 -492"
+ "spawnflags" "2048"
+ "targetname" "2302"
+}
+{
+ "classname" "info_notnull"
+ "origin" "2804 2012 -492"
+ "spawnflags" "2048"
+ "targetname" "2303"
+}
+{
+ "classname" "info_notnull"
+ "origin" "3388 2292 -492"
+ "spawnflags" "2048"
+ "targetname" "2304"
+}
+{
+ "classname" "info_notnull"
+ "origin" "3388 2220 -492"
+ "spawnflags" "2048"
+ "targetname" "2306"
+}
+{
+ "classname" "trigger_multiple"
+ "model" "*85"
+ "target" "2300"
+ "spawnflags" "2048"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_ogre"
+ "angle" "180"
+ "origin" "2588 1888 -488"
+ "spawnflags" "768"
+ "target" "ry_lavaogrekill"
+}
+{
+ "classname" "monster_knight"
+ "angle" "180"
+ "origin" "2600 1988 -456"
+ "spawnflags" "1536"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "trap_spike_mine"
+ "origin" "2656 1980 -416"
+ "spawnflags" "256"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "trap_spike_mine"
+ "origin" "3252 2532 -384"
+ "spawnflags" "768"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "trap_spike_mine"
+ "origin" "3364 2876 -464"
+ "spawnflags" "768"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "trap_spike_mine"
+ "origin" "2756 2836 -432"
+ "spawnflags" "768"
+}
+// Entity with 2 changes to old fields
+{
+ "classname" "trap_spike_mine"
+ "origin" "3004 3124 -432"
+ "spawnflags" "256"
+}
+{
+ "classname" "trap_spike_mine"
+ "origin" "2956 2540 -448"
+ "spawnflags" "256"
+}
+{
+ "classname" "info_null"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "2016 664 152"
+ "spawnclassname" "monster_demon1"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_demon1"
+ "spawnsilent" "1"
+ "targetname" "6700"
+}
+{
+ "classname" "func_spawn"
+ "angle" "315"
+ "origin" "1300 2336 -136"
+ "spawnclassname" "monster_shambler"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shambler"
+ "spawnsilent" "1"
+ "targetname" "5200"
+}
+{
+ "classname" "func_spawn"
+ "angle" "45"
+ "origin" "1308 2168 -136"
+ "spawnclassname" "monster_shambler"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shambler"
+ "spawnsilent" "1"
+ "targetname" "5200"
+}
+{
+ "classname" "func_spawn"
+ "angle" "315"
+ "origin" "1260 2336 -136"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "3328"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "5200"
+}
+{
+ "classname" "func_spawn"
+ "angle" "45"
+ "origin" "1252 2168 -136"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "3328"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "5200"
+}
+{
+ "classname" "func_spawn"
+ "angle" "45"
+ "origin" "1212 2168 -136"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "3584"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "5200"
+}
+{
+ "classname" "func_spawn"
+ "angle" "315"
+ "origin" "1212 2336 -136"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "3584"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "5200"
+}
+{
+ "classname" "monster_zombie"
+ "origin" "960 2280 -176"
+ "spawnflags" "2"
+ "angle" "270"
+}
+{
+ "classname" "monster_wizard"
+ "angle" "270"
+ "origin" "952 2336 -120"
+ "spawnflags" "256"
+}
+{
+ "classname" "trigger_once"
+ "model" "*86"
+ "target" "5200"
+ "spawnflags" "2048"
+}
+{
+ "classname" "trigger_once"
+ "model" "*87"
+ "target" "3300"
+ "spawnflags" "2048"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "136 840 108"
+}
+{
+ "classname" "func_wall"
+ "model" "*88"
+ "spawnflags" "1792"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1436 2256 -32"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1500 2136 80"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1500 2376 80"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "1512 2256 56"
+}
+{
+ "classname" "info_intermission"
+ "mangle" "20 45 0"
+ "origin" "-192 968 280"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "-240 2848 120"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "312 1720 216"
+ "spawnflags" "1"
+ "angle" "180"
+ "targetname" "1200"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "192 1704 32"
+ "spawnflags" "769"
+ "angle" "45"
+ "targetname" "1200"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "392 1704 32"
+ "spawnflags" "769"
+ "angle" "135"
+ "targetname" "1200"
+}
+{
+ "classname" "monster_gremlin"
+ "origin" "384 1776 32"
+ "spawnflags" "257"
+ "angle" "180"
+ "targetname" "1200"
+}
+{
+ "classname" "item_cells"
+ "origin" "-200 1696 32"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_spikes"
+ "origin" "456 2304 0"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-72 2008 0"
+ "spawnflags" "1"
+}
+{
+ "classname" "weapon_lightning"
+ "origin" "-264 1144 72"
+}
+{
+ "classname" "trigger_monsterjump"
+ "angle" "225"
+ "height" "32"
+ "model" "*89"
+ "spawnflags" "2048"
+ "speed" "100"
+}
+{
+ "classname" "trigger_multiple"
+ "model" "*90"
+ "target" "3200"
+ "wait" "5"
+}
+{
+ "classname" "func_rotate_door"
+ "angles" "0 0 -30"
+ "origin" "128 936 68"
+ "sounds" "3"
+ "target" "2240"
+ "targetname" "3200"
+}
+{
+ "classname" "rotate_object"
+ "model" "*91"
+ "origin" "128 936 68"
+ "target" "2241"
+ "targetname" "2240"
+}
+{
+ "classname" "info_rotate"
+ "origin" "128 936 68"
+ "targetname" "2241"
+}
+{
+ "classname" "func_movewall"
+ "model" "*92"
+ "targetname" "2240"
+}
+{
+ "classname" "func_wall"
+ "model" "*93"
+}
+{
+ "classname" "func_spawn"
+ "angle" "360"
+ "origin" "968 1208 256"
+ "spawnclassname" "monster_ogre"
+ "spawnflags" "3328"
+ "spawnfunction" "monster_ogre"
+ "spawnsilent" "1"
+ "targetname" "5800"
+}
+{
+ "classname" "func_spawn"
+ "angle" "360"
+ "origin" "968 1088 256"
+ "spawnclassname" "monster_ogre"
+ "spawnflags" "3072"
+ "spawnfunction" "monster_ogre"
+ "spawnsilent" "1"
+ "targetname" "5800"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "180"
+ "origin" "1568 1144 256"
+ "spawnflags" "1280"
+}
+{
+ "classname" "func_spawn"
+ "angle" "360"
+ "origin" "920 1152 256"
+ "spawnclassname" "monster_shambler"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shambler"
+ "spawnsilent" "1"
+ "targetname" "5800"
+}
+{
+ "classname" "trigger_once"
+ "model" "*94"
+ "target" "5800"
+ "spawnflags" "2048"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "1216 1152 184"
+}
+{
+ "classname" "weapon_mjolnir"
+ "origin" "2024 2400 -152"
+ "spawnflags" "1792"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-56 640 0"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_health"
+ "origin" "-16 648 0"
+}
+{
+ "classname" "item_health"
+ "origin" "-96 656 0"
+}
+{
+ "classname" "light"
+ "light" "120"
+ "origin" "3192 2220 -490"
+}
+{
+ "classname" "light"
+ "light" "120"
+ "origin" "3384 2220 -494"
+}
+{
+ "classname" "light"
+ "light" "120"
+ "origin" "2804 2008 -490"
+}
+{
+ "classname" "light"
+ "light" "120"
+ "origin" "2884 2008 -490"
+}
+{
+ "classname" "light"
+ "light" "120"
+ "origin" "2884 1912 -490"
+}
+{
+ "classname" "light"
+ "light" "120"
+ "origin" "2804 1912 -490"
+}
+{
+ "classname" "light"
+ "light" "120"
+ "origin" "3236 2356 -490"
+}
+{
+ "classname" "light"
+ "light" "120"
+ "origin" "3384 2356 -490"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "trigger_multiple"
+ "model" "*95"
+ "target" "2300b"
+ "spawnflags" "2048"
+}
+{
+ "classname" "light"
+ "light" "120"
+ "origin" "3192 2292 -490"
+}
+{
+ "classname" "light"
+ "light" "120"
+ "origin" "3384 2292 -490"
+}
+{
+ "classname" "item_health"
+ "origin" "3188 2016 -512"
+}
+{
+ "classname" "item_health"
+ "origin" "3164 2116 -512"
+ "spawnflags" "2"
+}
+{
+ "classname" "item_spikes"
+ "origin" "3120 2040 -512"
+}
+{
+ "classname" "item_shells"
+ "origin" "3260 2120 -512"
+}
+{
+ "classname" "item_armor2"
+ "origin" "3212 2092 -512"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "315"
+ "origin" "2916 2616 -456"
+ "spawnflags" "1536"
+}
+// Entity with 0 changes to old fields
+{
+ "classname" "monster_shambler"
+ "angle" "270"
+ "origin" "3312 2684 -456"
+ "spawnflags" "768"
+ "target" "ry_goldkeyenc"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_shambler"
+ "angle" "270"
+ "origin" "3076 3052 -456"
+ "spawnflags" "769"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_shambler"
+ "angle" "270"
+ "origin" "2936 3032 -456"
+ "spawnflags" "257"
+}
+// Entity with 0 changes to old fields
+{
+ "classname" "trigger_changelevel"
+ "map" "hip2m4"
+ "model" "*96"
+ "origin" "0 0 -4"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "1818 2560 96"
+}
+{
+ "classname" "func_wall"
+ "model" "*97"
+ "spawnflags" "1792"
+}
+{
+ "classname" "func_wall"
+ "model" "*98"
+ "spawnflags" "1792"
+}
+{
+ "classname" "func_wall"
+ "model" "*99"
+ "spawnflags" "1792"
+}
+{
+ "classname" "func_wall"
+ "model" "*100"
+ "spawnflags" "1792"
+}
+{
+ "classname" "func_wall"
+ "model" "*101"
+ "spawnflags" "1792"
+}
+{
+ "classname" "info_null"
+ "origin" "1460 2132 68"
+ "targetname" "4400"
+}
+{
+ "classname" "info_null"
+ "origin" "1460 2380 68"
+ "targetname" "4401"
+}
+{
+ "classname" "light"
+ "light" "600"
+ "origin" "1496 2352 72"
+ "target" "4401"
+}
+{
+ "classname" "info_null"
+ "origin" "1420 2332 68"
+ "targetname" "4403"
+}
+{
+ "classname" "info_null"
+ "origin" "1420 2180 68"
+ "targetname" "4402"
+}
+{
+ "classname" "light"
+ "light" "600"
+ "origin" "1440 2192 72"
+ "target" "4402"
+}
+{
+ "classname" "light"
+ "light" "600"
+ "origin" "1440 2320 72"
+ "target" "4403"
+}
+{
+ "classname" "light"
+ "light" "600"
+ "origin" "1408 2256 72"
+ "target" "4405"
+}
+{
+ "classname" "info_null"
+ "origin" "1384 2256 68"
+ "targetname" "4405"
+}
+{
+ "classname" "item_hornofconjuring"
+ "origin" "1512 1144 56"
+ "spawnflags" "2048"
+ "target" "5500"
+}
+{
+ "classname" "item_artifact_super_damage"
+ "origin" "1512 1144 80"
+ "spawnflags" "1792"
+}
+{
+ "classname" "func_spawn"
+ "angle" "360"
+ "origin" "1360 1144 80"
+ "spawnclassname" "monster_hell_knight"
+ "spawnflags" "2048"
+ "spawnfunction" "monster_hell_knight"
+ "targetname" "5500"
+}
+{
+ "classname" "func_wall"
+ "model" "*102"
+ "spawnflags" "2048"
+}
+{
+ "classname" "item_artifact_invulnerability"
+ "origin" "-480 2040 56"
+}
+{
+ "classname" "weapon_grenadelauncher"
+ "origin" "128 1152 208"
+}
+{
+ "classname" "func_door"
+ "angle" "-1"
+ "model" "*103"
+ "sounds" "3"
+ "targetname" "3560"
+ "wait" "-1"
+ "spawnflags" "2048"
+ "speed" "100"
+ "height" "32"
+}
+{
+ "classname" "func_wall"
+ "model" "*104"
+ "spawnflags" "2048"
+}
+{
+ "classname" "func_wall"
+ "model" "*105"
+ "spawnflags" "2048"
+}
+{
+ "classname" "item_armorInv"
+ "origin" "-48 2688 112"
+}
+{
+ "classname" "monster_knight"
+ "angle" "180"
+ "origin" "-120 384 96"
+ "spawnflags" "1536"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "128 672 80"
+}
+{
+ "classname" "trigger_once"
+ "model" "*106"
+ "target" "3560"
+ "spawnflags" "2048"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "128 880 32"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "248 1680 168"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "176 1664 120"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "104 1656 72"
+}
+{
+ "classname" "trigger_counter"
+ "count" "4"
+ "model" "*107"
+ "spawnflags" "1280"
+ "target" "4310"
+ "targetname" "4301"
+}
+{
+ "classname" "trigger_counter"
+ "count" "2"
+ "model" "*108"
+ "spawnflags" "512"
+ "target" "4310"
+ "targetname" "4301"
+}
+{
+ "classname" "func_door"
+ "model" "*109"
+ "sounds" "1"
+ "spawnflags" "2064"
+}
+{
+ "classname" "func_wall"
+ "model" "*110"
+ "spawnflags" "2048"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-72 2040 0"
+ "spawnflags" "2817"
+}
+{
+ "classname" "item_cells"
+ "origin" "-168 2160 0"
+ "spawnflags" "2817"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-664 1968 32"
+ "spawnflags" "2817"
+ "light" "160"
+}
+{
+ "classname" "item_health"
+ "origin" "-1056 1472 64"
+}
+{
+ "classname" "item_health"
+ "origin" "-1008 1496 64"
+}
+{
+ "classname" "item_health"
+ "origin" "416 912 0"
+ "spawnflags" "2560"
+}
+{
+ "classname" "monster_shalrath"
+ "angle" "135"
+ "origin" "80 2680 64"
+ "spawnflags" "768"
+}
+{
+ "classname" "monster_hell_knight"
+ "angle" "135"
+ "origin" "112 2624 96"
+ "spawnflags" "1280"
+}
+{
+ "classname" "monster_knight"
+ "angle" "135"
+ "origin" "40 2808 96"
+ "spawnflags" "1536"
+}
+{
+ "classname" "item_cells"
+ "origin" "-704 2680 128"
+ "spawnflags" "2817"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "225"
+ "origin" "-472 1208 160"
+ "spawnflags" "1281"
+}
+{
+ "classname" "monster_demon1"
+ "angle" "225"
+ "origin" "-472 1208 160"
+ "spawnflags" "769"
+}
+{
+ "classname" "item_shells"
+ "origin" "424 1200 0"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_shells"
+ "origin" "424 1160 0"
+ "spawnflags" "1"
+}
+// Entity with 0 changes to old fields
+{
+ "classname" "monster_ogre"
+ "angle" "315"
+ "origin" "3028 2568 -456"
+ "spawnflags" "256"
+ "targetname" "ry_goldkeyenc"
+}
+// Entity with 0 changes to old fields
+{
+ "classname" "monster_ogre"
+ "angle" "270"
+ "origin" "3392 2728 -456"
+ "spawnflags" "256"
+ "target" "ry_goldkeyenc"
+}
+{
+ "classname" "item_cells"
+ "origin" "1928 2728 -80"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_shells"
+ "origin" "2064 2728 -80"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_health"
+ "origin" "1584 2704 64"
+}
+{
+ "classname" "item_health"
+ "origin" "1584 2760 64"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "1452 2256 32"
+}
+// Start of new entities
+{
+ "classname" "weapon_supershotgun"
+ "origin" "2036 1040 16"
+ "spawnflags" "1792"
+}
+{
+ "classname" "trigger_monsterjump"
+ "angle" "270"
+ "height" "50"
+ "spawnflags" "768"
+ "speed" "200"
+ "origin" "-484 1144 144"
+ "mins" "-36 0 -8"
+ "maxs" "36 16 0"
+}
+{
+ "classname" "item_rockets"
+ "origin" "1136 1488 -152"
+ "spawnflags" "0"
+}
+{
+ "classname" "trigger_monsterjump"
+ "angle" "90"
+ "height" "200"
+ "speed" "200"
+ "origin" "1984 720 128"
+ "mins" "-36 -12 0"
+ "maxs" "36 0 8"
+ "delay" "2"
+}
+{
+ "classname" "trigger_monsterjump"
+ "angle" "90"
+ "height" "300"
+ "model" "*15"
+ "speed" "100"
+ "origin" "-24 -248 -96"
+ "charmed" "1"
+ "checkdirection" "1"
+}
+{
+ "classname" "func_spawn"
+ "angle" "180"
+ "origin" "2748 1960 -416"
+ "spawnclassname" "trap_spike_mine"
+ "spawnflags" "768"
+ "spawnfunction" "trap_spike_mine"
+ "targetname" "ry_secondspikemine"
+}
+{
+ "classname" "trigger_counter"
+ "count" "2"
+ "spawnflags" "2817"
+ "target" "ry_secondspikemine"
+ "targetname" "ry_lavaogrekill"
+ "origin" "2752 1920 -448"
+ "delay" "0.5"
+}
+{
+ "classname" "weapon_nailgun"
+ "origin" "2384 1980 -512"
+ "spawnflags" "2048"
+}

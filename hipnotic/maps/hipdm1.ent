@@ -1,0 +1,2465 @@
+{
+ "classname" "worldspawn"
+ "message" "The Edge of Oblivion"
+ "sounds" "6"
+ "wad" "hipnotic/gfx/metal.wad"
+ "worldtype" "0"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "-104 1496 296"
+}
+{
+ "classname" "trigger_once"
+ "model" "*1"
+ "target" "870"
+}
+{
+ "classname" "item_health"
+ "origin" "-528 -128 1264"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_health"
+ "origin" "-272 -128 1264"
+ "spawnflags" "1"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-950 490 1352"
+}
+{
+ "classname" "item_shells"
+ "origin" "-584 2288 320"
+ "spawnflags" "1"
+}
+{
+ "classname" "light"
+ "origin" "-360 1576 680"
+}
+{
+ "classname" "light"
+ "origin" "-360 1384 680"
+}
+{
+ "classname" "light"
+ "origin" "-360 1176 680"
+}
+{
+ "classname" "monster_dog"
+ "angle" "135"
+ "origin" "-624 1632 120"
+}
+{
+ "classname" "light"
+ "origin" "-376 584 -552"
+}
+{
+ "classname" "light"
+ "origin" "-536 1224 -424"
+}
+{
+ "classname" "light"
+ "light" "1200"
+ "origin" "312 1208 -312"
+}
+{
+ "classname" "light"
+ "origin" "88 888 -616"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "24 1512 360"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "24 1880 376"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "152 2264 408"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-568 2424 416"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-264 2296 360"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "-888 2296 368"
+}
+{
+ "classname" "light"
+ "origin" "-1464 472 552"
+}
+{
+ "classname" "light"
+ "origin" "-1288 472 552"
+}
+{
+ "classname" "light"
+ "origin" "-1288 648 552"
+}
+{
+ "classname" "light"
+ "origin" "-608 1056 520"
+}
+{
+ "classname" "light"
+ "origin" "312 -376 680"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "-776 1776 376"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "-744 1776 376"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-600 1880 352"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "-136 1928 296"
+}
+{
+ "classname" "light"
+ "origin" "-608 1856 240"
+}
+{
+ "classname" "light"
+ "origin" "-448 1856 240"
+}
+{
+ "classname" "light"
+ "origin" "-448 1696 240"
+}
+{
+ "classname" "func_button"
+ "angle" "0"
+ "health" "1"
+ "model" "*2"
+ "sounds" "0"
+ "target" "350"
+}
+{
+ "classname" "func_button"
+ "angle" "0"
+ "health" "1"
+ "model" "*3"
+ "sounds" "0"
+ "target" "350"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-80 1760 144"
+}
+{
+ "classname" "path_corner"
+ "origin" "-232 1672 184"
+ "target" "364"
+ "targetname" "363"
+ "wait" "0.1"
+}
+{
+ "classname" "path_corner"
+ "origin" "-296 1672 104"
+ "target" "361"
+ "targetname" "366"
+ "wait" "0.1"
+}
+{
+ "classname" "path_corner"
+ "origin" "-232 1672 280"
+ "target" "365"
+ "targetname" "364"
+ "wait" "-1"
+}
+{
+ "classname" "path_corner"
+ "origin" "-232 1672 184"
+ "target" "366"
+ "targetname" "365"
+ "wait" "0.1"
+}
+{
+ "classname" "path_corner"
+ "origin" "-296 1672 104"
+ "target" "363"
+ "targetname" "362"
+ "wait" "0.1"
+}
+{
+ "classname" "path_corner"
+ "origin" "-360 1672 104"
+ "target" "362"
+ "targetname" "361"
+ "wait" "-1"
+}
+{
+ "classname" "func_train2"
+ "model" "*4"
+ "sounds" "1"
+ "target" "364"
+ "targetname" "350"
+}
+{
+ "classname" "light"
+ "origin" "88 1176 680"
+}
+{
+ "classname" "light"
+ "origin" "24 1576 680"
+}
+{
+ "classname" "light"
+ "origin" "-152 1176 680"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-614 90 1192"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-384 250 1248"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "90 106 1192"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "ambient_suck_wind"
+ "origin" "54 438 1000"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-822 437 1000"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-230 -350 824"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-38 -358 744"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "378 2 824"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-22 490 744"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-22 954 744"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-230 1306 904"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "218 1386 744"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-374 1514 904"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-1190 618 1304"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-742 554 1304"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-774 1082 1208"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-854 1546 1032"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-966 1018 824"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-598 538 648"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-1158 554 648"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-1382 714 648"
+}
+{
+ "classname" "light"
+ "light" "600"
+ "origin" "-528 1776 584"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "74 1786 360"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-966 1578 360"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-534 1338 408"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-296 1848 152"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-304 2100 180"
+}
+{
+ "classname" "light"
+ "origin" "-736 1504 120"
+}
+{
+ "classname" "light"
+ "origin" "-608 1696 240"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-80 1760 352"
+}
+{
+ "classname" "light"
+ "origin" "-1168 2152 384"
+}
+{
+ "classname" "light"
+ "origin" "-896 1776 336"
+}
+{
+ "classname" "light_fluorospark"
+ "origin" "-528 1776 152"
+}
+{
+ "classname" "weapon_rocketlauncher"
+ "origin" "-720 1776 96"
+ "spawnflags" "1792"
+}
+{
+ "classname" "trigger_hurt"
+ "dmg" "2000"
+ "model" "*5"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-1248 464 1248"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-1248 560 1248"
+ "spawnflags" "1"
+}
+{
+ "classname" "trigger_once"
+ "model" "*6"
+ "target" "400"
+}
+{
+ "classname" "item_shells"
+ "origin" "-600 1704 112"
+}
+{
+ "classname" "item_shells"
+ "origin" "-488 1816 112"
+}
+{
+ "classname" "item_health"
+ "origin" "-488 1704 112"
+}
+{
+ "classname" "light"
+ "origin" "-736 2064 120"
+}
+{
+ "classname" "item_shells"
+ "origin" "-672 1360 992"
+}
+{
+ "classname" "item_shells"
+ "origin" "-1104 1392 992"
+}
+{
+ "classname" "trigger_once"
+ "model" "*7"
+ "target" "200"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_shambler"
+ "origin" "-1056 416 1288"
+ "spawnflags" "256"
+ "target" "130"
+}
+{
+ "classname" "path_corner"
+ "origin" "-1080 560 1256"
+ "target" "130"
+ "targetname" "133"
+}
+{
+ "classname" "path_corner"
+ "origin" "-1224 392 1256"
+ "target" "133"
+ "targetname" "132"
+}
+{
+ "classname" "path_corner"
+ "origin" "-648 392 1256"
+ "target" "132"
+ "targetname" "131"
+}
+{
+ "classname" "path_corner"
+ "origin" "-1104 416 1256"
+ "target" "131"
+ "targetname" "130"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "path_corner"
+ "origin" "-792 1600 968"
+ "target" "120"
+ "targetname" "123"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "path_corner"
+ "origin" "-792 848 1216"
+ "target" "123"
+ "targetname" "120"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "info_player_deathmatch"
+ "angle" "315"
+ "origin" "-1008 1664 984"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "info_player_deathmatch"
+ "angle" "225"
+ "origin" "-736 1664 984"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "135"
+ "origin" "240 1216 696"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "45"
+ "origin" "-16 1216 696"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "225"
+ "origin" "240 1504 696"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "180"
+ "origin" "-656 576 568"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "360"
+ "origin" "-1472 568 568"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "info_player_deathmatch"
+ "angle" "270"
+ "origin" "-1040 1984 344"
+}
+{
+ "classname" "info_player_deathmatch"
+ "angle" "180"
+ "origin" "-256 1328 312"
+}
+{
+ "classname" "item_artifact_super_damage"
+ "origin" "-528 1776 536"
+}
+{
+ "classname" "item_health"
+ "origin" "320 1184 672"
+}
+{
+ "classname" "item_spikes"
+ "origin" "320 1536 672"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-176 1296 288"
+ "spawnflags" "1792"
+}
+{
+ "classname" "light"
+ "origin" "-280 1368 392"
+}
+{
+ "classname" "light"
+ "origin" "-744 1400 968"
+}
+{
+ "classname" "light"
+ "light" "1200"
+ "origin" "-1280 2296 600"
+}
+{
+ "classname" "light"
+ "light" "1200"
+ "origin" "-1304 1160 120"
+}
+{
+ "classname" "light"
+ "origin" "-960 1352 296"
+}
+{
+ "classname" "light"
+ "origin" "-56 1320 296"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-968 1648 296"
+}
+{
+ "classname" "func_door"
+ "angle" "90"
+ "model" "*8"
+ "sounds" "4"
+}
+{
+ "classname" "func_door"
+ "angle" "270"
+ "model" "*9"
+ "sounds" "4"
+}
+{
+ "classname" "light"
+ "light" "800"
+ "origin" "-1104 -16 80"
+}
+{
+ "classname" "light"
+ "origin" "-1464 648 552"
+}
+{
+ "classname" "light"
+ "origin" "-120 -440 680"
+}
+{
+ "classname" "light"
+ "origin" "168 -440 680"
+}
+{
+ "classname" "light"
+ "light" "800"
+ "origin" "-808 -328 1496"
+}
+{
+ "classname" "light"
+ "origin" "-1208 528 1400"
+}
+{
+ "classname" "light"
+ "origin" "-1216 416 1256"
+}
+{
+ "classname" "light"
+ "origin" "-1216 688 1256"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "-1040 928 1080"
+}
+{
+ "classname" "light"
+ "origin" "-584 1544 1136"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "-784 1248 1240"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "-784 944 1352"
+}
+{
+ "classname" "light"
+ "origin" "-624 432 1256"
+}
+{
+ "classname" "light"
+ "origin" "-624 640 1256"
+}
+{
+ "classname" "light"
+ "origin" "-912 720 1256"
+}
+{
+ "classname" "light"
+ "origin" "360 1176 680"
+}
+{
+ "classname" "light"
+ "origin" "360 1576 680"
+}
+{
+ "classname" "light"
+ "light" "600"
+ "origin" "328 1496 1128"
+}
+{
+ "classname" "light"
+ "origin" "-744 1656 968"
+}
+{
+ "classname" "light"
+ "origin" "-1000 1656 968"
+}
+{
+ "classname" "light"
+ "light" "1200"
+ "origin" "-248 1640 1448"
+}
+{
+ "classname" "light"
+ "origin" "-872 472 552"
+}
+{
+ "classname" "light"
+ "origin" "-872 648 552"
+}
+{
+ "classname" "light"
+ "origin" "-1048 648 552"
+}
+{
+ "classname" "light"
+ "origin" "-1048 472 552"
+}
+{
+ "classname" "light"
+ "origin" "-552 560 1336"
+}
+{
+ "classname" "light"
+ "origin" "120 280 1048"
+}
+{
+ "classname" "light"
+ "origin" "120 -376 1048"
+}
+{
+ "classname" "light"
+ "origin" "8 -504 1048"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-416 -352 952"
+}
+{
+ "classname" "light"
+ "origin" "-384 576 792"
+}
+{
+ "classname" "light"
+ "light" "500"
+ "origin" "400 384 760"
+}
+{
+ "classname" "light"
+ "light" "300"
+ "origin" "-16 864 744"
+}
+{
+ "classname" "light"
+ "light" "800"
+ "origin" "-376 696 408"
+}
+{
+ "classname" "light"
+ "light" "800"
+ "origin" "-1080 872 120"
+}
+{
+ "classname" "light"
+ "origin" "-568 -200 1000"
+}
+{
+ "classname" "light"
+ "origin" "200 32 808"
+}
+{
+ "classname" "light"
+ "origin" "-280 1512 928"
+}
+{
+ "classname" "info_player_start"
+ "angle" "225"
+ "origin" "-312 1960 312"
+}
+{
+ "classname" "trigger_monsterjump"
+ "angle" "90"
+ "height" "10"
+ "model" "*10"
+}
+{
+ "classname" "trigger_monsterjump"
+ "angle" "180"
+ "height" "10"
+ "model" "*11"
+}
+{
+ "classname" "trigger_monsterjump"
+ "angle" "270"
+ "height" "10"
+ "model" "*12"
+}
+{
+ "classname" "monster_dog"
+ "angle" "135"
+ "origin" "-448 1552 120"
+}
+{
+ "classname" "monster_dog"
+ "angle" "315"
+ "origin" "-672 2000 120"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "315"
+ "origin" "-560 2032 120"
+}
+{
+ "classname" "light"
+ "light" "800"
+ "origin" "-1224 -312 800"
+}
+{
+ "classname" "light"
+ "light" "70"
+ "origin" "-128 48 1016"
+}
+{
+ "classname" "light"
+ "origin" "-888 496 1048"
+}
+{
+ "classname" "light"
+ "origin" "-872 256 1048"
+}
+{
+ "classname" "light"
+ "origin" "-872 64 1048"
+}
+{
+ "classname" "light"
+ "origin" "-632 496 1048"
+}
+{
+ "classname" "light"
+ "origin" "-168 496 1048"
+}
+{
+ "classname" "light"
+ "origin" "104 496 1048"
+}
+{
+ "classname" "light"
+ "origin" "120 48 1048"
+}
+{
+ "classname" "light"
+ "origin" "-592 1960 352"
+}
+{
+ "classname" "light"
+ "origin" "-408 1960 352"
+}
+{
+ "classname" "light"
+ "origin" "-760 -80 1000"
+}
+{
+ "classname" "light"
+ "origin" "-760 -368 1000"
+}
+{
+ "classname" "light"
+ "origin" "-408 496 1048"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-168 -24 1272"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-584 40 1272"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "240 952 696"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "870"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "240 592 696"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "870"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "135"
+ "origin" "112 -224 1176"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "870"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "225"
+ "origin" "112 168 1136"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "870"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-264 -384 1384"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "870"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-488 -392 1384"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "870"
+}
+{
+ "classname" "func_spawn"
+ "angle" "45"
+ "origin" "-880 -288 1160"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "870"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "240 704 696"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "200"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "135"
+ "origin" "432 1216 728"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "200"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "225"
+ "origin" "-96 2208 568"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "200"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "135"
+ "origin" "-288 1312 696"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "200"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "315"
+ "origin" "-664 2184 552"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "200"
+}
+{
+ "classname" "func_spawn"
+ "angle" "225"
+ "origin" "248 824 840"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "400"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "45"
+ "origin" "-1320 312 1320"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "400"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "180"
+ "origin" "112 496 1136"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "400"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "315"
+ "origin" "-1328 784 1312"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "400"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-800 -416 1240"
+ "spawnclassname" "monster_wizard"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_wizard"
+ "spawnsilent" "1"
+ "targetname" "400"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "-792 1504 1016"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "400"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "225"
+ "origin" "320 1440 696"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "400"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "225"
+ "origin" "-224 1248 696"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "400"
+ "target" "6202"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "315"
+ "origin" "-560 496 1304"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "870"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "315"
+ "origin" "-760 304 1304"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "870"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "45"
+ "origin" "64 488 984"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "1313"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "45"
+ "origin" "-576 488 984"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "1313"
+}
+{
+ "classname" "trigger_once"
+ "model" "*13"
+ "target" "1313"
+ "spawnflags" "2048"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-448 488 984"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "2300"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-704 488 984"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "2300"
+}
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "-584 1320 312"
+ "spawnclassname" "monster_shambler"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_shambler"
+ "spawnsilent" "1"
+ "targetname" "2700"
+}
+{
+ "classname" "trigger_once"
+ "model" "*14"
+ "target" "2700"
+ "spawnflags" "2048"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "180"
+ "origin" "-96 1248 696"
+ "spawnclassname" "monster_shambler"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shambler"
+ "spawnsilent" "1"
+ "targetname" "2700"
+ "target" "6202"
+}
+{
+ "classname" "monster_shalrath"
+ "angle" "315"
+ "origin" "-840 1816 312"
+ "spawnflags" "768"
+}
+{
+ "classname" "trigger_once"
+ "model" "*15"
+ "target" "5500"
+ "spawnflags" "2048"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "-736 1480 536"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "5500"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "-672 1528 536"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "5500"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "-608 1480 536"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2048"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "5500"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "-480 1480 536"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2048"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "5500"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "-416 1528 536"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "5500"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "-544 1528 536"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "5500"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "-352 1480 536"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "5500"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-560 1960 320"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-528 1960 320"
+}
+{
+ "classname" "item_health"
+ "origin" "-592 1808 112"
+}
+{
+ "classname" "item_armorInv"
+ "origin" "-528 1776 112"
+}
+{
+ "classname" "weapon_supernailgun"
+ "origin" "-896 1776 288"
+}
+{
+ "classname" "item_spikes"
+ "origin" "-960 800 320"
+ "spawnflags" "1"
+}
+{
+ "classname" "item_spikes"
+ "origin" "-1032 880 320"
+ "spawnflags" "1"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-136 2424 416"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_shambler"
+ "origin" "-784 1376 1000"
+ "spawnflags" "768"
+ "target" "120"
+ "angle" "225"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_shambler"
+ "origin" "240 -56 696"
+ "spawnflags" "768"
+ "angle" "90"
+}
+{
+ "classname" "weapon_rocketlauncher"
+ "origin" "-1376 560 544"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_army"
+ "angle" "315"
+ "origin" "-944 1816 328"
+ "spawnflags" "1536"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_ogre"
+ "angle" "315"
+ "origin" "-840 1800 312"
+ "spawnflags" "1280"
+}
+{
+ "classname" "monster_ogre"
+ "angle" "90"
+ "origin" "-840 1400 312"
+ "spawnflags" "1280"
+}
+{
+ "classname" "weapon_laser_gun"
+ "origin" "-552 560 1280"
+}
+{
+ "classname" "item_spikes"
+ "origin" "-464 1960 320"
+ "spawnflags" "1"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-840 1744 1032"
+}
+{
+ "classname" "trigger_once"
+ "model" "*16"
+ "target" "2300"
+ "spawnflags" "2048"
+}
+{
+ "classname" "item_hornofconjuring"
+ "origin" "-840 1744 992"
+ "spawnflags" "2048"
+ "target" "4000"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-768 1624 1016"
+ "spawnflags" "2048"
+ "targetname" "4000"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-928 1616 1016"
+ "spawnflags" "2048"
+ "targetname" "4000"
+}
+{
+ "classname" "item_artifact_empathy_shields"
+ "origin" "440 1400 704"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-352 -280 1352"
+}
+{
+ "classname" "weapon_proximity_gun"
+ "origin" "-336 1520 672"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-376 96 1392"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-888 136 1096"
+}
+{
+ "classname" "item_rockets"
+ "origin" "104 336 1096"
+}
+{
+ "classname" "item_armor2"
+ "origin" "-400 496 1096"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-400 496 1160"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-488 1880 352"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-488 1544 352"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-600 1544 352"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-528 1696 368"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-792 1728 992"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-912 1728 992"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*17"
+ "spawnflags" "1792"
+ "target" "5530"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*18"
+ "spawnflags" "1792"
+ "target" "5531"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "90"
+ "origin" "0 128 936"
+ "spawnflags" "1792"
+ "targetname" "5531"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "90"
+ "origin" "-968 480 552"
+ "spawnflags" "1792"
+ "targetname" "5530"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-192 488 984"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "200"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-832 488 984"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "200"
+}
+{
+ "classname" "light"
+ "origin" "-1128 368 1256"
+}
+{
+ "classname" "light"
+ "origin" "-968 368 1256"
+}
+{
+ "classname" "light"
+ "origin" "-792 376 1256"
+}
+{
+ "classname" "func_spawn"
+ "angle" "180"
+ "origin" "-400 1544 912"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "2300"
+}
+{
+ "classname" "func_spawn"
+ "angle" "135"
+ "origin" "-480 1536 936"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "2300"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "weapon_supershotgun"
+ "origin" "-512 1712 312"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-536 552 568"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "5500"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-608 592 568"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "5500"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-704 536 568"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "5500"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-704 608 568"
+ "spawnclassname" "monster_gremlin"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_gremlin"
+ "spawnsilent" "1"
+ "targetname" "5500"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_army"
+ "angle" "270"
+ "origin" "-1376 632 584"
+ "spawnflags" "1537"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_army"
+ "angle" "90"
+ "origin" "-1376 488 584"
+ "spawnflags" "1537"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_enforcer"
+ "angle" "270"
+ "origin" "-1368 632 568"
+ "spawnflags" "769"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_enforcer"
+ "angle" "90"
+ "origin" "-1368 488 568"
+ "spawnflags" "769"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_enforcer"
+ "angle" "180"
+ "origin" "-1304 552 568"
+ "spawnflags" "1281"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_enforcer"
+ "angle" "360"
+ "origin" "-1432 560 568"
+ "spawnflags" "1281"
+}
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "-960 1328 920"
+ "spawnclassname" "monster_ogre"
+ "spawnflags" "2048"
+ "spawnfunction" "monster_ogre"
+ "spawnsilent" "1"
+ "targetname" "4750"
+}
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "-984 1224 888"
+ "spawnclassname" "monster_ogre"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_ogre"
+ "spawnsilent" "1"
+ "targetname" "4750"
+}
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "-936 1136 832"
+ "spawnclassname" "monster_ogre"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_ogre"
+ "spawnsilent" "1"
+ "targetname" "4750"
+}
+{
+ "classname" "trigger_once"
+ "model" "*19"
+ "target" "4750"
+ "spawnflags" "2048"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_army"
+ "origin" "-872 1640 1000"
+ "spawnflags" "1536"
+ "target" "120"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_enforcer"
+ "origin" "-920 1656 1008"
+ "spawnflags" "1280"
+ "target" "120"
+}
+{
+ "classname" "path_corner"
+ "origin" "-728 1512 968"
+ "target" "5801"
+ "targetname" "5800"
+}
+{
+ "classname" "path_corner"
+ "origin" "8 1560 680"
+ "target" "5800"
+ "targetname" "5801"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_shambler"
+ "origin" "-960 1568 1000"
+ "spawnflags" "768"
+ "target" "5800"
+ "angle" "225"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_enforcer"
+ "origin" "-808 1656 1000"
+ "spawnflags" "1280"
+ "target" "5800"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_army"
+ "origin" "-800 1540 1000"
+ "spawnflags" "1536"
+ "target" "5800"
+}
+{
+ "classname" "path_corner"
+ "origin" "344 1248 680"
+ "target" "6202"
+ "targetname" "6201"
+}
+{
+ "classname" "path_corner"
+ "origin" "-312 1232 680"
+ "target" "6203"
+ "targetname" "6202"
+}
+{
+ "classname" "path_corner"
+ "origin" "144 1392 680"
+ "target" "6200"
+ "targetname" "6203"
+}
+{
+ "classname" "path_corner"
+ "origin" "240 1568 680"
+ "target" "6201"
+ "targetname" "6200"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "180"
+ "origin" "-352 1696 536"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "200"
+ "target" "1330"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "180"
+ "origin" "-288 1696 552"
+ "spawnclassname" "monster_enforcer"
+ "spawnflags" "3584"
+ "spawnfunction" "monster_enforcer"
+ "spawnsilent" "1"
+ "targetname" "200"
+ "target" "1330"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "270"
+ "origin" "-672 1696 536"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "200"
+ "target" "1330"
+}
+{
+ "classname" "path_corner"
+ "origin" "-656 2000 520"
+ "target" "1331"
+ "targetname" "1330"
+}
+{
+ "classname" "path_corner"
+ "origin" "-568 1520 520"
+ "target" "1330"
+ "targetname" "1331"
+}
+{
+ "classname" "light"
+ "light" "400"
+ "origin" "-128 80 1008"
+ "target" "5560"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-400 -112 1000"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-256 -240 1000"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-368 -216 1000"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-504 232 1000"
+}
+{
+ "classname" "func_wall"
+ "model" "*20"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-124 -368 1060"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-116 -296 1080"
+}
+{
+ "classname" "trigger_changelevel"
+ "map" "hip3m4"
+ "model" "*21"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "-180 -424 1040"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-320 -20 1040"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-504 56 1000"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-632 56 1000"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-632 -24 1000"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-504 -24 1000"
+}
+{
+ "classname" "func_door"
+ "angle" "90"
+ "model" "*22"
+ "sounds" "4"
+ "spawnflags" "2056"
+}
+{
+ "classname" "func_door"
+ "angle" "270"
+ "model" "*23"
+ "sounds" "4"
+ "spawnflags" "2056"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "item_key2"
+ "origin" "-384 96 1352"
+ "spawnflags" "2048"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "weapon_grenadelauncher"
+ "origin" "-384 96 1328"
+ "spawnflags" "1792"
+}
+{
+ "classname" "func_door"
+ "angle" "90"
+ "model" "*24"
+ "sounds" "4"
+ "spawnflags" "2048"
+ "targetname" "9902"
+ "wait" "-1"
+}
+{
+ "classname" "func_door"
+ "angle" "270"
+ "model" "*25"
+ "sounds" "4"
+ "spawnflags" "2048"
+ "targetname" "9902"
+ "wait" "-1"
+}
+{
+ "classname" "func_counter"
+ "origin" "-128 -144 928"
+ "spawnflags" "2052"
+ "target" "9901"
+ "targetname" "9900"
+}
+{
+ "classname" "func_oncount"
+ "count" "3"
+ "origin" "-120 -104 928"
+ "spawnflags" "2816"
+ "target" "9902"
+ "targetname" "9901"
+}
+{
+ "classname" "func_oncount"
+ "count" "2"
+ "origin" "-144 -104 928"
+ "spawnflags" "3328"
+ "target" "9902"
+ "targetname" "9901"
+}
+{
+ "classname" "func_oncount"
+ "count" "1"
+ "origin" "-168 -104 928"
+ "spawnflags" "3584"
+ "target" "9902"
+ "targetname" "9901"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_shalrath"
+ "angle" "180"
+ "origin" "-248 64 952"
+ "target" "9900"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_shalrath"
+ "angle" "225"
+ "origin" "-416 160 952"
+ "spawnflags" "768"
+ "target" "9900"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_shalrath"
+ "angle" "180"
+ "origin" "-264 -64 952"
+ "spawnflags" "256"
+ "target" "9900"
+}
+{
+ "classname" "monster_shambler"
+ "origin" "0 -192 952"
+ "spawnflags" "256"
+ "angle" "180"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-96 -192 944"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-48 -192 944"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "0 -360 1016"
+}
+{
+ "classname" "trigger_push"
+ "angle" "90"
+ "model" "*26"
+ "speed" "300"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "440 1400 760"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn_small"
+ "origin" "-384 288 1256"
+ "spawnclassname" "trap_spike_mine"
+ "spawnflags" "2048"
+ "spawnfunction" "trap_spike_mine"
+ "spawnsilent" "1"
+ "target" "7778"
+ "targetname" "7777"
+ "spawnmulti" "1"
+}
+{
+ "classname" "trigger_once"
+ "model" "*27"
+ "target" "7777"
+ "spawnflags" "2048"
+ "sounds" "3"
+}
+{
+ "classname" "light"
+ "origin" "-248 312 1400"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "path_corner"
+ "origin" "-392 952 1336"
+ "targetname" "7778"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "item_health"
+ "origin" "-280 2288 320"
+ "spawnflags" "2"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "item_spikes"
+ "origin" "-904 2288 320"
+ "spawnflags" "1"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-888 2424 416"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "-568 2304 368"
+}
+{
+ "classname" "item_rockets"
+ "origin" "8 1864 320"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "trigger_once"
+ "model" "*28"
+ "target" "7777"
+ "spawnflags" "2304"
+ "sounds" "3"
+}
+{
+ "classname" "trigger_once"
+ "model" "*29"
+ "target" "7777"
+ "spawnflags" "2304"
+ "sounds" "3"
+}
+{
+ "classname" "trigger_once"
+ "model" "*30"
+ "target" "7777"
+ "spawnflags" "2048"
+ "sounds" "3"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "trigger_once"
+ "model" "*31"
+ "target" "7777"
+ "spawnflags" "2048"
+ "sounds" "3"
+}
+{
+ "classname" "item_health"
+ "origin" "-1248 512 1248"
+ "spawnflags" "2"
+}
+{
+ "classname" "item_artifact_invisibility"
+ "origin" "-840 1744 1016"
+ "spawnflags" "1792"
+}
+{
+ "classname" "light"
+ "origin" "-968 1088 296"
+}
+{
+ "classname" "light"
+ "origin" "-64 1088 296"
+}
+{
+ "classname" "light"
+ "origin" "-64 880 296"
+}
+{
+ "classname" "light"
+ "origin" "-304 872 296"
+}
+{
+ "classname" "light"
+ "origin" "-584 864 296"
+}
+{
+ "classname" "light"
+ "origin" "-936 864 296"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-304 200 1000"
+}
+{
+ "classname" "item_health"
+ "origin" "-192 264 960"
+}
+{
+ "classname" "item_health"
+ "origin" "-320 264 960"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-328 -264 960"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-200 -264 960"
+}
+{
+ "classname" "item_artifact_invulnerability"
+ "origin" "0 48 952"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "0 48 992"
+}
+{
+ "classname" "weapon_mjolnir"
+ "origin" "-128 80 944"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "item_cells"
+ "origin" "-424 -72 960"
+ "spawnflags" "1"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "225"
+ "origin" "-432 1912 312"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "225"
+ "origin" "-384 1896 312"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "225"
+ "origin" "-368 1848 312"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "135"
+ "origin" "-416 1616 312"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "135"
+ "origin" "-352 1616 312"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "135"
+ "origin" "-408 1560 312"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "180"
+ "origin" "-400 1768 312"
+}
+{
+ "classname" "info_player_coop"
+ "angle" "180"
+ "origin" "-400 1720 312"
+}
+{
+ "classname" "light"
+ "origin" "120 224 1272"
+}
+{
+ "classname" "light"
+ "origin" "136 -320 1272"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_exploder"
+ "dmg" "-1"
+ "origin" "-384 200 1248"
+ "spawnflags" "1"
+ "targetname" "7777"
+ "count" "-1"
+}
+{
+ "classname" "trigger_teleport"
+ "model" "*32"
+ "spawnflags" "1792"
+ "target" "4600"
+}
+{
+ "classname" "info_teleport_destination"
+ "angle" "270"
+ "origin" "-528 2168 520"
+ "spawnflags" "1792"
+ "targetname" "4600"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "-668 304 940"
+}
+{
+ "classname" "light"
+ "light" "150"
+ "origin" "-524 304 940"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-592 256 976"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-248 272 1008"
+}
+{
+ "classname" "info_null"
+ "origin" "-128 80 996"
+ "targetname" "5560"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-144 192 1008"
+}
+{
+ "classname" "func_wall"
+ "model" "*33"
+ "spawnflags" "1792"
+}
+{
+ "classname" "func_wall"
+ "model" "*34"
+ "spawnflags" "1792"
+}
+{
+ "classname" "func_wall"
+ "model" "*35"
+ "spawnflags" "1792"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-304 1956 180"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-284 2028 132"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-284 1536 132"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-296 1608 180"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-300 1456 180"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-220 1528 180"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-224 2028 180"
+}
+{
+ "classname" "light"
+ "light" "120"
+ "origin" "-104 80 1016"
+}
+{
+ "classname" "light"
+ "light" "70"
+ "origin" "-128 112 1016"
+}
+{
+ "classname" "light"
+ "light" "70"
+ "origin" "-160 80 1016"
+}
+{
+ "classname" "light"
+ "light" "180"
+ "origin" "-208 -104 1040"
+}
+{
+ "classname" "func_wall"
+ "model" "*36"
+}
+{
+ "classname" "func_wall"
+ "model" "*37"
+ "spawnflags" "1792"
+}
+{
+ "classname" "light"
+ "light" "200"
+ "origin" "-592 1224 408"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "item_cells"
+ "origin" "-424 -184 960"
+ "spawnflags" "1"
+}
+{
+ "classname" "trigger_once"
+ "model" "*38"
+ "target" "6670"
+ "spawnflags" "2048"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "360"
+ "origin" "-432 1392 728"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "6670"
+}
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "240 360 696"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "6670"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-64 488 984"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2816"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "6670"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "func_spawn"
+ "angle" "90"
+ "origin" "-320 488 984"
+ "spawnclassname" "monster_shalrath"
+ "spawnflags" "2304"
+ "spawnfunction" "monster_shalrath"
+ "spawnsilent" "1"
+ "targetname" "6670"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "weapon_rocketlauncher"
+ "origin" "96 480 960"
+ "spawnflags" "1792"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-982 1146 360"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-678 874 360"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-214 922 360"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-70 1354 360"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-342 2378 360"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-358 2122 584"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-726 1514 584"
+}
+{
+ "classname" "ambient_suck_wind"
+ "origin" "-934 2138 584"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_shambler"
+ "origin" "-800 416 1288"
+ "spawnflags" "768"
+ "target" "131"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_enforcer"
+ "origin" "-1024 512 1272"
+ "spawnflags" "1536"
+ "target" "131"
+}
+// Entity with 1 changes to old fields
+{
+ "classname" "monster_enforcer"
+ "origin" "-832 520 1272"
+ "spawnflags" "1536"
+ "target" "130"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-144 1088 704"
+ "spawnflags" "2817"
+}
+{
+ "classname" "item_rockets"
+ "origin" "320 1632 704"
+ "spawnflags" "2817"
+}
+{
+ "classname" "item_rockets"
+ "origin" "64 544 672"
+ "spawnflags" "2817"
+}
+{
+ "classname" "item_rockets"
+ "origin" "224 160 672"
+ "spawnflags" "2817"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-976 576 544"
+ "spawnflags" "2817"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-768 2064 512"
+ "spawnflags" "2817"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-144 1872 512"
+ "spawnflags" "2305"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-352 1632 704"
+ "spawnflags" "2305"
+}
+{
+ "classname" "item_rockets"
+ "origin" "-448 1536 704"
+ "spawnflags" "2817"
+}
+// Start of new entities
